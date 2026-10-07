@@ -1,0 +1,41 @@
+{
+  "checks": [
+    {
+      "test": "L01_split_count",
+      "cases": 8192,
+      "result": "PASS",
+      "scope": "Arithmetic only; assumes coherent C and q"
+    },
+    {
+      "test": "L02_torn_wrap",
+      "cases": 128,
+      "result": "PASS",
+      "scope": "Two ideal torn-word fault patterns; no bit-level analog model"
+    },
+    {
+      "test": "L03_low_state_blind_spot",
+      "cases": 512,
+      "result": "PASS",
+      "scope": "A whole-block error cannot be seen from low residue/parity alone"
+    },
+    {
+      "test": "L04_clock_unit_conversion",
+      "cases": 768,
+      "result": "PASS",
+      "scope": "Ideal /4 and uniform eight-phase grid, aligned phase origins"
+    },
+    {
+      "test": "L05_anchor_equivalence",
+      "cases": 256,
+      "result": "PASS",
+      "scope": "Exact phase-domain identity; time normalization must match"
+    },
+    {
+      "test": "L06_saturation_noninvertibility",
+      "cases": 4,
+      "result": "PASS",
+      "scope": "Saturation is non-injective; not an implementation of a TDC"
+    }
+  ],
+  "total_cases": 9860
+}

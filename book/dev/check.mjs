@@ -4,6 +4,8 @@
 //                           [--shots book/dev/out/shots] [--mobile] [--themes light,dark] [--langs zh,en]
 //
 // --build      run the build first into --file (default book/dev/out/check.html)
+//              (with --only-widgets a,b / --only-pages p,q to include only your own files — recommended
+//               while other people edit other widgets in parallel)
 // --widget     scroll each widget into view, wait, and screenshot it (per language/theme)
 // --page       screenshot the top of each page id
 // Prints console errors/page errors and exits 1 if any occurred.
@@ -22,7 +24,10 @@ const flag = (name) => process.argv.includes('--' + name);
 
 const file = path.resolve(ROOT, arg('file', 'book/dev/out/check.html'));
 if (flag('build')) {
-  execFileSync('node', [path.join(ROOT, 'book/build.mjs'), '--out', path.relative(ROOT, file)], { stdio: 'inherit', cwd: ROOT });
+  const bargs = [path.join(ROOT, 'book/build.mjs'), '--out', path.relative(ROOT, file)];
+  if (arg('only-widgets')) bargs.push('--only-widgets', arg('only-widgets'));
+  if (arg('only-pages')) bargs.push('--only-pages', arg('only-pages'));
+  execFileSync('node', bargs, { stdio: 'inherit', cwd: ROOT });
 }
 const shots = path.resolve(ROOT, arg('shots', 'book/dev/out/shots'));
 fs.mkdirSync(shots, { recursive: true });

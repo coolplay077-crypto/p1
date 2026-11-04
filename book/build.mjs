@@ -28,7 +28,11 @@ const readSource = (p) => {
   }
   return read(p);
 };
-const argOut = (() => { const i = process.argv.indexOf('--out'); return i > 0 ? process.argv[i + 1] : 'book/dist/index.html'; })();
+const cliArg = (name) => { const i = process.argv.indexOf(name); return i > 0 ? process.argv[i + 1] : null; };
+const argOut = cliArg('--out') || 'book/dist/index.html';
+// development isolation: include only some widgets / hub pages (comma lists; 'none' for no pages)
+const onlyWidgets = cliArg('--only-widgets') ? new Set(cliArg('--only-widgets').split(',')) : null;
+const onlyPages = cliArg('--only-pages') ? new Set(cliArg('--only-pages').split(',')) : null;
 
 const warnings = [];
 const warn = (msg) => { warnings.push(msg); };
@@ -372,8 +376,10 @@ function katexCss() {
 }
 
 const srcDir = abs('book/src');
-const widgetFiles = fs.readdirSync(path.join(srcDir, 'widgets')).filter((f) => f.endsWith('.js') && !f.startsWith('.')).sort((a, b) => (a.startsWith('_') ? -1 : b.startsWith('_') ? 1 : a.localeCompare(b)));
-const pageFiles = exists('book/src/pages') ? fs.readdirSync(path.join(srcDir, 'pages')).filter((f) => f.endsWith('.js')).sort() : [];
+const widgetFiles = fs.readdirSync(path.join(srcDir, 'widgets')).filter((f) => f.endsWith('.js') && !f.startsWith('.'))
+  .filter((f) => !onlyWidgets || f.startsWith('_') || onlyWidgets.has(f.replace(/\.js$/, ''))).sort((a, b) => (a.startsWith('_') ? -1 : b.startsWith('_') ? 1 : a.localeCompare(b)));
+const pageFiles = exists('book/src/pages') ? fs.readdirSync(path.join(srcDir, 'pages')).filter((f) => f.endsWith('.js') && !f.startsWith('.'))
+  .filter((f) => !onlyPages || f.startsWith('_') || onlyPages.has(f.replace(/\.js$/, ''))).sort() : [];
 
 const dataFiles = fs.readdirSync(abs('book/data')).filter((f) => f.endsWith('.json'));
 const data = {};
@@ -412,6 +418,7 @@ fs.writeFileSync(abs(argOut), outHtml);
 // sanity checks
 const mappedWidgets = Object.values(widgetMap).flat();
 for (const w of mappedWidgets) {
+  if (onlyWidgets) break;
   if (!widgetFiles.some((f) => f.replace(/\.js$/, '') === w)) warn(`widget-map references "${w}" but book/src/widgets/${w}.js does not exist`);
 }
 for (const id of Object.keys(widgetMap)) if (!ALL_IDS.has(id)) warn(`widget-map section "${id}" does not exist`);

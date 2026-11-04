@@ -315,8 +315,8 @@ def _mp_loop(r1, d, w_act, w_nom, post_skew, path_skew, retimed, rt_margin, rt_s
                 ex += path_skew[i, d[k, i]]
             e = (r1[k] + di - th) * t_vco + ex - ref_t[k]
             I = w_act[kw, i] * icp
+            ee = e
             if e >= 0:
-                ee = e
                 if nonlin_ramp:
                     if e < t_nonlin:
                         ee = e * e / (2 * t_nonlin)
@@ -330,7 +330,13 @@ def _mp_loop(r1, d, w_act, w_nom, post_skew, path_skew, retimed, rt_margin, rt_s
             else:
                 qi = 0.0 if sc_mode else I * dn * e
             if sicp > 0:
-                qi += math.sqrt(sicp * w_nom[i] * abs(e) * 0.5) * np.random.randn()
+                win = abs(e)
+                if sc_mode and e < 0:
+                    win = 0.0                      # DN-only CP: no current, no noise
+                elif nonlin_ramp and e >= 0:
+                    win = ee                       # effective conducting time inside the soft-start
+                if win > 0:
+                    qi += math.sqrt(sicp * w_nom[i] * win * 0.5) * np.random.randn()
             q += qi
             if e < emin[i]:
                 emin[i] = e
@@ -354,6 +360,34 @@ def _mp_loop(r1, d, w_act, w_nom, post_skew, path_skew, retimed, rt_margin, rt_s
     return out, emin, emax, esum / n, slips
 
 
+def charge_law(e, I, w_nom_i, p: MP19p3Params):
+    """Per-slice charge [C] for pulse width e [s] -- identical to the kernel law."""
+    e = np.asarray(e, float)
+    up = 1.0 + 0.5 * p.beta
+    dn = 1.0 - 0.5 * p.beta
+    ee = e.copy()
+    if p.nonlin_ramp:
+        ee = np.where(e < p.t_nonlin, e * e / (2 * p.t_nonlin), e - 0.5 * p.t_nonlin)
+    if p.c_dn_va < 1e30:
+        cc = w_nom_i * p.c_dn_va
+        qp = cc * (1 - np.exp(-I * up * ee / cc))
+    else:
+        qp = I * up * ee
+    qn = np.zeros_like(e) if p.offset_mode == "sc" else I * dn * e
+    return np.where(e >= 0, qp, qn)
+
+
+def lock_charge(p: MP19p3Params, seq, t_off, w_act, w_nom, n_avg=2 ** 15):
+    """Mean per-cycle CP charge when the current-weighted pulse centre sits at t_off:
+    the offset charge Q_OFST (or bleed I_b*T) that holds the loop there."""
+    m = min(n_avg, seq["r1"].shape[0])
+    rel = (seq["r1"][:m, None] + seq["d"][:m] - seq["r_eff"].mean()) * p.t_vco
+    q = 0.0
+    for i in range(rel.shape[1]):
+        q += float(np.mean(charge_law(t_off + rel[:, i], w_act[i] * p.icp, w_nom[i], p)))
+    return q
+
+
 def cp_noise_psd(p: MP19p3Params):
     """Thermal noise PSD [A^2/Hz] of the single I_DN source at full Icp: 4kT*gamma*gm, gm = 2I/Vov."""
     kT = 1.380649e-23 * 300
@@ -369,7 +403,7 @@ def offset_noise_var(p: MP19p3Params, t_off, mode=None):
     if mode == "sc":
         return 2 * kT * (q_ofst / p.vdd)
     ib = q_ofst * p.f_pfd
-    s_i = 4 * kT * 1.0 * (2 * ib / 0.25)
+    s_i = 4 * kT * p.cp_gamma * (2 * ib / p.cp_vov) * p.cp_noise_scale   # thermal only (flicker excluded)
     return s_i * (1 / p.f_pfd) * 0.5
 
 
@@ -407,12 +441,7 @@ def simulate(p: MP19p3Params, seq=None, return_seq=False):
     path = np.zeros((M, max(p.M, 1) + 3))
     if M > 1:
         path[1:, 0] = p.dt1
-    wsum = float(w_act.sum())
-    q_ofst = p.icp * wsum * t_off
-    if p.nonlin_ramp:
-        q_ofst = p.icp * wsum * (t_off - 0.5 * p.t_nonlin)
-    if p.c_dn_va < 1e30:
-        q_ofst = sum(wi * p.c_dn_va * (1 - math.exp(-p.icp * t_off / p.c_dn_va)) for wi in w * (1 + eps))
+    q_ofst = lock_charge(p, seq, t_off, w_act[0], w)
     ib = q_ofst * p.f_pfd
     sicp = cp_noise_psd(p) if p.cp_noise_on else 0.0
     n = p.n_cyc
@@ -466,7 +495,7 @@ _TOFF_CACHE = {}
 def t_off_of(p: MP19p3Params):
     if p.t_off is not None:
         return p.t_off
-    key = (p.N, p.K, p.M, p.mp_disabled, p.psel_late, p.t_nonlin, p.f_xo, p.dbl)
+    key = (p.N, p.K, p.Q, p.dither, p.seed, p.M, p.mp_disabled, p.psel_late, p.t_nonlin, p.f_xo, p.dbl)
     if key not in _TOFF_CACHE:
         _TOFF_CACHE[key] = auto_t_off(p, build_sequences(replace(p, n_cyc=2 ** 14)))
     return _TOFF_CACHE[key]
@@ -514,7 +543,7 @@ def jitter_analytic(p: MP19p3Params, f1=1e4, f2=1e8, parts=False):
 FIT_SCALE = dict(fc=1e6, pm=10.0, ref_white_fs=1e-13, xo_flicker_fs2=1e-32, p3_ratio=1.0,
                  cp_noise_scale=1.0, cp_flicker_fc=1e6, sdm_adj_db=1.0)
 FIT_BOUNDS = dict(fc=(0.2e6, 3e6), pm=(30.0, 80.0), ref_white_fs=(0.0, 1e-12), xo_flicker_fs2=(0.0, 1e-30),
-                  p3_ratio=(2.0, 60.0), cp_noise_scale=(0.3, 30.0), cp_flicker_fc=(0.0, 5e7), sdm_adj_db=(-12, 12))
+                  p3_ratio=(2.0, 60.0), cp_noise_scale=(0.03, 30.0), cp_flicker_fc=(0.0, 3e8), sdm_adj_db=(-12, 12))
 
 
 def fit_joint(p: MP19p3Params, free, data):
@@ -550,6 +579,8 @@ def fit_joint(p: MP19p3Params, free, data):
     for over, markers, wgt in data:
         e = markers_err(q, markers, **over)
         per.append(dict(overrides=over, rms_err_db=e["rms"], max_err_db=e["max"], resid=e["resid"]))
+    at_bound = [k for k, v, l, h in zip(free, best.x, lo, hi) if (v - l) < 1e-3 * (h - l) or (h - v) < 1e-3 * (h - l)]
+    per.append(dict(at_bound=at_bound))
     return q, per, float(best.cost)
 
 

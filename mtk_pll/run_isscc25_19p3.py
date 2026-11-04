@@ -45,6 +45,7 @@ DATA_C = [({}, P.PLL_MARKERS, 1.0), ({"mp_disabled": True}, P.PLL_NO_MP_DIGITISE
 
 
 def check(name, ok, measured, expected, kind, note="", soft=False):
+    assert kind in ("arith", "consistency", "validation", "claim")
     res = "PASS" if ok else ("DEVIATION" if soft else "FAIL")
     CHECKS.append(dict(check=name, kind=kind, result=res, measured=measured, expected=expected, note=note))
     print(f"  [{res}|{kind}] {name}: measured={measured} expected={expected} {note}")
@@ -133,29 +134,35 @@ def exp_d1():
     return out
 
 
+def split_fit(per):
+    return per[:-1], per[-1]["at_bound"]
+
+
 def exp_d2(base, n, n_seeds):
-    print("\n[D2] identification (fits) and HOLD-OUT validation")
+    print("\n[D2] identification (fits), consistency checks and HOLD-OUT validation")
     qa, per_a, cost_a = P.fit_joint(base, FREE_A, DATA_A)
     qc, per_c, cost_c = P.fit_joint(base, FREE_C, DATA_C)
+    per_a, bnd_a = split_fit(per_a)
+    per_c, bnd_c = split_fit(per_c)
     fits = {}
-    for tag, q, per, cost in (("A_M4_only", qa, per_a, cost_a), ("C_joint", qc, per_c, cost_c)):
+    for tag, q, per, cost, bnd in (("A_M4_only", qa, per_a, cost_a, bnd_a), ("C_joint", qc, per_c, cost_c, bnd_c)):
         fg = np.logspace(3, 8.5, 3000)
         Hdb = 20 * np.log10(H_closed(q, fg))
         j, parts = P.jitter_analytic(q, parts=True)
         fits[tag] = dict(fc=q.fc, pm=q.pm, p3_ratio=q.p3_ratio, cp_noise_scale=q.cp_noise_scale, cp_flicker_fc=q.cp_flicker_fc,
-                         xo_flicker_fs2=q.xo_flicker_fs2, ref_white_fs_fixed=q.ref_white_fs * 1e15, cost=cost,
+                         xo_flicker_fs2=q.xo_flicker_fs2, ref_white_fs_fixed=q.ref_white_fs * 1e15, cost=cost, at_bound=bnd,
                          closed_loop_bw=float(fg[np.where(Hdb < -3)[0][0]]), peaking_db=float(Hdb.max()),
                          jitter_fs=j * 1e15, parts_fs={k: v * 1e15 for k, v in parts.items()}, per_dataset=per,
+                         jitter_mp_off_fs=P.jitter_analytic(replace(q, mp_disabled=True)) * 1e15,
                          t_off_m4_ps=P.t_off_of(q) * 1e12, t_off_mpoff_ps=P.t_off_of(replace(q, mp_disabled=True)) * 1e12)
         print(f"    fit {tag}: fc {q.fc/1e6:.2f} MHz PM {q.pm:.1f} BW {fits[tag]['closed_loop_bw']/1e6:.2f} MHz p3 {q.p3_ratio:.1f} "
-              f"CPx{q.cp_noise_scale:.2f} I_DN 1/f corner {q.cp_flicker_fc/1e6:.2f} MHz | " +
+              f"CPx{q.cp_noise_scale:.2f} I_DN 1/f corner {q.cp_flicker_fc/1e6:.1f} MHz, at bound {bnd} | " +
               " | ".join(f"{d['overrides']}: rms {d['rms_err_db']:.2f} max {d['max_err_db']:.2f}" for d in per) +
-              f" | jitter {j*1e15:.1f} fs")
+              f" | jitter {j*1e15:.1f} fs (multipath off {fits[tag]['jitter_mp_off_fs']:.1f} fs)")
     check("D2 fit A reproduces the 10 exact slide-29 markers", per_a[0]["max_err_db"] < 1.0,
           round(per_a[0]["max_err_db"], 2), "max < 1 dB", "consistency")
     check("D2 joint fit C: M=4 markers and digitised M=1 trace", per_c[0]["max_err_db"] < 2.0 and per_c[1]["rms_err_db"] < 1.5,
           [round(per_c[0]["max_err_db"], 2), round(per_c[1]["rms_err_db"], 2)], "max<2 dB / rms<1.5 dB", "consistency")
-    # time-domain: sim vs analytic, seed scatter
     sims = []
     for s in range(n_seeds):
         r = P.simulate(replace(qc, n_cyc=n, seed=11 + 10 * s))
@@ -168,24 +175,39 @@ def exp_d2(base, n, n_seeds):
     j_ana = fits["C_joint"]["jitter_fs"]
     check("D2 time-domain sim vs analytic jitter (fit C)", abs(j_sim / j_ana - 1) < 0.05,
           f"{j_sim:.2f}+-{j_std:.2f}", round(j_ana, 2), "consistency", f"{n_seeds} seeds")
+    # side calculations (traceable): marker-only integral, digitised M=1 integral, literal slide-8 reading
+    mk = np.array(P.PLL_MARKERS)
+    j_mk = C.rms_jitter_logint(np.r_[mk[:, 0], 1e8], np.r_[mk[:, 1], -155.7], 4.75e9, 1e4, 1e8) * 1e15
+    dg = np.array(P.PLL_NO_MP_DIGITISED)
+    j_m1 = C.rms_jitter_logint(np.r_[dg[:, 0], 1e8], np.r_[dg[:, 1], -155.5], 4.75e9, 1e4, 1e8) * 1e15
+    lit = 10 * math.log10((2 * math.pi) ** 2 / (12 * 16) / qc.f_pfd)    # unshaped T/(4 sqrt12) per edge, L at the VCO
+    side = dict(jitter_from_markers_only_fs=j_mk, jitter_digitised_M1_trace_fs=j_m1, literal_slide8_reading_L_vco=lit)
+    print(f"    side calculations: 10 markers alone integrate to {j_mk:.1f} fs (so the jitter match is forced by the fit); "
+          f"digitised w/o-multipath trace {j_m1:.1f} fs; literal slide-8 macro reading -> {lit:.1f} dBc/Hz white at the VCO")
     check("D2 jitter vs measured 33.78 fs (fit C)", abs(j_sim / P.PAPER["jitter_fs"] - 1) < 0.06, round(j_sim, 2),
-          P.PAPER["jitter_fs"], "consistency", "forced by the marker fit; not independent")
+          P.PAPER["jitter_fs"], "consistency", f"forced by the marker fit (markers alone give {j_mk:.1f} fs)")
     # ---- hold-outs
     h1 = P.markers_err(qa, P.PLL_NO_MP_DIGITISED, mp_disabled=True)
     check("D2-H1 fit on M=4 only -> predict the w/o-multipath trace", h1["rms"] < 1.5, round(h1["rms"], 2), "rms < 1.5 dB",
-          "validation", f"max {h1['max']:.1f} dB; close-in gain under-predicted", soft=True)
+          "validation", f"max {h1['max']:.1f} dB; jitter {fits['A_M4_only']['jitter_mp_off_fs']:.1f} fs vs digitised {j_m1:.1f} fs; "
+          "the only discriminating PN hold-out", soft=True)
     h2a = P.markers_err(qa, P.PLL_SPUR_MARKERS)
     h2c = P.markers_err(qc, P.PLL_SPUR_MARKERS)
-    check("D2-H2 slide-30 channel markers (not fitted)", max(h2a["rms"], h2c["rms"]) < 1.0,
-          [round(h2a["rms"], 2), round(h2c["rms"], 2)], "rms < 1 dB (fit A, fit C)", "validation")
-    # H3: jitter vs VCO frequency through a FROZEN loop filter
-    lf0 = P.loop_filter(qc)
+    s29 = np.interp(np.log10([m[0] for m in P.PLL_SPUR_MARKERS]), np.log10(mk[:, 0]), mk[:, 1])
+    base_rms = float(np.sqrt(np.mean((np.array([m[1] for m in P.PLL_SPUR_MARKERS]) - s29) ** 2)))
+    check("D2-H2 slide-30 channel markers (cross-channel repeatability)", max(h2a["rms"], h2c["rms"]) < 1.0,
+          [round(h2a["rms"], 2), round(h2c["rms"], 2)], "rms < 1 dB (fit A, fit C)", "consistency",
+          f"cannot discriminate: copying the slide-29 markers gives {base_rms:.2f} dB")
+    # H3: jitter vs VCO frequency through a FROZEN loop filter and ONE fixed T_off (band-bottom requirement)
+    t_bottom = max(P.t_off_of(replace(qc, **P.frac_params(qc, fm * 1e6))) for fm, _ in P.JITTER_VS_FVCO)
+    qf, per_f, _ = P.fit_joint(replace(qc, t_off=t_bottom), FREE_C, DATA_C)
+    lf0 = P.loop_filter(qf)
     rows = []
     for fm, jm in P.JITTER_VS_FVCO:
         fv = fm * 1e6
         row = dict(f_vco=fv, measured_fs=jm)
-        for tag, kv in (("kvco_const", qc.kvco), ("kvco_f3", qc.kvco * (fv / qc.f_vco) ** 3)):
-            q = replace(qc, lf_override=lf0, kvco=kv, vco_scale_db=P.vco_freq_adj_db(fv), **P.frac_params(qc, fv))
+        for tag, kv in (("kvco_const", qf.kvco), ("kvco_f3", qf.kvco * (fv / qf.f_vco) ** 3)):
+            q = replace(qf, lf_override=lf0, kvco=kv, vco_scale_db=P.vco_freq_adj_db(fv), **P.frac_params(qf, fv))
             row[tag] = P.jitter_analytic(q) * 1e15
         rows.append(row)
     meas = np.array([r["measured_fs"] for r in rows])
@@ -194,11 +216,11 @@ def exp_d2(base, n, n_seeds):
         mod = np.array([r[tag] for r in rows])
         slope_ok = np.sign(mod[-1] - mod[0]) == np.sign(meas[-1] - meas[0])
         err = float(np.max(np.abs(mod - meas)))
-        print(f"    H3 jitter vs f_VCO ({tag}): model " + ", ".join(f"{r['f_vco']/1e9:.2f}G:{r[tag]:.1f}" for r in rows) +
-              f" | measured " + ", ".join(f"{m:.1f}" for m in meas))
+        print(f"    H3 jitter vs f_VCO ({tag}, fixed T_off {t_bottom*1e12:.0f} ps): model " +
+              ", ".join(f"{r['f_vco']/1e9:.2f}G:{r[tag]:.1f}" for r in rows) + " | measured " + ", ".join(f"{m:.1f}" for m in meas))
         if best is None or err < best[1]:
             best = (tag, err, slope_ok)
-    check("D2-H3 slide-29 jitter vs VCO frequency (frozen LPF, VCO PN vs f from slide 27)", best[1] < 1.5 and best[2],
+    check("D2-H3 slide-29 jitter vs VCO frequency (frozen LPF, fixed T_off, VCO PN vs f from slide 27)", best[1] < 1.5 and best[2],
           f"{best[0]}: max err {best[1]:.2f} fs, slope ok {bool(best[2])}", "|err| < 1.5 fs and same slope", "validation", soft=True)
     # H4: the w/o-multipath mode cannot have kept the M=4 offset (folding would dominate)
     q4 = replace(qa, n_cyc=n // 2, mp_disabled=True, t_off=P.t_off_of(qa), nonlin_ramp=True)
@@ -207,21 +229,35 @@ def exp_d2(base, n, n_seeds):
     l100 = C.band_level(f, L, 7e4, 1.4e5)
     check("D2-H4 'same Q_OFST in both modes' is rejected by the measured M=1 trace", l100 > -120.9 + 6, round(l100, 1),
           "> measured -120.9 + 6 dB", "validation", "M=1 needs its own (larger) offset, as slide 12 implies")
-    # identifiability profile: reference floor x T_nonlin
+    # identifiability profile 1: reference floor x T_nonlin
     prof = []
     for Lref in (-170.0, -168.0, -166.0):
         for tn in (10e-12, 30e-12, 50e-12):
             q0 = replace(base, ref_white_fs=ref_sigma_from_floor(Lref), t_nonlin=tn)
             q, per, cost = P.fit_joint(q0, FREE_C, DATA_C)
+            per, bnd = split_fit(per)
             j, parts = P.jitter_analytic(q, parts=True)
             prof.append(dict(ref_floor_dbc=Lref, t_nonlin_ps=tn * 1e12, cost=cost, rms=[d["rms_err_db"] for d in per],
-                             cp_scale=q.cp_noise_scale, cp_flicker_fc=q.cp_flicker_fc, jitter_fs=j * 1e15,
+                             cp_scale=q.cp_noise_scale, cp_flicker_fc=q.cp_flicker_fc, at_bound=bnd, jitter_fs=j * 1e15,
                              parts_fs={k: v * 1e15 for k, v in parts.items()}))
-    keys = sorted({k for p_ in prof for k in p_["parts_fs"]})
-    ranges = {k: [min(p_["parts_fs"].get(k, 0) for p_ in prof), max(p_["parts_fs"].get(k, 0) for p_ in prof)] for k in keys}
-    print("    identifiability profile (ref floor -170/-168/-166 dBc/Hz x T_nl 10/30/50 ps): cost " +
-          f"{min(p_['cost'] for p_ in prof):.2f}..{max(p_['cost'] for p_ in prof):.2f}; component jitter ranges [fs]: " +
-          ", ".join(f"{k} {v[0]:.1f}-{v[1]:.1f}" for k, v in ranges.items()))
+    # identifiability profile 2: CP thermal scale held fixed
+    prof_cp = []
+    for scl in (0.03, 0.1, 0.3, 1.0, 3.0):
+        q, per, cost = P.fit_joint(replace(base, cp_noise_scale=scl), tuple(k for k in FREE_C if k != "cp_noise_scale"), DATA_C)
+        per, bnd = split_fit(per)
+        j, parts = P.jitter_analytic(q, parts=True)
+        prof_cp.append(dict(cp_scale=scl, cost=cost, cp_flicker_fc=q.cp_flicker_fc, at_bound=bnd,
+                            parts_fs={k: v * 1e15 for k, v in parts.items()}))
+    allp = prof + prof_cp
+    keys = sorted({k for p_ in allp for k in p_["parts_fs"]})
+    cmin = min(p_["cost"] for p_ in allp)
+    good = [p_ for p_ in allp if p_["cost"] < cmin + 1.5]
+    ranges = {k: [min(p_["parts_fs"].get(k, 0) for p_ in good), max(p_["parts_fs"].get(k, 0) for p_ in good)] for k in keys}
+    fc_rng = [min(p_["cp_flicker_fc"] for p_ in good) / 1e6, max(p_["cp_flicker_fc"] for p_ in good) / 1e6]
+    print("    profile 1 (ref floor x T_nl): cost " + ", ".join(f"{p_['cost']:.2f}" for p_ in prof))
+    print("    profile 2 (CP thermal scale fixed 0.03..3): " + ", ".join(f"x{p_['cp_scale']}: cost {p_['cost']:.2f} corner {p_['cp_flicker_fc']/1e6:.0f}MHz" for p_ in prof_cp))
+    print(f"    component jitter over fits within cost+1.5 of best ({len(good)}/{len(allp)}): " +
+          ", ".join(f"{k} {v[0]:.1f}-{v[1]:.1f}" for k, v in ranges.items()) + f"; I_DN 1/f corner {fc_rng[0]:.0f}-{fc_rng[1]:.0f} MHz")
     # figure
     fig, ax = plt.subplots(figsize=(8.5, 5))
     fs_, Ls_ = C.log_smooth(f0, L0, 200, 3e3, 1.5e8)
@@ -233,10 +269,9 @@ def exp_d2(base, n, n_seeds):
     for key in ("vco", "cp", "cp_flicker", "sdm", "ref_common", "out_floor"):
         if key in A:
             ax.semilogx(fg, A[key], ":", lw=1, label=f"fit C, M=4: {key}")
-    ax.semilogx([m[0] for m in P.PLL_MARKERS], [m[1] for m in P.PLL_MARKERS], "o", color="C0", mfc="none", label="measured markers (slide 29)")
-    ax.semilogx([m[0] for m in P.PLL_NO_MP_DIGITISED], [m[1] for m in P.PLL_NO_MP_DIGITISED], "s", color="C3", mfc="none", ms=4,
-                label="digitised w/o multipath (slide 29)")
-    ax.semilogx([m[0] for m in P.PLL_SPUR_MARKERS], [m[1] for m in P.PLL_SPUR_MARKERS], "x", color="k", label="slide-30 markers (hold-out)")
+    ax.semilogx(mk[:, 0], mk[:, 1], "o", color="C0", mfc="none", label="measured markers (slide 29)")
+    ax.semilogx(dg[:, 0], dg[:, 1], "s", color="C3", mfc="none", ms=4, label="digitised w/o multipath (slide 29)")
+    ax.semilogx([m[0] for m in P.PLL_SPUR_MARKERS], [m[1] for m in P.PLL_SPUR_MARKERS], "x", color="k", label="slide-30 markers")
     ax.set(xlabel="offset [Hz]", ylabel="L(f) at VCO/2 [dBc/Hz]", ylim=(-170, -100), title="D2  ISSCC'25 19.3: model vs measurement")
     ax.grid(True, which="both", alpha=.3)
     ax.legend(fontsize=6.5, ncol=2)
@@ -246,17 +281,18 @@ def exp_d2(base, n, n_seeds):
     f_ib = np.array([1e4, 2e4, 1e5])
     gain = {tag: (P.analytic_pn(f_ib, replace(q, mp_disabled=True))["total"] - P.analytic_pn(f_ib, q)["total"]).tolist()
             for tag, q in (("fitA", qa), ("fitC", qc))}
-    meas_gain = [float(np.interp(math.log10(x), np.log10([m[0] for m in P.PLL_NO_MP_DIGITISED]), [m[1] for m in P.PLL_NO_MP_DIGITISED]))
-                 - float(np.interp(math.log10(x), np.log10([m[0] for m in P.PLL_MARKERS]), [m[1] for m in P.PLL_MARKERS])) for x in f_ib]
+    meas_gain = [float(np.interp(math.log10(x), np.log10(dg[:, 0]), dg[:, 1])) - float(np.interp(math.log10(x), np.log10(mk[:, 0]), mk[:, 1]))
+                 for x in f_ib]
     print(f"    in-band gain M=1->M=4 at 10k/20k/100k: measured {np.round(meas_gain,1)}, fit A {np.round(gain['fitA'],1)}, fit C {np.round(gain['fitC'],1)}")
-    out = dict(fits=fits, sim_jitter_fs=j_sim, sim_jitter_std_fs=j_std, holdout_M1=h1, holdout_slide30=dict(fitA=h2a, fitC=h2c),
-               jitter_vs_fvco=rows, same_qofst_L100k=l100, profile=prof, profile_ranges_fs=ranges,
-               inband_gain=dict(measured=meas_gain, **gain))
+    out = dict(fits=fits, sim_jitter_fs=j_sim, sim_jitter_std_fs=j_std, side=side, holdout_M1=h1,
+               slide30=dict(fitA=h2a, fitC=h2c, copy_slide29_baseline_rms=base_rms), jitter_vs_fvco=rows,
+               jitter_vs_fvco_fixed_toff_ps=t_bottom * 1e12, same_qofst_L100k=l100, profile=prof, profile_cp_scale=prof_cp,
+               profile_ranges_fs=ranges, cp_flicker_corner_range_MHz=fc_rng, inband_gain=dict(measured=meas_gain, **gain))
     return out, qc, qa
 
 
 def exp_d3(qc, n):
-    print("\n[D3] SDM quantisation noise vs M, and how strongly the data support '0.25X Q reduction'")
+    print("\n[D3] SDM quantisation noise vs M, and the joint-fit cost vs an assumed M=1->M=4 SDM reduction")
     res = {}
     ref = None
     for M in (1, 2, 4, 8):
@@ -274,11 +310,13 @@ def exp_d3(qc, n):
         data = [({}, P.PLL_MARKERS, 1.0), ({"mp_disabled": True, "sdm_adj_db": 0.0}, P.PLL_NO_MP_DIGITISED, 0.5)]
         q, per, cost = P.fit_joint(q0, FREE_C, data)
         prof.append(dict(reduction_db=R, cost=cost))
+    cmin = min(x["cost"] for x in prof)
     best = min(prof, key=lambda x: x["cost"])
-    print("    joint-fit cost vs assumed M=1->M=4 SDM reduction: " + ", ".join(f"{x['reduction_db']} dB:{x['cost']:.2f}" for x in prof))
-    ok = [x["reduction_db"] for x in prof if x["cost"] < best["cost"] * 1.5 + 0.5]
-    check("D3 measured traces support ~12 dB (0.25X) SDM reduction", 12 in ok, f"best {best['reduction_db']} dB, acceptable {ok}",
-          "12 dB inside", "validation", "w/o-multipath far-out hump vs M=4 markers")
+    print("    joint-fit cost vs assumed reduction: " + ", ".join(f"{x['reduction_db']} dB:{x['cost']:.2f}" for x in prof) +
+          f" (minimum near {best['reduction_db']} dB; 12 vs 15 dB not separable within +-1 dB digitisation bias)")
+    low = [x["cost"] for x in prof if x["reduction_db"] <= 9]
+    check("D3 joint fit disfavours a small (<=9 dB) SDM reduction", min(low) > 2 * cmin, f"best {best['reduction_db']} dB",
+          "cost(<=9 dB) > 2 x min", "consistency", "same data as the fit; eye-read 2-10 MHz points dominate")
     res["reduction_profile"] = prof
     return res
 
@@ -330,13 +368,19 @@ def exp_d4(qc):
     # LEVEL: CI of sigma from the in-band mean statistic
     stat_meas = float(np.mean(meas[inb]))
     ci = []
-    for s3 in np.logspace(math.log10(0.05e-2), math.log10(5e-2), 41):
+    grid = np.logspace(math.log10(0.05e-2), math.log10(20e-2), 49)
+    for s3 in grid:
         st = spur_population(X0, A, s3 / 3, n_draw=4000)[:, inb].mean(axis=1)
         lo, hi = np.percentile(st, 5), np.percentile(st, 95)
         if lo <= stat_meas <= hi:
             ci.append(s3)
+    ci_upper_open = bool(ci) and ci[-1] >= grid[-1]
     st0 = pop[:, inb].mean(axis=1)
     pct = float(np.mean(st0 < stat_meas) * 100)
+    pat = {}
+    for tag, sg in (("0.001_as_sigma", 1e-3), ("0.001_as_3sigma", 1e-3 / 3)):
+        stp = spur_population(X0, A, sg, n_draw=20000)[:, inb].mean(axis=1)
+        pat[tag] = dict(median_inband_mean=float(np.median(stp)), measured_percentile=float(np.mean(stp < stat_meas) * 100))
     # SHAPE: draw-independent?  normalised shape of the median vs measured
     def shape_rms(model):
         d = meas - model
@@ -364,12 +408,17 @@ def exp_d4(qc):
         fold[tag] = C.band_level(f, L, 1e5, 4e5)
     out = dict(sigma_nominal=sig0, offsets=offs.tolist(), measured=meas.tolist(), ideal=ideal.tolist(), p10=p10.tolist(),
                p50=p50.tolist(), p90=p90.tolist(), coef_rel=rel.tolist(), measured_inband_mean=stat_meas,
-               measured_percentile_at_nominal=pct, sigma3_ci=[min(ci), max(ci)] if ci else None, shape_rms_mismatch=sh_mis,
+               measured_percentile_at_nominal=pct, inband_mean_median_at_nominal=float(np.median(st0)),
+               sigma3_ci=[min(ci), max(ci)] if ci else None, sigma3_ci_upper_open=ci_upper_open, patent_0p001=pat,
+               shape_rms_mismatch=sh_mis,
                level_offset_mismatch=off_mis, compression=comp, folded_inband_9g5=fold)
     print(f"    slice-coefficient magnitudes (Icp/4 fixed, Icp/4 PSEL, Icp/2 PSEL) relative: {np.round(rel,2)}")
     print(f"    nominal sigma {sig0*100:.3f}%: median " + ", ".join(f"{o/1e3:.0f}k:{v:.1f}" for o, v in zip(offs, p50)))
-    print(f"    measured in-band mean {stat_meas:.1f} dBc is the {pct:.0f}th percentile at 3sigma=0.5%; 90% CI of 3sigma "
-          f"{(min(ci)*100 if ci else float('nan')):.2f}%..{(max(ci)*100 if ci else float('nan')):.2f}%")
+    print(f"    measured in-band mean {stat_meas:.1f} dBc is the {pct:.0f}th percentile of the 3sigma=0.5% population "
+          f"(population median of the same statistic {np.median(st0):.1f} dBc); 90% CI of 3sigma "
+          f"{(min(ci)*100 if ci else float('nan')):.2f}%..{'>=' if ci_upper_open else ''}{(max(ci)*100 if ci else float('nan')):.1f}%")
+    print("    patent 'about 0.001': " + ", ".join(f"{k}: median in-band {v['median_inband_mean']:.1f} dBc, measured at "
+          f"{v['measured_percentile']:.0f}th pct" for k, v in pat.items()))
     print(f"    SHAPE rms (after level fit): mismatch {sh_mis:.2f} dB; compression " + ", ".join(f"{c['c_dn_va_pFV']:.0f}pF*V: level {c['inband_mean']:.1f} shape {c['shape_rms']:.2f}" for c in comp))
     print(f"    folded in-band noise (100-400 kHz, at 9.5 GHz): " + ", ".join(f"{k} {v:.1f}" for k, v in fold.items()) + " dBc/Hz (slide 13: -127)")
     check("D4 LEVEL: measured in-band spur within 5-95% of the 3sigma=0.5% slice-mismatch population",
@@ -431,6 +480,8 @@ def exp_d5(qc, n):
                              jitter_fs=C.rms_jitter_logint(f, L, q.f_vco / 2, 1e4, 1e8) * 1e15))
         print(f"    retimer slips ({'shared first DFF' if shared else 'per-slice DFF'}), sigma 1.5 ps: " +
               ", ".join(f"{x['margin_sigma']}s:{x['slip_rate']:.0e}/{x['jitter_fs']:.0f}fs" for x in rows if x["shared"] == shared))
+    print("    note: 5 and 6 sigma rows = zero slips observed in the run; at 5 sigma ~0.3 slips/slice expected per 2^20 cycles "
+          "(~46 slips/s at 160 MHz) -> the >=5 sigma rule rests on extrapolation from 4-4.5 sigma")
     out["retimer"] = rows
     q = replace(qc, psel_late=True, n_cyc=n // 2)
     r = P.simulate(q)
@@ -454,7 +505,7 @@ def exp_d6(qc):
     sens = P.supply_sensitivity(qc, t_off)
     vdd_req = 30e-15 / sens
     print(f"    Q_OFST {q_ofst*1e15:.0f} fC, C_OFST {q_ofst/qc.vdd*1e15:.0f} fF; offset noise SC {rows['sc']['offset_timing_noise_fs']:.1f} fs/edge "
-          f"(kT/C lower bound), bleed {rows['bleed']['offset_timing_noise_fs']:.1f} fs/edge; jitter {rows['sc']['jitter_fs']:.2f} vs {rows['bleed']['jitter_fs']:.2f} fs")
+          f"(kT/C lower bound), bleed {rows['bleed']['offset_timing_noise_fs']:.1f} fs/edge (thermal only, same gm model); jitter {rows['sc']['jitter_fs']:.2f} vs {rows['bleed']['jitter_fs']:.2f} fs")
     print(f"    supply sensitivity of the locked phase: {sens*1e12*1e-3:.3f} ps/mV -> VDD/bias noise must stay < {vdd_req*1e6:.0f} uV rms per sample "
           f"to add < 30 fs/edge; 1/f supply noise lands in-band unattenuated")
     pulse = P.pulse_charges(0.0, t_off, qc.icp)
@@ -518,95 +569,127 @@ def exp_d7(qc, n):
     return out
 
 
-def exp_d8(qc, d2, lm4):
-    print("\n[D8] jitter budget (ranges over the identifiability profile) incl. the fractional spur")
+def exp_d8(qc, d2, n, n_draw):
+    print("\n[D8] jitter budget (ranges over the identifiability profile) incl. fractional spur and folded noise")
     j, parts = P.jitter_analytic(qc, parts=True)
     rows = []
     for label, kw in (("design point M=4", {}), ("multipath off (PSEL=0)", dict(mp_disabled=True)), ("M=2", dict(M=2)),
                       ("M=8", dict(M=8)), ("M=16", dict(M=16)), ("80 MHz PFD (no DBL)", dict(dbl=False, N=118))):
-        q = replace(qc, **kw)
-        rows.append(dict(case=label, jitter_fs=P.jitter_analytic(q) * 1e15))
-    # spur-included jitter: measured worst in-band spur at VCO/2 and mismatch-population spur for M = 2/4/8
-    spur_rows = []
-    s_meas = max(x[1] for x in P.FRAC_SPUR_OFFSETS)
-    j_sp = math.sqrt(2 * 10 ** (s_meas / 10)) / (2 * math.pi * qc.f_vco / 2)
-    spur_rows.append(dict(case="measured worst spur (M=4)", spur_dbc=s_meas, spur_jitter_fs=j_sp * 1e15,
-                          total_fs=math.sqrt(j ** 2 + j_sp ** 2) * 1e15))
-    for M in (2, 4, 8):
-        X0, A = linear_map(qc, np.array([200e3]), M=M) if M != 4 else (lm4[0][5:6], lm4[1][5:6])
-        pop = spur_population(X0, A, P.PAPER["cp_mismatch_3sigma"] / 3)[:, 0]
-        for pc in (50, 90):
-            s = float(np.percentile(pop, pc))
-            js = math.sqrt(2 * 10 ** (s / 10)) / (2 * math.pi * qc.f_vco / 2)
-            jn = P.jitter_analytic(replace(qc, M=M))
-            spur_rows.append(dict(case=f"M={M}, mismatch 3sigma 0.5%, {pc}th pct", spur_dbc=s, spur_jitter_fs=js * 1e15,
-                                  total_fs=math.sqrt(jn ** 2 + js ** 2) * 1e15))
+        rows.append(dict(case=label, jitter_fs=P.jitter_analytic(replace(qc, **kw)) * 1e15))
     for r in rows:
-        print(f"    {r['case']:28s}: {r['jitter_fs']:.1f} fs (noise only)")
-    for r in spur_rows:
-        print(f"    {r['case']:38s}: spur {r['spur_dbc']:.1f} dBc -> {r['spur_jitter_fs']:.1f} fs; total {r['total_fs']:.1f} fs")
-    print("    component ranges over the profile [fs]: " + ", ".join(f"{k} {v[0]:.1f}-{v[1]:.1f}" for k, v in d2["profile_ranges_fs"].items()))
-    return dict(parts_fs={k: v * 1e15 for k, v in parts.items()}, jitter_fs=j * 1e15, cases=rows, spur_cases=spur_rows,
-                ranges_fs=d2["profile_ranges_fs"])
+        print(f"    {r['case']:28s}: {r['jitter_fs']:.1f} fs (noise only, analytic)")
+    # measured spur of the slide-30 channel added to the measured slide-29 jitter (bookkeeping, as in D1)
+    s30 = P.SPUR_AT_402K_DBC
+    js30 = math.sqrt(2 * 10 ** (s30 / 10)) / (2 * math.pi * 4.720318787e9)
+    print(f"    slide-30 spur {s30:.2f} dBc -> {js30*1e15:.1f} fs; with 33.78 fs -> {math.sqrt(33.782e-15**2 + js30**2)*1e15:.1f} fs "
+          f"(reported 37.69 fs; worst point of the frac sweep is -70.3 dBc at 200 kHz, another channel)")
+    # simulated: mismatch draws at 3sigma = 0.5% on a channel with the spur at 200 kHz; full noise; raw-bin integration
+    rng = np.random.default_rng(31)
+    srows = []
+    for M in (2, 4, 8):
+        q0 = replace(qc, M=M, K=int(round(200e3 / qc.f_pfd * qc.Q)), n_cyc=n // 2)
+        nsl = len(q0.slice_weights())
+        r = P.simulate(q0)
+        f, L = P.output_pn(r, nperseg=2 ** 17)
+        j0 = C.rms_jitter(f, L, q0.f_vco / 2, 1e4, 1e8)
+        js = []
+        for _ in range(n_draw):
+            e = rng.normal(0, P.PAPER["cp_mismatch_3sigma"] / 3, nsl)
+            r = P.simulate(replace(q0, eps=tuple(e)))
+            f, L = P.output_pn(r, nperseg=2 ** 17)
+            js.append(C.rms_jitter(f, L, q0.f_vco / 2, 1e4, 1e8))
+        js = np.array(js)
+        srows.append(dict(M=M, jitter_no_mismatch_fs=j0 * 1e15, jitter_median_fs=float(np.median(js)) * 1e15,
+                          jitter_p90_fs=float(np.percentile(js, 90)) * 1e15, n_draw=n_draw))
+        print(f"    M={M}, 200 kHz channel, 3sigma=0.5% mismatch ({n_draw} draws, spur + folded noise, raw-bin integral): "
+              f"no mismatch {j0*1e15:.1f} fs, median {np.median(js)*1e15:.1f} fs, 90th pct {np.percentile(js, 90)*1e15:.1f} fs")
+    print("    component ranges over the profiles [fs]: " + ", ".join(f"{k} {v[0]:.1f}-{v[1]:.1f}" for k, v in d2["profile_ranges_fs"].items()))
+    return dict(parts_fs={k: v * 1e15 for k, v in parts.items()}, jitter_fs=j * 1e15, cases=rows, slide30_spur_jitter_fs=js30 * 1e15,
+                mismatch_sim=srows, ranges_fs=d2["profile_ranges_fs"])
 
 
 def exp_d9(qc, d0, d3, d4, d5, d2):
     """Point-by-point cross-check against US 11,509,315 B2."""
     print("\n[D9] cross-check against US 11,509,315 B2 (MTK sliced-CP 'QNC' patent)")
     rows = []
-    # claims 5-7: slice currents
-    for M, claim, n_, expect in ((2, "claim 5 (X=2)", None, [0.5, 0.5]), (4, "claim 6 (n=2)", 2, [0.25, 0.25, 0.5]),
-                                 (8, "claim 7 (n=3)", 3, [0.125, 0.125, 0.25, 0.5])):
+    for M, claim, expect, lab in ((2, "claim 5 (X=2)", [0.5, 0.5], "(1-1/X, 1/X)*Icp"),
+                                  (4, "claim 6 (n=2)", [0.25, 0.25, 0.5], "(1/2^n, 1/2^n, 2/2^n)*Icp"),
+                                  (8, "claim 7 (n=3)", [0.125, 0.125, 0.25, 0.5], "(1/2^n, 1/2^n, 2/2^n, 4/2^n)*Icp")):
         w = sorted(replace(qc, M=M).slice_weights().tolist())
         ok = np.allclose(w, sorted(expect))
         rows.append(dict(item=f"{claim} slice currents", patent=expect, isscc=w, match=bool(ok)))
-        check(f"D9 {claim}: currents (1/2^n,1/2^n,2/2^n[,4/2^n])*Icp == 19.3 slices M={M}", ok, w, expect, "arith")
-    # DTC structure and on-time: patent FIG.4 (two slices, X-1 DFF delays) vs FIG.13 / 19.3 (binary, 1 shared delay DFF)
+        check(f"D9 {claim}: {lab} == 19.3 slices M={M}", ok, w, expect, "arith", "duplicates D0 weights")
     T = qc.t_vco
     win = 0.5 / qc.f_pfd
+    t_off = P.t_off_of(qc)
     dtc = []
     for X in (2, 4, 8, 16):
         two_extra = (X - 1) * T
-        bin_extra = 1 * T
-        dtc.append(dict(X=X, two_slice_dffs=X - 1, two_slice_extra_ontime_ps=two_extra * 1e12, binary_delay_dffs=1,
-                        binary_slices=int(math.log2(X)) + 1, binary_extra_ontime_ps=bin_extra * 1e12,
-                        two_slice_fits_window=bool(P.t_off_of(qc) + two_extra < win)))
+        dtc.append(dict(X=X, two_slice_delay_dffs=X - 1, two_slice_extra_ontime_ps=two_extra * 1e12,
+                        binary_delay_dffs_19p3=1, binary_slices=int(math.log2(X)) + 1, binary_extra_ontime_ps=T * 1e12,
+                        two_slice_end_ps=(t_off + two_extra) * 1e12, window_ps=win * 1e12,
+                        two_slice_fits_window=bool(t_off + two_extra < win)))
     rows.append(dict(item="DTC realisation (FIG.4 two-slice vs FIG.13 binary = 19.3)", table=dtc))
-    print("    DTC: two-slice needs X-1 VCO-rate DFFs and (X-1)T extra pulse; binary (19.3) needs 1 delay DFF + log2X MUX, +1T: " +
-          ", ".join(f"X={d['X']}: {d['two_slice_dffs']} vs {d['binary_delay_dffs']} DFF, +{d['two_slice_extra_ontime_ps']:.0f} vs +{d['binary_extra_ontime_ps']:.0f} ps" for d in dtc))
-    # quantitative patent statements vs 19.3 (model at the 19.3 operating point, and measurement)
+    print("    two-slice (FIG.4/7/9) vs binary (FIG.13, 19.3): " + ", ".join(
+        f"X={d['X']}: delay DFFs {d['two_slice_delay_dffs']} vs 1 (+{d['binary_slices']} slice retimers/MUX), extra pulse "
+        f"+{d['two_slice_extra_ontime_ps']:.0f} vs +{d['binary_extra_ontime_ps']:.0f} ps, two-slice pulse ends at {d['two_slice_end_ps']:.0f} ps "
+        f"< T_ref/2 {d['window_ps']:.0f} ps: {d['two_slice_fits_window']}" for d in dtc))
+    print("    -> the patent's 'levels cannot grow unlimitedly' window limit does not bind at 160 MHz / 9.5 GHz for X <= 16; "
+          "binary buys shorter extra pulses (CP noise, offset) and fewer VCO-rate delay DFFs")
     sdm = d3["4"]["delta_db"]
-    rows.append(dict(item="SDM noise -6/-12/-18 dB (X=2/4/8)", patent="-12 dB at X=4", model=round(sdm, 2),
-                     isscc="slide 29: 0.25X Q reduction (M=4)"))
-    check("D9 patent 'SDM noise -12 dB' at the 19.3 operating point (M=4)", abs(sdm + 12.04) < 0.5, round(sdm, 2), -12.04, "arith")
-    rows.append(dict(item="CP noise -1~2 dB from smaller T_OFFSET", patent="1-2 dB",
-                     model=dict(thermal=round(d0["model_thermal_db"], 2), flicker=round(d0["model_flicker_db"], 2)),
-                     slide12_formula=round(d0["slide12_formula_db"], 2), measured_inband_gain=[round(x, 1) for x in d2["inband_gain"]["measured"]]))
-    check("D9 patent 'CP noise -1~2 dB' (thermal, on-time model) at 19.3 point", 1.0 <= d0["model_thermal_db"] <= 2.0,
-          round(d0["model_thermal_db"], 2), "1..2 dB", "validation", "flicker scales x2 in dB; measured in-band gain 1.7 dB@100k, ~4 dB@10k")
-    w4 = replace(qc, M=4).slice_weights()
-    pfd_db = 10 * math.log10(float(np.sum(w4 ** 2)))
-    rows.append(dict(item="PFD noise -3 dB (or more with more slices)", patent="-3 dB (2 slices)", model_binary_M4=round(pfd_db, 2)))
-    check("D9 patent 'PFD noise -3 dB or more' for the 19.3 binary slices (independent PFD noise)", pfd_db <= -3.0,
-          round(pfd_db, 2), "<= -3 dB", "arith", "sum w^2 = 0.375; common reference noise not reduced")
-    rows.append(dict(item="timing mismatch dT1/dT2/dT3 (FIG.15)", patent="dT1 removed by retimer; dT2,dT3 fixed -> no folding",
-                     isscc="slide 13 (1)(2)", model=dict(no_retimer_10ps=round(d5["10ps"]["no_retimer"], 1),
-                                                         retimed=round(d5["10ps"]["retimed_margin20ps"], 1),
-                                                         post=round(d5["10ps"]["post_retimer_skew"], 1))))
-    lvl = d4["measured_inband_mean"]
-    rows.append(dict(item="current mismatch 'about 0.001, not the main concern'", patent="0.1% typical",
-                     isscc="slide 13: 3sigma 0.5% -> folded -127 dBc/Hz; slide 30/32: frac spur -64.8 dBc @VCO",
-                     model=dict(measured_percentile=round(d4["measured_percentile_at_nominal"], 0), sigma3_ci=d4["sigma3_ci"],
-                                folded=d4["folded_inband_9g5"])))
-    check("D9 patent 'mismatch not the main concern' vs 19.3 fractional spur", d4["measured_percentile_at_nominal"] < 5,
-          f"measured in-band spur {lvl:.1f} dBc sits at the {d4['measured_percentile_at_nominal']:.0f}th pct of 3sigma=0.5% mismatch",
-          "spur well below the mismatch prediction", "validation",
-          "no: the measured spur level is what 0.1-0.5% mismatch predicts -> mismatch matters for spurs", soft=True)
-    rows.append(dict(item="RMS jitter < 50 fs", patent="< 50 fs", isscc="33.8 fs (10k-100M @ VCO/2)", model=round(d2["sim_jitter_fs"], 1)))
-    check("D9 patent 'RMS jitter < 50 fs' realised by 19.3", P.PAPER["jitter_fs"] < 50, P.PAPER["jitter_fs"], "< 50 fs", "validation")
-    rows.append(dict(item="no PRPS / no calibration", patent="not needed", isscc="no calibration mentioned; 'without a dedicated DTC'"))
-    rows.append(dict(item="offset T_OFFSET (FIG.2)", patent="offset interval keeps PFD/CP linear",
-                     isscc="Q_OFST from a switched capacitor + S/H re-distribution (new, slides 16-20)"))
+    rows.append(dict(item="SDM noise -6/-12/-18 dB (X=2/4/8)", patent="-12 dB at 4 levels", model=round(sdm, 2),
+                     isscc="slide 29: '0.25X Q reduction (M=4)'", data="joint-fit cost minimum near 15 dB, <=9 dB disfavoured"))
+    check("D9 patent 'SDM noise -12 dB' at the 19.3 point (M=4)", abs(sdm + 12.04) < 0.5, round(sdm, 2), -12.04, "arith", "duplicates D3")
+    check("D9 patent 'CP noise -1~2 dB': thermal on-time ratio at the 19.3 point", 1.0 <= d0["model_thermal_db"] <= 2.0,
+          round(d0["model_thermal_db"], 2), "1..2 dB", "arith", "10log(T_off ratio); 2.05 dB if T_nl -> 0")
+    qcM1 = replace(qc, mp_disabled=True)
+    cpk = ("cp", "cp_flicker", "cp_offset")
+    jc4 = math.sqrt(sum(v ** 2 for k, v in P.jitter_analytic(qc, parts=True)[1].items() if k in cpk))
+    jc1 = math.sqrt(sum(v ** 2 for k, v in P.jitter_analytic(qcM1, parts=True)[1].items() if k in cpk))
+    cp_tot_db = 20 * math.log10(jc1 / jc4)
+    check("D9 patent 'CP noise -1~2 dB' vs the TOTAL CP noise of the fitted model (thermal + 1/f + offset)", 1.0 <= cp_tot_db <= 2.0,
+          round(cp_tot_db, 2), "1..2 dB", "claim", f"{jc1*1e15:.1f} -> {jc4*1e15:.1f} fs; measured in-band gain "
+          f"{np.round(d2['inband_gain']['measured'],1).tolist()} dB at 10k/20k/100k", soft=True)
+    rows.append(dict(item="CP noise -1~2 dB from smaller T_OFFSET", patent="1-2 dB", model=dict(
+        thermal=round(d0["model_thermal_db"], 2), flicker=round(d0["model_flicker_db"], 2), fitted_total=round(cp_tot_db, 2)),
+        slide12_formula=round(d0["slide12_formula_db"], 2), measured_inband_gain=[round(x, 1) for x in d2["inband_gain"]["measured"]]))
+    pfd = {}
+    for tag, w in (("FIG.5 0.5/0.5", [0.5, 0.5]), ("FIG.7 0.75/0.25", [0.75, 0.25]), ("FIG.9 0.875/0.125", [0.875, 0.125]),
+                   ("FIG.11 = 19.3 M=4", [0.25, 0.25, 0.5]), ("FIG.13 M=8", [0.125, 0.125, 0.25, 0.5])):
+        pfd[tag] = 10 * math.log10(sum(x * x for x in w))
+    rows.append(dict(item="PFD noise -3 dB (equal split; more with more partitions)", model_sum_w2_db=pfd,
+                     note="independent per-slice PFD noise only; slides do not quantify it"))
+    print("    PFD noise 10log(sum w^2): " + ", ".join(f"{k} {v:.2f} dB" for k, v in pfd.items()))
+    check("D9 patent 'PFD -3 dB' for an equal split; binary 19.3 slices give more", abs(pfd["FIG.5 0.5/0.5"] + 3.01) < 0.05
+          and pfd["FIG.11 = 19.3 M=4"] < -3.0, round(pfd["FIG.11 = 19.3 M=4"], 2), "-3.01 (equal) / < -3 (binary)", "arith",
+          "two-slice FIG.7/9 give only -2.04/-1.07 dB")
+    rows.append(dict(item="timing mismatch dT1/dT2/dT3 (FIG.15)", patent="dT1 removed by the retimer; dT2, dT3 fixed -> no folding",
+                     isscc="slide 13 (1)(2), slide 14", model=dict(no_retimer_10ps=round(d5["10ps"]["no_retimer"], 1),
+                                                                   retimed=round(d5["10ps"]["retimed_margin20ps"], 1),
+                                                                   post=round(d5["10ps"]["post_retimer_skew"], 1))))
+    # the patent's mismatch statement is COMPARATIVE: current mismatch (~0.001) << timing mismatch
+    pat = d4["patent_0p001"]
+    cur = pat["0.001_as_sigma"]["median_inband_mean"]
+    tim = d5["1ps"]["no_retimer"]
+    check("D9 patent: current-mismatch spur (0.001) << timing-mismatch spur (1 ps, unretimed)", cur < tim - 20,
+          f"{cur:.1f} vs {tim:.1f} dBc", "current << timing", "claim", "the comparative statement holds")
+    rows.append(dict(item="current mismatch 'about 0.001 ... much smaller than timing mismatch ... not the main concern'",
+                     patent="comparative, sigma/3sigma convention not stated",
+                     model=dict(spur_0p001_sigma=round(pat["0.001_as_sigma"]["median_inband_mean"], 1),
+                                spur_0p001_3sigma=round(pat["0.001_as_3sigma"]["median_inband_mean"], 1),
+                                spur_1ps_unretimed=round(tim, 1), measured_inband=round(d4["measured_inband_mean"], 1),
+                                sigma3_ci=d4["sigma3_ci"], compression_alternative="C_DN*V_A ~ 40 pF*V, zero mismatch"),
+                     verdict="comparative statement holds; whether the measured -64.8 dBc (VCO) spur is set by mismatch is undetermined"))
+    print(f"    mismatch: 0.001 as sigma -> {pat['0.001_as_sigma']['median_inband_mean']:.1f} dBc, as 3sigma -> "
+          f"{pat['0.001_as_3sigma']['median_inband_mean']:.1f} dBc (in-band mean, VCO/2) vs measured {d4['measured_inband_mean']:.1f}; "
+          f"1 ps unretimed timing skew -> {tim:.1f} dBc")
+    rows.append(dict(item="RMS jitter < 50 fs", patent="< 50 fs", isscc="33.78 fs measured", model=round(d2["sim_jitter_fs"], 1)))
+    check("D9 patent example 'RMS jitter < 50 fs' met by the published 33.8 fs", P.PAPER["jitter_fs"] < 50, P.PAPER["jitter_fs"],
+          "< 50 fs", "claim", "paper number vs patent statement; no model involved")
+    rows.append(dict(item="no PRPS / no calibration", patent="not needed for the DFF delays (col.7 also allows VCDLs with calibration)",
+                     isscc="slide 4 (DTC needs gain/INL calibration) vs slides 8-14 (none); DBL duty cycle still needs correction (D6)"))
+    rows.append(dict(item="offset T_OFFSET (FIG.2) and the edge spread", patent="+-1T (1st-order SDM), +-2T (2nd-order); unit step Icp*T",
+                     isscc="MASH 1-1-1: 4T (slide 12); model 3.91T", note="patent CP 1-2 dB and the model 1.58 dB use different SDM baselines"))
     return rows
 
 
@@ -634,12 +717,14 @@ def main():
     res["D5"] = exp_d5(qc, n)
     res["D6"] = exp_d6(qc)
     res["D7"] = exp_d7(qc, n)
-    res["D8"] = exp_d8(qc, d2, lm4)
+    res["D8"] = exp_d8(qc, d2, n, 4 if a.quick else 10)
     res["D9_patent"] = exp_d9(qc, res["D0"], res["D3"], d4, res["D5"], d2)
     res["checks"] = CHECKS
     res["runtime_s"] = time.time() - t0
     (OUT / "isscc25_19p3_results.json").write_text(json.dumps(res, indent=1, default=float))
     summ = {}
+    print("\nkinds: arith = implementation/identity, consistency = vs fitted data, validation = vs held-out data or an "
+          "independent slide claim, claim = paper/patent statement comparison")
     for c in CHECKS:
         summ.setdefault(c["kind"], {}).setdefault(c["result"], 0)
         summ[c["kind"]][c["result"]] += 1

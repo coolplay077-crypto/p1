@@ -18,35 +18,39 @@
   [PASS|arith] D1 FoM_N uses f_ref = 80 MHz (XO): measured=-276.3 expected=-276.3 
   [PASS|arith] D1 37.7 fs w/ spur vs 33.8 fs + the -70.9 dBc spur pair: measured=36.43 expected=37.686 residual = other spur lines
 
-[D2] identification (fits) and HOLD-OUT validation
-    fit A_M4_only: fc 0.58 MHz PM 67.4 BW 0.89 MHz p3 10.3 CPx2.11 I_DN 1/f corner 2.00 MHz | {}: rms 0.27 max 0.49 | jitter 33.9 fs
-    fit C_joint: fc 0.61 MHz PM 60.4 BW 0.98 MHz p3 29.8 CPx0.42 I_DN 1/f corner 46.85 MHz | {}: rms 0.69 max 1.75 | {'mp_disabled': True}: rms 0.79 max 1.61 | jitter 34.3 fs
+[D2] identification (fits), consistency checks and HOLD-OUT validation
+    fit A_M4_only: fc 0.58 MHz PM 67.4 BW 0.89 MHz p3 10.3 CPx2.11 I_DN 1/f corner 2.0 MHz, at bound [] | {}: rms 0.27 max 0.49 | jitter 33.9 fs (multipath off 43.9 fs)
+    fit C_joint: fc 0.61 MHz PM 60.4 BW 0.98 MHz p3 29.8 CPx0.42 I_DN 1/f corner 46.8 MHz, at bound [] | {}: rms 0.69 max 1.75 | {'mp_disabled': True}: rms 0.79 max 1.61 | jitter 34.3 fs (multipath off 49.3 fs)
   [PASS|consistency] D2 fit A reproduces the 10 exact slide-29 markers: measured=0.49 expected=max < 1 dB 
   [PASS|consistency] D2 joint fit C: M=4 markers and digitised M=1 trace: measured=[1.75, 0.79] expected=max<2 dB / rms<1.5 dB 
   [PASS|consistency] D2 time-domain sim vs analytic jitter (fit C): measured=34.18+-0.15 expected=34.31 3 seeds
-  [PASS|consistency] D2 jitter vs measured 33.78 fs (fit C): measured=34.18 expected=33.782 forced by the marker fit; not independent
-  [DEVIATION|validation] D2-H1 fit on M=4 only -> predict the w/o-multipath trace: measured=2.66 expected=rms < 1.5 dB max 5.6 dB; close-in gain under-predicted
-  [PASS|validation] D2-H2 slide-30 channel markers (not fitted): measured=[0.44, 0.54] expected=rms < 1 dB (fit A, fit C) 
-    H3 jitter vs f_VCO (kvco_const): model 7.94G:36.1, 8.27G:34.4, 8.53G:34.4, 8.80G:34.5, 9.06G:34.0, 9.34G:34.0, 9.50G:34.3 | measured 32.6, 32.7, 33.3, 33.6, 33.9, 33.7, 33.8
-    H3 jitter vs f_VCO (kvco_f3): model 7.94G:37.9, 8.27G:35.2, 8.53G:35.2, 8.80G:35.1, 9.06G:34.3, 9.34G:34.1, 9.50G:34.3 | measured 32.6, 32.7, 33.3, 33.6, 33.9, 33.7, 33.8
-  [DEVIATION|validation] D2-H3 slide-29 jitter vs VCO frequency (frozen LPF, VCO PN vs f from slide 27): measured=kvco_const: max err 3.49 fs, slope ok False expected=|err| < 1.5 fs and same slope 
-  [PASS|validation] D2-H4 'same Q_OFST in both modes' is rejected by the measured M=1 trace: measured=-104.3 expected=> measured -120.9 + 6 dB M=1 needs its own (larger) offset, as slide 12 implies
-    identifiability profile (ref floor -170/-168/-166 dBc/Hz x T_nl 10/30/50 ps): cost 3.64..4.48; component jitter ranges [fs]: cp 5.7-10.9, cp_flicker 13.0-14.9, cp_offset 3.4-3.9, out_floor 7.7-7.7, pfd_slice 4.6-4.7, ref_common 10.1-16.0, ref_flicker 5.6-6.5, sdm 8.1-8.2, vco 23.6-23.7
+    side calculations: 10 markers alone integrate to 33.3 fs (so the jitter match is forced by the fit); digitised w/o-multipath trace 49.4 fs; literal slide-8 macro reading -> -88.9 dBc/Hz white at the VCO
+  [PASS|consistency] D2 jitter vs measured 33.78 fs (fit C): measured=34.18 expected=33.782 forced by the marker fit (markers alone give 33.3 fs)
+  [DEVIATION|validation] D2-H1 fit on M=4 only -> predict the w/o-multipath trace: measured=2.66 expected=rms < 1.5 dB max 5.6 dB; jitter 43.9 fs vs digitised 49.4 fs; the only discriminating PN hold-out
+  [PASS|consistency] D2-H2 slide-30 channel markers (cross-channel repeatability): measured=[0.44, 0.54] expected=rms < 1 dB (fit A, fit C) cannot discriminate: copying the slide-29 markers gives 0.42 dB
+    H3 jitter vs f_VCO (kvco_const, fixed T_off 204 ps): model 7.94G:36.0, 8.27G:34.5, 8.53G:34.8, 8.80G:35.0, 9.06G:34.8, 9.34G:35.0, 9.50G:35.4 | measured 32.6, 32.7, 33.3, 33.6, 33.9, 33.7, 33.8
+    H3 jitter vs f_VCO (kvco_f3, fixed T_off 204 ps): model 7.94G:38.2, 8.27G:35.5, 8.53G:35.7, 8.80G:35.7, 9.06G:35.2, 9.34G:35.2, 9.50G:35.4 | measured 32.6, 32.7, 33.3, 33.6, 33.9, 33.7, 33.8
+  [DEVIATION|validation] D2-H3 slide-29 jitter vs VCO frequency (frozen LPF, fixed T_off, VCO PN vs f from slide 27): measured=kvco_const: max err 3.35 fs, slope ok False expected=|err| < 1.5 fs and same slope 
+  [PASS|validation] D2-H4 'same Q_OFST in both modes' is rejected by the measured M=1 trace: measured=-104.4 expected=> measured -120.9 + 6 dB M=1 needs its own (larger) offset, as slide 12 implies
+    profile 1 (ref floor x T_nl): cost 3.64, 3.86, 4.12, 3.66, 3.89, 4.15, 3.74, 4.03, 4.34
+    profile 2 (CP thermal scale fixed 0.03..3): x0.03: cost 7.10 corner 300MHz, x0.1: cost 4.19 corner 206MHz, x0.3: cost 4.16 corner 67MHz, x1.0: cost 4.26 corner 18MHz, x3.0: cost 6.08 corner 4MHz
+    component jitter over fits within cost+1.5 of best (12/14): cp 2.4-10.9, cp_flicker 13.4-15.3, cp_offset 3.4-3.9, out_floor 7.7-7.7, pfd_slice 4.6-4.7, ref_common 10.1-16.1, ref_flicker 5.4-6.2, sdm 8.1-8.2, vco 23.5-23.7; I_DN 1/f corner 17-300 MHz
     in-band gain M=1->M=4 at 10k/20k/100k: measured [3.8 2.9 1.7], fit A [0.6 0.9 0.6], fit C [2.  2.3 1.7]
 
-[D3] SDM quantisation noise vs M, and how strongly the data support '0.25X Q reduction'
+[D3] SDM quantisation noise vs M, and the joint-fit cost vs an assumed M=1->M=4 SDM reduction
     M=1: SDM -139.9 dBc/Hz (+0.00 dB), SDM-only jitter 32.5 fs
     M=2: SDM -145.9 dBc/Hz (-6.02 dB), SDM-only jitter 16.2 fs
     M=4: SDM -152.0 dBc/Hz (-12.08 dB), SDM-only jitter 8.1 fs
     M=8: SDM -158.0 dBc/Hz (-18.07 dB), SDM-only jitter 4.1 fs
   [PASS|arith] D3 SDM noise M=4 vs M=1 (-20log4): measured=-12.08 expected=-12.04 
-    joint-fit cost vs assumed M=1->M=4 SDM reduction: 6 dB:18.56, 9 dB:8.88, 12 dB:4.15, 15 dB:3.20, 18 dB:4.38
-  [PASS|validation] D3 measured traces support ~12 dB (0.25X) SDM reduction: measured=best 15 dB, acceptable [12, 15, 18] expected=12 dB inside w/o-multipath far-out hump vs M=4 markers
+    joint-fit cost vs assumed reduction: 6 dB:18.43, 9 dB:8.84, 12 dB:4.15, 15 dB:3.20, 18 dB:4.38 (minimum near 15 dB; 12 vs 15 dB not separable within +-1 dB digitisation bias)
+  [PASS|consistency] D3 joint fit disfavours a small (<=9 dB) SDM reduction: measured=best 15 dB expected=cost(<=9 dB) > 2 x min same data as the fit; eye-read 2-10 MHz points dominate
 
 [D4] fractional spur vs offset: CP-slice mismatch (slide 13) vs C_DN charge compression
     slice-coefficient magnitudes (Icp/4 fixed, Icp/4 PSEL, Icp/2 PSEL) relative: [0.5 0.5 1. ]
     nominal sigma 0.167%: median 10k:-74.2, 20k:-74.2, 40k:-74.1, 80k:-73.7, 100k:-73.6, 200k:-72.8, 400k:-72.9, 600k:-74.0, 800k:-75.7, 1000k:-77.4, 2000k:-85.5, 4000k:-96.2
-    measured in-band mean -72.5 dBc is the 59th percentile at 3sigma=0.5%; 90% CI of 3sigma 0.22%..5.00%
+    measured in-band mean -72.5 dBc is the 59th percentile of the 3sigma=0.5% population (population median of the same statistic -74.3 dBc); 90% CI of 3sigma 0.22%..5.7%
+    patent 'about 0.001': 0.001_as_sigma: median in-band -78.7 dBc, measured at 83th pct, 0.001_as_3sigma: median in-band -88.2 dBc, measured at 100th pct
     SHAPE rms (after level fit): mismatch 1.79 dB; compression 10pF*V: level -59.5 shape 1.87, 20pF*V: level -65.5 shape 1.84, 40pF*V: level -71.5 shape 1.85, 80pF*V: level -77.5 shape 1.89
     folded in-band noise (100-400 kHz, at 9.5 GHz): 3sigma_worst_dir -125.7, 0.5%_on_Icp/2 -127.5 dBc/Hz (slide 13: -127)
   [PASS|validation] D4 LEVEL: measured in-band spur within 5-95% of the 3sigma=0.5% slice-mismatch population: measured=59th percentile expected=5..95 magnitude only; 90% CI on 3sigma is wide
@@ -63,48 +67,52 @@
   [PASS|arith] D5 (2) fixed post-retimer skew gives no spur: measured=-156.7 expected=<= ideal -156.7+1 
     retimer slips (per-slice DFF), sigma 1.5 ps: 3.5s:2e-04/128fs, 4.0s:4e-05/61fs, 4.5s:3e-06/38fs, 5.0s:0e+00/34fs, 6.0s:0e+00/34fs
     retimer slips (shared first DFF), sigma 1.5 ps: 3.5s:2e-04/198fs, 4.0s:3e-05/78fs, 4.5s:4e-06/38fs, 5.0s:0e+00/34fs, 6.0s:0e+00/34fs
+    note: 5 and 6 sigma rows = zero slips observed in the run; at 5 sigma ~0.3 slips/slice expected per 2^20 cycles (~46 slips/s at 160 MHz) -> the >=5 sigma rule rests on extrapolation from 4-4.5 sigma
     PSEL one cycle late: jitter 153 fs, L(100k) -122.2, L(1M) -114.5
 
 [D6] CP offset: SC Q_OFST vs bleed current, supply sensitivity, reference spur, DBL duty cycle
-    Q_OFST 357 fC, C_OFST 446 fF; offset noise SC 30.4 fs/edge (kT/C lower bound), bleed 76.9 fs/edge; jitter 34.31 vs 35.49 fs
+    Q_OFST 357 fC, C_OFST 446 fF; offset noise SC 30.4 fs/edge (kT/C lower bound), bleed 49.8 fs/edge (thermal only, same gm model); jitter 34.31 vs 34.68 fs
     supply sensitivity of the locked phase: 0.223 ps/mV -> VDD/bias noise must stay < 134 uV rms per sample to add < 30 fs/edge; 1/f supply noise lands in-band unattenuated
-    ref spur (160 MHz, at VCO) bleed current offset, CP pulse into LPF   : p3=8 -92.3, p3=29.808171944186633 -82.9, p3=40 -80.6 dBc
-    ref spur (160 MHz, at VCO) SC offset, CP pulse into LPF (no S/H)     : p3=8 -86.3, p3=29.808171944186633 -76.9, p3=40 -74.5 dBc
-    ref spur (160 MHz, at VCO) S/H re-distribution, 20 ps skew           : p3=8 -126.3, p3=29.808171944186633 -116.8, p3=40 -114.5 dBc
-    ref spur (160 MHz, at VCO) S/H re-distribution, 5 ps skew            : p3=8 -138.3, p3=29.808171944186633 -128.9, p3=40 -126.5 dBc
+    ref spur (160 MHz, at VCO) bleed current offset, CP pulse into LPF   : p3=8 -92.3, p3=29.80818476145287 -82.9, p3=40 -80.6 dBc
+    ref spur (160 MHz, at VCO) SC offset, CP pulse into LPF (no S/H)     : p3=8 -86.3, p3=29.80818476145287 -76.9, p3=40 -74.5 dBc
+    ref spur (160 MHz, at VCO) S/H re-distribution, 20 ps skew           : p3=8 -126.3, p3=29.80818476145287 -116.8, p3=40 -114.5 dBc
+    ref spur (160 MHz, at VCO) S/H re-distribution, 5 ps skew            : p3=8 -138.3, p3=29.80818476145287 -128.9, p3=40 -126.5 dBc
     DBL even/odd edge alternation -> 80 MHz spur / extra T_off needed: 1ps:-116dBc/+0ps, 5ps:-102dBc/+2ps, 20ps:-90dBc/+10ps, 625ps:-60dBc/+312ps (625 ps = 45/55 % XO duty, uncalibrated)
   [PASS|validation] D6 the S/H charge re-distribution (not the SC offset by itself) suppresses the ripple spur: measured={'sh': -116.8, 'bleed': -82.9, 'sc_no_sh': -76.9} expected=S/H < -101 dBc < others assumes Kvco 150 MHz/V, T_off from T_nl=50 ps; sensitive to p3/C3
 
 [D7] CP soft-start region (T_nonlin) and DN-only clipping vs offset: folded DSM noise
-    M=1: 0.0T:-75, 0.3T:-80, 0.6T:-86, 0.9T:-93, 1.2T:-103, 1.5T:-117, 1.8T:-144, 2.1T:-159, 2.4T:-159
-    M=4: 0.0T:-92, 0.3T:-99, 0.6T:-110, 0.9T:-129, 1.2T:-171, 1.5T:-171, 1.8T:-171, 2.1T:-171, 2.4T:-171
+    M=1: 0.0T:-78, 0.3T:-82, 0.6T:-87, 0.9T:-94, 1.2T:-103, 1.5T:-117, 1.8T:-144, 2.1T:-159, 2.4T:-159
+    M=4: 0.0T:-94, 0.3T:-100, 0.6T:-110, 0.9T:-129, 1.2T:-171, 1.5T:-171, 1.8T:-171, 2.1T:-171, 2.4T:-171
     minimum T_off: 9.5 GHz 178 ps, 7.3 GHz 218 ps -> a fixed C_OFST*VDD/I_DN must be sized for the band bottom plus VDD/C/I tolerances and the DBL residual
 
-[D8] jitter budget (ranges over the identifiability profile) incl. the fractional spur
-    design point M=4            : 34.3 fs (noise only)
-    multipath off (PSEL=0)      : 49.3 fs (noise only)
-    M=2                         : 37.9 fs (noise only)
-    M=8                         : 33.1 fs (noise only)
-    M=16                        : 32.6 fs (noise only)
-    80 MHz PFD (no DBL)         : 54.0 fs (noise only)
-    measured worst spur (M=4)             : spur -70.3 dBc -> 14.5 fs; total 37.2 fs
-    M=2, mismatch 3sigma 0.5%, 50th pct   : spur -114.5 dBc -> 0.1 fs; total 37.9 fs
-    M=2, mismatch 3sigma 0.5%, 90th pct   : spur -106.7 dBc -> 0.2 fs; total 37.9 fs
-    M=4, mismatch 3sigma 0.5%, 50th pct   : spur -72.8 dBc -> 10.9 fs; total 36.0 fs
-    M=4, mismatch 3sigma 0.5%, 90th pct   : spur -64.9 dBc -> 27.0 fs; total 43.6 fs
-    M=8, mismatch 3sigma 0.5%, 50th pct   : spur -69.3 dBc -> 16.3 fs; total 36.9 fs
-    M=8, mismatch 3sigma 0.5%, 90th pct   : spur -61.6 dBc -> 39.3 fs; total 51.4 fs
-    component ranges over the profile [fs]: cp 5.7-10.9, cp_flicker 13.0-14.9, cp_offset 3.4-3.9, out_floor 7.7-7.7, pfd_slice 4.6-4.7, ref_common 10.1-16.0, ref_flicker 5.6-6.5, sdm 8.1-8.2, vco 23.6-23.7
+[D8] jitter budget (ranges over the identifiability profile) incl. fractional spur and folded noise
+    design point M=4            : 34.3 fs (noise only, analytic)
+    multipath off (PSEL=0)      : 49.3 fs (noise only, analytic)
+    M=2                         : 37.9 fs (noise only, analytic)
+    M=8                         : 33.1 fs (noise only, analytic)
+    M=16                        : 32.6 fs (noise only, analytic)
+    80 MHz PFD (no DBL)         : 54.0 fs (noise only, analytic)
+    slide-30 spur -70.88 dBc -> 13.6 fs; with 33.78 fs -> 36.4 fs (reported 37.69 fs; worst point of the frac sweep is -70.3 dBc at 200 kHz, another channel)
+    M=2, 200 kHz channel, 3sigma=0.5% mismatch (10 draws, spur + folded noise, raw-bin integral): no mismatch 38.3 fs, median 38.4 fs, 90th pct 38.8 fs
+    M=4, 200 kHz channel, 3sigma=0.5% mismatch (10 draws, spur + folded noise, raw-bin integral): no mismatch 34.2 fs, median 35.4 fs, 90th pct 41.5 fs
+    M=8, 200 kHz channel, 3sigma=0.5% mismatch (10 draws, spur + folded noise, raw-bin integral): no mismatch 32.9 fs, median 38.3 fs, 90th pct 47.7 fs
+    component ranges over the profiles [fs]: cp 2.4-10.9, cp_flicker 13.4-15.3, cp_offset 3.4-3.9, out_floor 7.7-7.7, pfd_slice 4.6-4.7, ref_common 10.1-16.1, ref_flicker 5.4-6.2, sdm 8.1-8.2, vco 23.5-23.7
 
 [D9] cross-check against US 11,509,315 B2 (MTK sliced-CP 'QNC' patent)
-  [PASS|arith] D9 claim 5 (X=2): currents (1/2^n,1/2^n,2/2^n[,4/2^n])*Icp == 19.3 slices M=2: measured=[0.5, 0.5] expected=[0.5, 0.5] 
-  [PASS|arith] D9 claim 6 (n=2): currents (1/2^n,1/2^n,2/2^n[,4/2^n])*Icp == 19.3 slices M=4: measured=[0.25, 0.25, 0.5] expected=[0.25, 0.25, 0.5] 
-  [PASS|arith] D9 claim 7 (n=3): currents (1/2^n,1/2^n,2/2^n[,4/2^n])*Icp == 19.3 slices M=8: measured=[0.125, 0.125, 0.25, 0.5] expected=[0.125, 0.125, 0.25, 0.5] 
-    DTC: two-slice needs X-1 VCO-rate DFFs and (X-1)T extra pulse; binary (19.3) needs 1 delay DFF + log2X MUX, +1T: X=2: 1 vs 1 DFF, +105 vs +105 ps, X=4: 3 vs 1 DFF, +316 vs +105 ps, X=8: 7 vs 1 DFF, +737 vs +105 ps, X=16: 15 vs 1 DFF, +1579 vs +105 ps
-  [PASS|arith] D9 patent 'SDM noise -12 dB' at the 19.3 operating point (M=4): measured=-12.08 expected=-12.04 
-  [PASS|validation] D9 patent 'CP noise -1~2 dB' (thermal, on-time model) at 19.3 point: measured=1.58 expected=1..2 dB flicker scales x2 in dB; measured in-band gain 1.7 dB@100k, ~4 dB@10k
-  [PASS|arith] D9 patent 'PFD noise -3 dB or more' for the 19.3 binary slices (independent PFD noise): measured=-4.26 expected=<= -3 dB sum w^2 = 0.375; common reference noise not reduced
-  [DEVIATION|validation] D9 patent 'mismatch not the main concern' vs 19.3 fractional spur: measured=measured in-band spur -72.5 dBc sits at the 59th pct of 3sigma=0.5% mismatch expected=spur well below the mismatch prediction no: the measured spur level is what 0.1-0.5% mismatch predicts -> mismatch matters for spurs
-  [PASS|validation] D9 patent 'RMS jitter < 50 fs' realised by 19.3: measured=33.782 expected=< 50 fs 
+  [PASS|arith] D9 claim 5 (X=2): (1-1/X, 1/X)*Icp == 19.3 slices M=2: measured=[0.5, 0.5] expected=[0.5, 0.5] duplicates D0 weights
+  [PASS|arith] D9 claim 6 (n=2): (1/2^n, 1/2^n, 2/2^n)*Icp == 19.3 slices M=4: measured=[0.25, 0.25, 0.5] expected=[0.25, 0.25, 0.5] duplicates D0 weights
+  [PASS|arith] D9 claim 7 (n=3): (1/2^n, 1/2^n, 2/2^n, 4/2^n)*Icp == 19.3 slices M=8: measured=[0.125, 0.125, 0.25, 0.5] expected=[0.125, 0.125, 0.25, 0.5] duplicates D0 weights
+    two-slice (FIG.4/7/9) vs binary (FIG.13, 19.3): X=2: delay DFFs 1 vs 1 (+2 slice retimers/MUX), extra pulse +105 vs +105 ps, two-slice pulse ends at 284 ps < T_ref/2 3125 ps: True, X=4: delay DFFs 3 vs 1 (+3 slice retimers/MUX), extra pulse +316 vs +105 ps, two-slice pulse ends at 494 ps < T_ref/2 3125 ps: True, X=8: delay DFFs 7 vs 1 (+4 slice retimers/MUX), extra pulse +737 vs +105 ps, two-slice pulse ends at 915 ps < T_ref/2 3125 ps: True, X=16: delay DFFs 15 vs 1 (+5 slice retimers/MUX), extra pulse +1579 vs +105 ps, two-slice pulse ends at 1757 ps < T_ref/2 3125 ps: True
+    -> the patent's 'levels cannot grow unlimitedly' window limit does not bind at 160 MHz / 9.5 GHz for X <= 16; binary buys shorter extra pulses (CP noise, offset) and fewer VCO-rate delay DFFs
+  [PASS|arith] D9 patent 'SDM noise -12 dB' at the 19.3 point (M=4): measured=-12.08 expected=-12.04 duplicates D3
+  [PASS|arith] D9 patent 'CP noise -1~2 dB': thermal on-time ratio at the 19.3 point: measured=1.58 expected=1..2 dB 10log(T_off ratio); 2.05 dB if T_nl -> 0
+  [DEVIATION|claim] D9 patent 'CP noise -1~2 dB' vs the TOTAL CP noise of the fitted model (thermal + 1/f + offset): measured=2.85 expected=1..2 dB 23.1 -> 16.7 fs; measured in-band gain [3.8, 2.9, 1.7] dB at 10k/20k/100k
+    PFD noise 10log(sum w^2): FIG.5 0.5/0.5 -3.01 dB, FIG.7 0.75/0.25 -2.04 dB, FIG.9 0.875/0.125 -1.07 dB, FIG.11 = 19.3 M=4 -4.26 dB, FIG.13 M=8 -4.64 dB
+  [PASS|arith] D9 patent 'PFD -3 dB' for an equal split; binary 19.3 slices give more: measured=-4.26 expected=-3.01 (equal) / < -3 (binary) two-slice FIG.7/9 give only -2.04/-1.07 dB
+  [PASS|claim] D9 patent: current-mismatch spur (0.001) << timing-mismatch spur (1 ps, unretimed): measured=-78.7 vs -49.9 dBc expected=current << timing the comparative statement holds
+    mismatch: 0.001 as sigma -> -78.7 dBc, as 3sigma -> -88.2 dBc (in-band mean, VCO/2) vs measured -72.5; 1 ps unretimed timing skew -> -49.9 dBc
+  [PASS|claim] D9 patent example 'RMS jitter < 50 fs' met by the published 33.8 fs: measured=33.782 expected=< 50 fs paper number vs patent statement; no model involved
 
-checks by kind: {'arith': {'PASS': 16}, 'validation': {'DEVIATION': 6, 'PASS': 8}, 'consistency': {'PASS': 4}}; runtime 21 s
+kinds: arith = implementation/identity, consistency = vs fitted data, validation = vs held-out data or an independent slide claim, claim = paper/patent statement comparison
+
+checks by kind: {'arith': {'PASS': 17}, 'validation': {'DEVIATION': 5, 'PASS': 4}, 'consistency': {'PASS': 6}, 'claim': {'DEVIATION': 1, 'PASS': 2}}; runtime 39 s

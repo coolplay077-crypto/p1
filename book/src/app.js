@@ -350,6 +350,27 @@
   function decoratePage(el) {
     if (el._decorated) return;
     el._decorated = true;
+    // chapter meta line + key takeaways box (doc pages only)
+    const pid = el.dataset.page;
+    const navP = navPages.find((p) => p.id === pid);
+    if (navP) {
+      const first = $('.sec', el);
+      const zhChars = DATA.search.filter((r) => r.p === pid && r.l === 'zh').reduce((a, r) => a + r.x.length, 0);
+      const mins = Math.max(1, Math.round(zhChars / 450));
+      const nW = $$('.wslot', el).length, nE = $$('.sec-lang[data-l="zh"] .eq', el).length;
+      const meta = document.createElement('div');
+      meta.className = 'page-meta';
+      meta.innerHTML = `<span>⏱ ${bi(`约 ${mins} 分钟`, `~${mins} min read`)}</span>${nE ? `<span>∑ ${bi(`${nE} 个公式`, `${nE} equations`)}</span>` : ''}${nW ? `<span>▶ ${bi(`${nW} 个交互模型`, `${nW} interactive model${nW > 1 ? 's' : ''}`)}</span>` : ''}`;
+      const sums = DATA.data.summaries && DATA.data.summaries[pid];
+      let box = null;
+      if (sums) {
+        box = document.createElement('aside');
+        box.className = 'takeaways';
+        const list = (arr) => `<ul>${(arr || []).map((x) => `<li>${String(x).replace(/\$([^$]+)\$/g, (_, t) => Book.tex(t))}</li>`).join('')}</ul>`;
+        box.innerHTML = `<div class="tk-title">${bi('本章要点', 'Key takeaways')}</div><div class="i18n-zh">${list(sums.zh)}</div><div class="i18n-en">${list(sums.en)}</div>`;
+      }
+      if (first) { first.after(meta); if (box) meta.after(box); }
+    }
     $$('.eq', el).forEach((eq) => {
       const tools = document.createElement('div');
       tools.className = 'eq-tools';
@@ -783,6 +804,14 @@
         ${card('#lab', '▶', bi('交互实验室', 'Interactive lab'), bi('计数分解、撕裂采样、锚点减残差、匹配延迟、选沿 deadline、饱和、事件级 golden model……', 'Split counting, torn capture, anchor-minus-residual, matched-delay sampling, edge deadlines, saturation, event-level golden model…'))}
         ${hub.map((p) => card('#' + p.id, esc(p.icon || '•'), biO(p.title), biO(p.summary))).join('')}
       </div>
+      <h2 class="section-title">${bi('本书最重要的三处纠正', 'The three key corrections')}</h2>
+      <div class="cards">
+        ${card('#w-multiphase-units', '①', bi('不能通用地写 8C + q + e/8 + ε', 'No generic “8C + q + e/8 + ε”'), bi('q 与多相区域码可能重复表示同一相位区间，e/8 的单位可能是分频后周期。改用“锚点减残差”。', 'q and the multiphase region code may encode the same interval twice, and e/8 may be in divided-clock units. Use “anchor minus residual”.'))}
+        ${card('#w-torn-capture', '②', bi('epoch 错配不全是 ±1 原周期', 'Epoch mismatches are not all ±1 raw cycle'), bi('高低位在组边界撕裂采样时，典型错误是 −M 与 +M（一整组）。修正必须带单位。', 'High/low tearing at a group boundary yields −M and +M (a whole group). Corrections must carry units.'))}
+        ${card('#r-4-6', '③', bi('Sony 不是共享状态方法的最早先例', 'Sony is not the earliest shared-state precedent'), bi('Havens（US8692598B2）已同时包含整数计数、小数检测、sub-fractional TDC 与 one-count uncertainty 处理。', 'Havens (US8692598B2) already combines integer counting, fractional detection, a sub-fractional TDC and one-count-uncertainty handling.'))}
+      </div>
+      <h2 class="section-title">${bi('系统功能数据流（交互）', 'System data flow (interactive)')}</h2>
+      <div class="wslot" data-widget="arch-flow" data-lab="1"></div>
       <h2 class="section-title">${bi('阅读路线', 'Reading route')}</h2>
       <div class="cards">
         ${card('#r-1', '①', bi('第 1–3 章 · 问题与坐标', 'Ch. 1–3 · Problem & coordinates'), bi('核心问题、需求冻结、统一时钟节点与相位坐标。', 'Core question, frozen requirements, unified clock node and phase coordinates.'))}

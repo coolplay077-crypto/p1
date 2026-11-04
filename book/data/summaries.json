@@ -1,0 +1,230 @@
+{
+  "intro": {
+    "zh": [
+      "项目要把宽位整数相位计数器的高位降到 /4 或 /8 运行，同时<b>不丢失任何一个原始 CKV 周期的编号</b>，让有限量程 TDC 只测局部残差。",
+      "测量链（持续计数 + 相干快照 + 短 TDC）与执行链（P/S、one-hot、多相选择器）必须分开：执行器不能替代 CNT 的测量功能（G7）。",
+      "统一坐标先定义“数的是哪个时钟” $CK_0$；完整相位用“锚点减残差” $\\Phi_0(t_R)=A-\\mu$，不再使用 $8C+q+e/8+\\epsilon$。",
+      "四大难点：epoch 错误分层（整组 ±M ≠ 单周期 ±1）、snapshot 三条路线、P/S 执行因果性与 deadline、fine 真实量程与饱和。",
+      "已完成 9860 个公式/接口层逻辑案例；尚未覆盖 RTL 时序、亚稳态、闭环噪声、AMS 与 PVT。"
+    ],
+    "en": [
+      "Goal: run the high bits of a wide integer phase counter at /4 or /8 while <b>never losing the index of any raw CKV cycle</b>, so a finite-range TDC only measures a local residual.",
+      "Keep the measurement chain (persistent count + coherent snapshot + short TDC) separate from the execution chain (P/S, one-hot, multiphase selector): an executor cannot replace the CNT measurement (G7).",
+      "Unified coordinates start by fixing which clock is counted, $CK_0$; the full phase is “anchor minus residual” $\\Phi_0(t_R)=A-\\mu$, not $8C+q+e/8+\\epsilon$.",
+      "Four core difficulties: layered epoch errors (whole-group ±M ≠ single-cycle ±1), three snapshot routes, P/S execution causality and deadlines, real fine range and saturation.",
+      "9860 formula/interface-level logical cases pass; RTL timing, metastability, closed-loop noise, AMS and PVT are not yet covered."
+    ]
+  },
+  "r-0": {
+    "zh": [
+      "本报告是文献证据整理、核心问题定义、统一相位模型与验证框架——不是已完成晶体管验证的电路定版，也不是专利新颖性结论。",
+      "阅读路线：第 1–3 章问题与坐标；第 4–5 章文献证据及边界；第 6–10 章时序、选沿与接口；第 11–13 章修订、验证与未决项；第 14 章与附录为引用入口。"
+    ],
+    "en": [
+      "This report organises literature evidence, defines the core problem, and provides a unified phase model and verification framework — it is not a transistor-verified circuit sign-off nor a patent-novelty opinion.",
+      "Route: Ch. 1–3 problem and coordinates; Ch. 4–5 evidence and its limits; Ch. 6–10 timing, edge selection and interface; Ch. 11–13 revisions, verification and open items; Ch. 14 and appendices for references."
+    ]
+  },
+  "r-1": {
+    "zh": [
+      "核心问题：高位降到 CKV/4 或 CKV/8 的同时完整保留原始周期编号，并让低位状态、参考快照和真实被选边沿关联，得到坐标一致、可判断有效性的完整相位观测。",
+      "已有证据支持：宽位计数器可拆分降速；整数/小数需显式一致性机制；物理选沿与短 TDC 可用于 phase-domain ADPLL。",
+      "三处纠正：不能通用地写 $8C+q+e/8+\\epsilon$；撕裂错误是 ±M 而非 ±1；Havens 早于 Sony 已有共享状态方法。",
+      "“未核实到严格同构的完整组合”只描述当前证据集，不等于没有先前技术，也不等于拼接后已验证。"
+    ],
+    "en": [
+      "Core question: lower the high bits to CKV/4 or CKV/8 while keeping every raw cycle index, and tie low-bit state, reference snapshot and the real selected edge into a coordinate-consistent, validity-checked phase observation.",
+      "Evidence supports: wide counters can be split and slowed; integer/fractional parts need an explicit consistency mechanism; physical edge selection with a short TDC works in phase-domain ADPLLs.",
+      "Three corrections: no generic $8C+q+e/8+\\epsilon$; torn errors are ±M, not ±1; Havens precedes Sony for shared-state methods.",
+      "“No strictly isomorphic complete combination verified” describes the current evidence set only — it is neither a no-prior-art claim nor proof that the combination works."
+    ]
+  },
+  "r-2": {
+    "zh": [
+      "七条冻结需求 G1–G7：持续整数观测、高位降速、原周期编号不丢失、粗细一致、fine 量程受控、边界与故障可辨识、P/S 不替代 CNT。",
+      "通用 serializer、普通小数分频器、phase-switching divider 只能作电路参考，不能因有 /4、多相或 P/S 就认定同构。",
+      "证据等级 A-P / A-J / B / H / D 评价的是支撑力度与读取范围，不是论文或专利的质量排序。"
+    ],
+    "en": [
+      "Seven frozen requirements G1–G7: persistent integer observation, high-bit rate reduction, no lost raw-cycle index, coarse/fine consistency, controlled fine range, identifiable boundaries and faults, P/S does not replace the CNT.",
+      "Generic serializers, plain fractional dividers and phase-switching dividers are circuit references only; having /4, multiphase or P/S does not make them isomorphic.",
+      "Evidence levels A-P / A-J / B / H / D rate support strength and reading scope — not the quality of a paper or patent."
+    ]
+  },
+  "r-3": {
+    "zh": [
+      "先定义希望完整保留周期编号的时钟节点 $CK_0$；改变它，CNT 权重、FCW、fine 归一化与 edge ID 必须一起换算。",
+      "$N=MC+q$ 与 $(C,M-1)\\to(C+1,0)$ 是对已对齐状态的定义，不是“独立采样 C、q 再拼接也正确”的证明。",
+      "完整相位 $\\Phi_0(t_R)=A-\\mu$，$\\mu=\\int f_0\\,dt$ 的符号由积分上下限决定；$\\hat\\mu\\approx\\Delta t/\\hat T_0$ 只在局部频率近似恒定时成立。",
+      "/4 八相示例：区域码 a 已含 q 的信息，八相间距换算到原周期是 $T_0/2$；直接叠加 $q+a/8$ 会混合单位并重复计数。"
+    ],
+    "en": [
+      "First fix the clock node $CK_0$ whose cycle index must be preserved; changing it means converting CNT weights, FCW, fine normalisation and edge IDs together.",
+      "$N=MC+q$ and $(C,M-1)\\to(C+1,0)$ define aligned states; they do not prove that independently sampled C and q can be stitched correctly.",
+      "Full phase $\\Phi_0(t_R)=A-\\mu$ with $\\mu=\\int f_0\\,dt$ signed by its limits; $\\hat\\mu\\approx\\Delta t/\\hat T_0$ holds only while the local frequency is nearly constant.",
+      "/4 eight-phase example: the region code a already contains q; the eight-phase spacing is $T_0/2$ in raw units; adding $q+a/8$ mixes units and double-counts."
+    ]
+  },
+  "r-4": {
+    "zh": [
+      "TI [R01]：/8 高低位分解与 SEL_EDGE 双候选选择——证明高速低位 + 降频高位可组成 VPA。",
+      "Xu/Lindfors、ETRI：高速侧可保存移位状态再解码；慢计数必须与低位 wrap 在逻辑上同源（count lineage）。",
+      "CN105071798 / Zong：相干快照的本质是同一逻辑 epoch，可通过匹配延迟在不同时刻读出。",
+      "Kuo：DCO 5.7–8.4 GHz，约 2 GHz 是 /4 后节点；八相间距折算到前置 /4 之前是 $T_0/2$。",
+      "Havens 早于 Sony 已有共享状态与 one-count uncertainty 处理；Sony 的 CRRCT/SIGN 修正必须按原相位单位理解。"
+    ],
+    "en": [
+      "TI [R01]: /8 high/low split with SEL_EDGE dual-candidate selection — fast low bits plus a slowed high part can form a VPA.",
+      "Xu/Lindfors, ETRI: the fast side may keep a shift state decoded later; the slow count must share a logical lineage with the low-bit wrap.",
+      "CN105071798 / Zong: a coherent snapshot means the same logical epoch, which matched delays can read out at different instants.",
+      "Kuo: DCO 5.7–8.4 GHz; “about 2 GHz” is the post-/4 node; the eight-phase spacing is $T_0/2$ relative to the pre-/4 period.",
+      "Havens precedes Sony for shared state and one-count-uncertainty handling; Sony's CRRCT/SIGN correction must be read in its original phase unit."
+    ]
+  },
+  "r-5": {
+    "zh": [
+      "十个来源各自覆盖局部：TI/Xu/ETRI 保存周期状态；CN/Zong/Havens/Sony/Marvell 保持或恢复一致性；Kuo/MediaTek 提供物理选相与局部 fine 测量。",
+      "表中空白是仍需完成的接口论证，不是格式遗漏；不能把局部的“是”拼成整体“已完成”。",
+      "按问题选入口：/8 split 看 TI；共享状态与修正看 Havens/Sony；短 TDC 物理选相看 Kuo/MediaTek；split counter 采样波形看 Zong Fig.9。"
+    ],
+    "en": [
+      "Each of the ten sources covers a part: TI/Xu/ETRI preserve cycle state; CN/Zong/Havens/Sony/Marvell keep or restore consistency; Kuo/MediaTek provide physical phase selection and local fine measurement.",
+      "Empty cells are interface arguments still to be made, not formatting gaps — local “yes” answers do not add up to “done”.",
+      "Entry point per question: /8 split → TI; shared state & correction → Havens/Sony; short-TDC physical selection → Kuo/MediaTek; split-counter sampling waveform → Zong Fig.9."
+    ]
+  },
+  "r-6": {
+    "zh": [
+      "跨组撕裂的两个典型错误是相对合法状态的 −M 与 +M（M=8 时 80 与 95），仅允许 ±1 raw cycle 的修正器覆盖不了。",
+      "修正接口分单位：$N_{corr}=M(C_{cap}+\\kappa_C)+q_{corr}+\\kappa_N$；$\\kappa_C\\in\\{-1,0,+1\\}$ 只在已证明最多跨一组时成立。",
+      "低位盲区：整组错误不改变 q，也不改变原周期奇偶性；需要能跨组翻转的额外状态，且高位 parity 也只在限定相邻组时有效。",
+      "边界两种坐标等价 $J-\\mu=(J+1)-(\\mu+1)$，但 coarse 与 fine 必须共同变换。",
+      "Gray/Johnson 只约束数字码相邻性，不消除亚稳态；验收分数字模型与晶体管/PVT 两层。"
+    ],
+    "en": [
+      "The two typical torn-capture errors are −M and +M relative to the legal states (80 and 95 for M = 8); a ±1-raw-cycle-only corrector cannot cover them.",
+      "Corrections carry units: $N_{corr}=M(C_{cap}+\\kappa_C)+q_{corr}+\\kappa_N$; $\\kappa_C\\in\\{-1,0,+1\\}$ holds only when capture is proven to span at most one group.",
+      "Low-bit blind spot: a whole-group error changes neither q nor raw parity; extra state that toggles across groups is needed, and even high-bit parity only works once errors are limited to adjacent groups.",
+      "Both boundary coordinates are equivalent, $J-\\mu=(J+1)-(\\mu+1)$, but coarse and fine must transform together.",
+      "Gray/Johnson codes only constrain digital adjacency, not metastability; acceptance is two-layer: digital model plus transistor/PVT."
+    ]
+  },
+  "r-7": {
+    "zh": [
+      "路线 A 多候选捕获：区分数据候选稳定、选择控制稳定、整个元组原子选择；以候选元组为选择单位。",
+      "路线 B 匹配延迟采样：每组满足 $m_i>0,\\ h_i>0$，且所有组属于同一逻辑 epoch——“等到稳定再采”并不够。",
+      "路线 C 有界错配 + 冗余校正：先列出全部可能错误状态，再选冗余信息；歧义时输出 INVALID。",
+      "三条路线可以组合，但组合后必须重新检查联合状态空间。"
+    ],
+    "en": [
+      "Route A, multiple candidates: separate data-candidate stability, select-control stability and atomic tuple selection; select whole candidate tuples.",
+      "Route B, matched-delay sampling: every group needs $m_i>0,\\ h_i>0$ and all groups must belong to the same logical epoch — “sample once stable” is not enough.",
+      "Route C, bounded mismatch + redundant correction: enumerate all possible error states before choosing redundancy; ambiguity yields INVALID.",
+      "The routes can be combined, but the joint state space must then be re-checked."
+    ]
+  },
+  "r-8": {
+    "zh": [
+      "P/S 的系统语义是执行指定边沿 $J_{plan}=MH_J+s_J$；持续 CNT 仍独立记录实际经过的周期。",
+      "计划不是执行证据：$J_{observed}$ 必须来自真实执行路径，不能由 $J_{plan}$ 延迟改名得到。",
+      "后知后觉的低速 snapshot 不能生成已经过去的边沿：只有事先预测、高速并行捕获或选用未来边沿三类路径能闭合。",
+      "选沿 deadline $t_{arrive}+t_{setup,exec}+t_{guard}\\le t_{target}$；不满足就 LATE/MISS 或重新规划，任何补发都要改变回执与坐标。"
+    ],
+    "en": [
+      "A P/S executor's system meaning is “execute edge $J_{plan}=MH_J+s_J$”; the persistent CNT still records the cycles that actually elapsed.",
+      "A plan is not evidence of execution: $J_{observed}$ must come from the real execution path, never from a delayed, renamed $J_{plan}$.",
+      "After-the-fact low-speed snapshots cannot create edges that have already passed: only prediction, high-speed parallel capture or choosing a future edge can close the loop.",
+      "Edge-selection deadline $t_{arrive}+t_{setup,exec}+t_{guard}\\le t_{target}$; otherwise flag LATE/MISS or re-plan — any re-issue changes the receipt and coordinates."
+    ]
+  },
+  "r-9": {
+    "zh": [
+      "CNT 能表示多周期差，但不改变 TDC 两输入端已存在的物理间隔；饱和不可逆，“数字可以 modulo”≠“模拟 TDC 可以缩到一个周期”。",
+      "路径延迟统一按 $\\widehat{\\Delta t}=\\hat d_{pin}-(\\hat\\tau_E-\\hat\\tau_R)$；DTC 放哪条路径就计入哪一侧，不得重复补偿；归一化携带校准版本。",
+      "fine 采用条件 $F_{usable}=V_{code}\\land V_{range}\\land V_{anchor}\\land V_{epoch}\\land V_{cal}$，range_ok 必须来自电路可实现的检查。",
+      "fine 无效时用 coarse 相位误差 $e_c[k]=R[k]-N_R[k]$ 接管；CNT 本身不构成 FLL。",
+      "8 GHz 示例：$T_0$=125 ps、/4 后 500 ps、八相 62.5 ps；量程必须由实际测量流程导出，不能直接写 ±31.25 ps。"
+    ],
+    "en": [
+      "The CNT represents multi-cycle differences but does not shorten the physical interval at the TDC pins; saturation is irreversible — “digital modulo” ≠ “an analog TDC can shrink to one cycle”.",
+      "Path delays use $\\widehat{\\Delta t}=\\hat d_{pin}-(\\hat\\tau_E-\\hat\\tau_R)$; a DTC counts on the path where it sits, never twice; normalisation carries calibration versions.",
+      "Fine is usable only if $F_{usable}=V_{code}\\land V_{range}\\land V_{anchor}\\land V_{epoch}\\land V_{cal}$, with range_ok from a circuit-realisable check.",
+      "When fine is invalid, the coarse phase error $e_c[k]=R[k]-N_R[k]$ takes over; the CNT by itself is not an FLL.",
+      "8 GHz example: $T_0$ = 125 ps, 500 ps after /4, 62.5 ps eight-phase spacing; the range must follow from the actual measurement flow, not be written as ±31.25 ps."
+    ]
+  },
+  "r-10": {
+    "zh": [
+      "EventFrame 把事件身份、计数坐标、捕获来源、计划/执行、带单位的修正、fine、校准、异常与输出分组；{C,q,TDC} 三元组不够。",
+      "八条不变量 I1–I8 每条都规定违反后的处理：阻断、校正或 INVALID、降级、late/miss、reset/reacquire。",
+      "全宽 rollover：模差可唯一展开要求差值幅度小于 $2^{W-1}$——是计数宽度与观测间隔的联合约束。",
+      "整合伪代码只在 coarse、回执与 fine 全部有效时输出 FINE；否则 COARSE 或 INVALID；控制层需单独处理。"
+    ],
+    "en": [
+      "EventFrame groups event identity, count coordinates, capture source, plan/execution, unit-carrying correction, fine, calibration, anomalies and output; a {C, q, TDC} triple is not enough.",
+      "Each of the eight invariants I1–I8 prescribes its violation handling: block, correct or INVALID, downgrade, late/miss, reset/reacquire.",
+      "Full-width rollover: a modular difference unwraps uniquely only if its magnitude is below $2^{W-1}$ — a joint constraint on counter width and observation interval.",
+      "The integration pseudo-code outputs FINE only when coarse, receipt and fine are all valid; otherwise COARSE or INVALID, handled separately by the control layer."
+    ]
+  },
+  "r-11": {
+    "zh": [
+      "撤回或收紧的结论：/8 使 TDC 看到 8 周期再压回、Sony 首创、统一 κ=±1、通用 $8C+q+e/8+\\epsilon$、Kuo/Zong 时钟层级、相干=同时锁存、删除 CNT、通用 PISO 先例。",
+      "保留的主线：/4-/8 split、persistent CNT、边界校正、short TDC、selected-edge 坐标、SAT/VALID、执行回执。"
+    ],
+    "en": [
+      "Withdrawn or tightened: “/8 makes the TDC see 8 cycles then compress”, “Sony was first”, “uniform κ = ±1”, generic $8C+q+e/8+\\epsilon$, Kuo/Zong clock levels, “coherent = simultaneous latching”, “delete the CNT”, “generic PISO is a precedent”.",
+      "Kept: /4-/8 split, persistent CNT, boundary correction, short TDC, selected-edge coordinates, SAT/VALID and execution receipts."
+    ]
+  },
+  "r-12": {
+    "zh": [
+      "六组精确有理数逻辑检查合计 9860 个案例全部通过——是公式与接口层检查，不是电路仿真。",
+      "三层验证：事件级 golden model（禁止把理想相位喂给 decoder）→ RTL/门级时序与 CDC → 晶体管/PVT。",
+      "闭环能锁住不代表 detector 正确：先事件身份、有效性、局部时序，再比较噪声、spur、锁定与恢复。"
+    ],
+    "en": [
+      "Six exact-rational logical checks, 9860 cases, all pass — formula/interface-level checks, not circuit simulations.",
+      "Three verification layers: event-level golden model (never feed the ideal phase to the decoder) → RTL/gate timing and CDC → transistor/PVT.",
+      "A loop that locks does not prove the detector correct: event identity, validity and local timing first, then noise, spurs, lock and recovery."
+    ]
+  },
+  "r-13": {
+    "zh": [
+      "真正的文献空白：明确时钟节点的 /4-/8 split、低位 residue 直接关联选沿、短 TDC 测残差、同一观测的 epoch/validity 机制——尚无一份可核验实现同时闭合。",
+      "五个必须先回答的工程问题 Q1–Q5：时钟节点、边界真值表、低位到选沿映射与 deadline、实际边沿编号的证明、短 TDC 何时可信。",
+      "“低位状态同时服务整数与小数”已有公开披露，不能作为差异点；本项目不给出新颖性、侵权或可授权结论。"
+    ],
+    "en": [
+      "The real gap: a /4-/8 split on an explicit clock node, low residue directly tied to the selected edge, a short TDC measuring the residual, and an epoch/validity mechanism for the same observation — no verifiable implementation closes all of these at once.",
+      "Five engineering questions Q1–Q5 come first: clock node, boundary truth table, low-bit-to-edge mapping and deadline, proof of the actual edge index, and when the short TDC can be trusted.",
+      "“Low-bit state serving both integer and fraction” is already publicly disclosed and is not a differentiator; no novelty, infringement or patentability conclusion is given."
+    ]
+  },
+  "r-14": {
+    "zh": [
+      "R01–R11 为本次复核的 A-P/A-J（R03 为 B）；R12–R19 为 H/B 级历史与外围线索。",
+      "专利同族不重复计算为独立先例；检索列表不代表穷尽性检索。"
+    ],
+    "en": [
+      "R01–R11 were reviewed at A-P/A-J (R03 at B); R12–R19 are H/B-level historical and peripheral leads.",
+      "Patent family members are not counted as independent precedents; the search list is not exhaustive."
+    ]
+  },
+  "r-A": {
+    "zh": [
+      "附录 A 给出回到原文的图/波形定位（原文 figure 编号优先于 PDF 页数），不把示意推导冒充原图。"
+    ],
+    "en": [
+      "Appendix A locates the original figures/waveforms (figure numbers take precedence over PDF pages) and never passes off schematic derivations as the originals."
+    ]
+  },
+  "r-B": {
+    "zh": [
+      "历史报告 H01（2026-09-27）与 H02（2026-09-28）是进展来源，不是独立的电路真实性证据；关键硬结论优先回到 R01–R11。"
+    ],
+    "en": [
+      "Previous reports H01 (2026-09-27) and H02 (2026-09-28) are sources of progress, not independent evidence of circuit correctness; key hard conclusions go back to R01–R11."
+    ]
+  }
+}

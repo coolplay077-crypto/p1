@@ -206,6 +206,13 @@ td code { white-space: nowrap; }
 .lvl-D { color: var(--fg-2); }
 .hl-target { animation: flash 1.8s ease; border-radius: 6px; }
 
+/* chapter meta + takeaways */
+.page-meta { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .78rem; color: var(--muted); margin: -.4em 0 1.2em; }
+.takeaways { margin: 0 0 1.6em; padding: 12px 18px 10px; border: 1px solid var(--border); border-left: 3px solid var(--good); border-radius: var(--radius); background: var(--surface); font-size: .9rem; }
+.takeaways .tk-title { font-weight: 700; font-size: .78rem; letter-spacing: .05em; color: var(--good-ink); text-transform: uppercase; }
+.takeaways ul { margin: .4em 0 .2em; padding-left: 1.2em; }
+.takeaways li { margin: .25em 0; }
+
 /* page nav + footer */
 .page-nav { display: flex; gap: 12px; margin-top: 48px; }
 .page-nav a { flex: 1; display: block; border: 1px solid var(--border); background: var(--surface); padding: 12px 16px; border-radius: var(--radius); color: var(--fg); }

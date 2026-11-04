@@ -18,7 +18,7 @@ lang: en
 
 > In a CNT / VPA / phase-domain ADPLL, can the high bits of a wide integer phase counter be lowered to operate at CKV/4 or CKV/8 while the raw CKV cycle index is fully preserved; and can the low-bit state, the reference-related snapshot and the selected true physical edge then be associated with one another, so that a finite-range TDC measures only the local time residual, and so that a complete phase observation that is coordinate-consistent and whose validity can be judged is still obtained under counter carries, asynchronous sampling, edge-selection switching and TDC saturation?
 
-There are two interrelated tasks here that must not be conflated. The first is the **measurement chain**: continuously recording the cycles the oscillator has actually traversed, and forming a joint coarse/fine timestamp near the reference event. The second is the **execution chain**: how low-speed parallel state or predicted commands generate a designated physical edge on the high-speed side. P/S, one-hot, shift-state machines and multiphase selectors are only candidate implementations of the execution chain; they do not imply that the whole measurement problem has been solved.
+There are two interrelated tasks here that must not be conflated. The first is the **measurement chain**: continuously recording the cycles the oscillator has actually traversed, and forming a joint coarse/fine timestamp near the reference event. The second is the **execution chain**: how low-speed parallel state or predicted commands generate a designated physical edge on the high-speed side. P/S, one-hot, shift-state machines and multiphase selectors are only candidate implementations of the execution chain; they are not the same as having solved the whole measurement problem.
 
 This project is further concerned with whether the low-bit count state can, directly or through a deterministic mapping, double as the control information for the physical-edge identity / selector. The goal is not to find yet another ordinary fractional divider, but to preserve the continuous integer phase observation of the CNT-based ADPLL.
 
@@ -70,7 +70,7 @@ Generic serializers, ordinary fractional dividers and phase-switching dividers c
 
 | Mark | Meaning | Usage rule in this report |
 |---|---|---|
-| A-P | The original patent text and the relevant structure/description were checked in this round | Proves that a certain method was disclosed; does not imply silicon measurement |
+| A-P | The original patent text and the relevant structure/description were checked in this round | Proves that a certain method was disclosed; is not the same as silicon measurement |
 | A-J | The original paper text and its key figures were checked in this round | Structures explicitly given in the paper may serve as direct evidence; not extrapolated to this project's PVT |
 | B | Official metadata/abstract can be checked; the internal circuitry has not been sufficiently verified | Kept only as a related lead; invisible connections are not filled in |
 | H | A previous-round report preserved the conclusion; the complete original evidence was not re-obtained in this round | The historical contribution is retained, explicitly without being conflated with direct review in this round |
@@ -187,7 +187,7 @@ The original text gives the CKV-driven mod-8 low bits `RV<2:0>`, the CKVD8-drive
 
 The patent's example uses a low-speed modulo incrementer for the upper six bits and a high-speed shift state. The low-bit information is recovered by a 4-to-2 encoder after sampling by CKR; some embodiments also use the least significant bit of the high counter in the decoding. The related structures/truth tables are in Fig.6–7.
 
-**Evidence value:** "The raw-cycle residue must be preserved" does not imply "a high-speed binary low-bit adder must be used". The high-speed side can hold a state that is easy to implement, and the low-speed side can decode it afterwards.
+**Evidence value:** "The raw-cycle residue must be preserved" is not the same as "a high-speed binary low-bit adder must be used". The high-speed side can hold a state that is easy to implement, and the low-speed side can decode it afterwards.
 
 **Boundary:** State encoding does not exempt the design from epoch consistency. This source alone cannot prove that the same low-bit state already controls the physical edge selection of a short TDC, nor can all encoder inputs be assumed to form an ordinary, independently synchronized bus.
 

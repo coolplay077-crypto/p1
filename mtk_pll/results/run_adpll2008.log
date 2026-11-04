@@ -1,0 +1,85 @@
+
+[B0] TDC calibration and canceller arithmetic
+  [PASS] B0 half-period normalisation -> TDC LSB: measured=30.001 expected=30.0 ps, dN=641
+  [PASS] B0 e_CTDC gain 2*dN/(M+F) == T_DCO/TDCgain: measured=-4.00e-05 expected=<2/dN 
+    ideal TDC, linear loop: F2_cancelFalse: -102.9 dBc, F2_cancelTrue: -600.0 dBc, F128_cancelFalse: -104.0 dBc, F128_cancelTrue: -461.9 dBc
+  [PASS] B0 canceller removes DS spur (ideal TDC, linear loop): measured=-600.0 expected=<< -102.9 dBc @400 kHz
+
+[B1] loop-gain calibration across TDC/DCO corners
+    tau=20ps kdco=8.4k: dN=961 kdco_est=8.398k BW_ug cal 50.03k / uncal 52.5k | -3dB meas 82.1k (ana 82.5k, uncal 86.0k)
+    tau=20ps kdco=12.0k: dN=961 kdco_est=11.999k BW_ug cal 50.03k / uncal 75.0k | -3dB meas 82.1k (ana 82.5k, uncal 112.3k)
+    tau=20ps kdco=15.6k: dN=961 kdco_est=15.598k BW_ug cal 50.03k / uncal 97.5k | -3dB meas 82.1k (ana 82.5k, uncal 132.0k)
+    tau=30ps kdco=8.4k: dN=641 kdco_est=8.399k BW_ug cal 50.00k / uncal 35.0k | -3dB meas 82.2k (ana 82.3k, uncal 56.7k)
+    tau=30ps kdco=12.0k: dN=641 kdco_est=11.999k BW_ug cal 50.00k / uncal 50.0k | -3dB meas 82.2k (ana 82.3k, uncal 82.3k)
+    tau=30ps kdco=15.6k: dN=641 kdco_est=15.596k BW_ug cal 50.01k / uncal 65.0k | -3dB meas 82.2k (ana 82.3k, uncal 101.7k)
+    tau=45ps kdco=8.4k: dN=427 kdco_est=8.397k BW_ug cal 50.05k / uncal 23.3k | -3dB meas 82.1k (ana 82.5k, uncal 33.4k)
+    tau=45ps kdco=12.0k: dN=427 kdco_est=11.997k BW_ug cal 50.05k / uncal 33.3k | -3dB meas 82.0k (ana 82.5k, uncal 53.5k)
+    tau=45ps kdco=15.6k: dN=427 kdco_est=15.596k BW_ug cal 50.05k / uncal 43.3k | -3dB meas 82.0k (ana 82.5k, uncal 71.9k)
+  [PASS] B1 calibrated unity-gain BW = 50 kHz over corners: measured=50.00..50.05 expected=50 kHz +-2% uncalibrated 23.3..97.5 kHz
+  [PASS] B1 sim-measured -3dB BW == analytic: measured=82.0..82.2 expected=82.3..82.5 kHz
+
+[B2] phase noise & 400 kHz fractional spur, cancellation on/off (paper Fig. 10.1.6)
+    F=138+2/130 cancel=False: PN@400k -117.7 dBc/Hz, spur -71.9 dBc (max -71.7), jitter 432 fs, FFT-bin noise -100.7
+    F=138+2/130 cancel=True: PN@400k -117.7 dBc/Hz, spur -71.7 dBc (max -71.6), jitter 433 fs, FFT-bin noise -100.7
+    F=138+128/130 cancel=False: PN@400k -117.9 dBc/Hz, spur -74.5 dBc (max -74.3), jitter 424 fs, FFT-bin noise -100.9
+    F=138+128/130 cancel=True: PN@400k -117.9 dBc/Hz, spur -74.1 dBc (max -73.9), jitter 426 fs, FFT-bin noise -100.9
+  [PASS] B2 PN@400k F=2/130 vs paper -117: measured=-117.7 expected=-117.0 dBc/Hz (DCO noise is an assumption fitted to this)
+  [DEVIATION] B2 400k spur hidden below PN in 1 kHz RBW F=2/130 (paper: not observable): measured=-71.7 expected=< -87.7 dBc
+  [PASS] B2 PN@400k F=128/130 vs paper -117: measured=-117.9 expected=-117.0 dBc/Hz (DCO noise is an assumption fitted to this)
+  [DEVIATION] B2 400k spur hidden below PN in 1 kHz RBW F=128/130 (paper: not observable): measured=-74.1 expected=< -87.9 dBc
+  spur mechanism decomposition (F=138+2/130, noise on, 3 seeds)
+    ideal_TDC_no_cancel     : spur  -97.6 dBc, PN@400k -118.0, jitter 249 fs
+    ideal_TDC_cancel        : spur  -99.6 dBc, PN@400k -118.0, jitter 254 fs
+    tdc30_cancel_comp2b     : spur  -80.6 dBc, PN@400k -117.8, jitter 432 fs
+    tdc30_cancel_comp8b     : spur  -71.7 dBc, PN@400k -117.7, jitter 433 fs
+    tdc30_no_cancel         : spur  -71.9 dBc, PN@400k -117.7, jitter 432 fs
+    tdc30_cancel_tdcjit3ps  : spur  -73.4 dBc, PN@400k -117.3, jitter 646 fs
+    tdc30_cancel_DSdither   : spur  -97.4 dBc, PN@400k -117.2, jitter 589 fs
+    tdc30_cancel_DLF3rd     : spur  -81.4 dBc, PN@400k -118.1, jitter 517 fs
+  loop-BW sweep: DS-pattern spur without/with cancellation (ideal TDC, noiseless, linear loop)
+    BW   50 kHz: no cancel -102.9 dBc | cancel -600.0 dBc
+    BW  100 kHz: no cancel -86.6 dBc | cancel -112.2 dBc
+    BW  200 kHz: no cancel -71.6 dBc | cancel -97.7 dBc
+    BW  400 kHz: no cancel -66.1 dBc | cancel -86.7 dBc
+
+[B3] REF duty-cycle error -> TDC-gain error (half-period normalisation)
+    duty 0.40: canceller gain err -0.20, BW_ug 62.6k, -3dB 99.0k, DS leak @400k -151.6 dBc/Hz | 30ps-TDC spur -69.7, PN -117.5
+    duty 0.45: canceller gain err -0.10, BW_ug 55.6k, -3dB 90.3k, DS leak @400k -158.6 dBc/Hz | 30ps-TDC spur -69.0, PN -117.8
+    duty 0.48: canceller gain err -0.04, BW_ug 52.1k, -3dB 85.4k, DS leak @400k -167.0 dBc/Hz | 30ps-TDC spur -69.4, PN -117.9
+    duty 0.50: canceller gain err +0.00, BW_ug 50.0k, -3dB 82.3k, DS leak @400k -490.0 dBc/Hz | 30ps-TDC spur -71.8, PN -117.7
+    duty 0.52: canceller gain err +0.04, BW_ug 48.1k, -3dB 79.5k, DS leak @400k -167.7 dBc/Hz | 30ps-TDC spur -72.2, PN -117.7
+    duty 0.55: canceller gain err +0.10, BW_ug 45.5k, -3dB 75.4k, DS leak @400k -160.3 dBc/Hz | 30ps-TDC spur -70.8, PN -117.8
+    uncancelled DS @400k: -139.6 dBc/Hz -> leak predicted ds_ref + 20log|2d-1|
+  [PASS] B3 DS leak scales as 20log|2d-1| (d=0.45): measured=-158.6 expected=-159.6 dBc/Hz
+  [PASS] B3 BW error = 1/(2d) (d=0.45): measured=55.64 expected=55.56 kHz
+
+[B4] CTDC non-idealities: zero-crossing DNL, stage mismatch, cycle miscount, tau drift
+    frac(t_os/tau)=0.00: no bias spur -71.7 / PN -117.7 | bias 30 LSB spur -71.7 / PN -117.7
+    frac(t_os/tau)=0.10: no bias spur -71.1 / PN -117.9 | bias 30 LSB spur -71.7 / PN -117.7
+    frac(t_os/tau)=0.25: no bias spur -64.8 / PN -117.6 | bias 30 LSB spur -71.7 / PN -117.7
+    frac(t_os/tau)=0.50: no bias spur -58.0 / PN -117.9 | bias 30 LSB spur -71.7 / PN -117.7
+    frac(t_os/tau)=0.75: no bias spur -53.0 / PN -117.6 | bias 30 LSB spur -71.7 / PN -117.7
+    frac(t_os/tau)=0.90: no bias spur -52.3 / PN -117.8 | bias 30 LSB spur -71.7 / PN -117.7
+    stage sigma  0.0%: no bias spur -71.7 / PN -117.7 | bias spur -71.7 / PN -117.7
+    stage sigma  2.0%: no bias spur -72.4 / PN -117.8 | bias spur -72.8 / PN -117.8
+    stage sigma  5.0%: no bias spur -69.9 / PN -117.8 | bias spur -77.5 / PN -117.9
+    stage sigma 10.0%: no bias spur -64.8 / PN -117.8 | bias spur -70.4 / PN -117.8
+    miscount p=0e+00 (bias 30 LSB, wraps occur): PN@400k -117.7, jitter 434 fs, spur -71.8
+    miscount p=1e-03 (bias 30 LSB, wraps occur): PN@400k -116.8, jitter 835 fs, spur -71.5
+    miscount p=1e-02 (bias 30 LSB, wraps occur): PN@400k -112.0, jitter 2478 fs, spur -73.0
+    miscount during normalisation dN-32: BW_ug 52.6 kHz, canceller gain err -5.0%
+    miscount during normalisation dN+32: BW_ug 47.6 kHz, canceller gain err +5.0%
+    tau drift  -20% (gain only): BW_ug 62.5k, spur -79.8, PN@400k -117.4
+    tau drift  -10% (gain only): BW_ug 55.6k, spur -70.2, PN@400k -117.6
+    tau drift   +0% (gain only): BW_ug 50.0k, spur -71.8, PN@400k -117.7
+    tau drift  +10% (gain only): BW_ug 45.5k, spur -78.8, PN@400k -117.8
+    tau drift  +20% (gain only): BW_ug 41.7k, spur -80.2, PN@400k -117.8
+  [PASS] B4 phase bias removes zero-crossing DNL sensitivity: measured=-71.7 expected=<< -52.3 dBc worst over frac(t_os/tau)
+
+[B5] integer / near-integer channel, coarse TDC: bang-bang limit cycle vs DS dither
+    frac_2_130        : jitter 434 fs, L10k -94.0, L100k -96.7, L400k -117.7
+    integer_F0        : jitter 2117 fs, L10k -99.9, L100k -92.7, L400k -114.7
+    integer_F0_dither : jitter 938 fs, L10k -89.4, L100k -88.0, L400k -116.4
+    frac_2_130_dither : jitter 594 fs, L10k -92.8, L100k -93.1, L400k -117.2
+
+10/12 checks PASS, runtime 108 s

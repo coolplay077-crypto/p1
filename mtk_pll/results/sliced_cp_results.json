@@ -1,0 +1,1014 @@
+{
+ "model": "US11509315 sliced-CP fractional-N PLL",
+ "params": {
+  "f_ref": 52000000.0,
+  "N": 115,
+  "K": 4560520,
+  "Q": 16777216,
+  "dither": true,
+  "arch": "two",
+  "X": 8,
+  "icp": 0.002,
+  "kvco": 100000000.0,
+  "fc": 800000.0,
+  "pm": 55.0,
+  "p3_ratio": 6.0,
+  "c3_ratio": 0.1,
+  "t_off": null,
+  "t_guard": 4e-11,
+  "t_rst": 8e-11,
+  "beta": 0.0,
+  "eps": null,
+  "unit_sigma": 0.0,
+  "dem": "static",
+  "post_skew": null,
+  "dt1": 0.0,
+  "retimed": true,
+  "rt_margin": 1.0,
+  "rt_sigma": 0.0,
+  "mmd_jit": 0.0,
+  "vco_L1M": -120.0,
+  "ref_floor": -165.0,
+  "pfd_jit": 8e-14,
+  "cp_noise": true,
+  "vov": 0.25,
+  "gamma_n": 1.0,
+  "os": 8,
+  "n_cyc": 524288,
+  "settle": 16384,
+  "seed": 1
+ },
+ "loop": {
+  "fc": 799733.2398345302,
+  "pm": 53.96759219739516,
+  "R1": 3136.275167382323,
+  "C1": 2.79906410278775e-10,
+  "C2": 1.5153629988761594e-11,
+  "T1": 4.5085125750855724e-08,
+  "T2": 8.778635237484503e-07,
+  "Ctot": 2.950600402675366e-10,
+  "R3": 21880.750576199895,
+  "C3": 1.5153629988761595e-12
+ },
+ "f_vco": 5994135065.078735,
+ "A0_identity": [
+  {
+   "arch": "conv",
+   "X": 1,
+   "slices": [
+    1.0
+   ],
+   "coarse_error_identity": true,
+   "effective_modulus_identity": true,
+   "weighted_edge_equals_fine_sdm": true,
+   "dQ_over_IcpT": 1.0,
+   "B_range": [
+    0,
+    0
+   ],
+   "divisor_range": [
+    112,
+    119
+   ]
+  },
+  {
+   "arch": "two",
+   "X": 2,
+   "slices": [
+    0.5,
+    0.5
+   ],
+   "coarse_error_identity": true,
+   "effective_modulus_identity": true,
+   "weighted_edge_equals_fine_sdm": true,
+   "dQ_over_IcpT": 0.5,
+   "B_range": [
+    0,
+    1
+   ],
+   "divisor_range": [
+    113,
+    117
+   ]
+  },
+  {
+   "arch": "two",
+   "X": 4,
+   "slices": [
+    0.75,
+    0.25
+   ],
+   "coarse_error_identity": true,
+   "effective_modulus_identity": true,
+   "weighted_edge_equals_fine_sdm": true,
+   "dQ_over_IcpT": 0.25,
+   "B_range": [
+    0,
+    3
+   ],
+   "divisor_range": [
+    114,
+    116
+   ]
+  },
+  {
+   "arch": "two",
+   "X": 8,
+   "slices": [
+    0.875,
+    0.125
+   ],
+   "coarse_error_identity": true,
+   "effective_modulus_identity": true,
+   "weighted_edge_equals_fine_sdm": true,
+   "dQ_over_IcpT": 0.125,
+   "B_range": [
+    0,
+    7
+   ],
+   "divisor_range": [
+    114,
+    116
+   ]
+  },
+  {
+   "arch": "binary",
+   "X": 4,
+   "slices": [
+    0.25,
+    0.25,
+    0.5
+   ],
+   "coarse_error_identity": true,
+   "effective_modulus_identity": true,
+   "weighted_edge_equals_fine_sdm": true,
+   "dQ_over_IcpT": 0.25,
+   "B_range": [
+    0,
+    3
+   ],
+   "divisor_range": [
+    114,
+    116
+   ]
+  },
+  {
+   "arch": "binary",
+   "X": 8,
+   "slices": [
+    0.125,
+    0.125,
+    0.25,
+    0.5
+   ],
+   "coarse_error_identity": true,
+   "effective_modulus_identity": true,
+   "weighted_edge_equals_fine_sdm": true,
+   "dQ_over_IcpT": 0.125,
+   "B_range": [
+    0,
+    7
+   ],
+   "divisor_range": [
+    114,
+    116
+   ]
+  }
+ ],
+ "A1_sdm": {
+  "conv_X1": {
+   "level_2_20MHz": -107.75289984534227,
+   "delta_dB": 0.0,
+   "expected_delta": -0.0,
+   "analytic_level": -107.75862688095857,
+   "sdm_jitter_fs": 692.4518288263826
+  },
+  "two_X2": {
+   "level_2_20MHz": -113.78728941952556,
+   "delta_dB": -6.034389574183294,
+   "expected_delta": -6.020599913279624,
+   "analytic_level": -113.7792267942382,
+   "sdm_jitter_fs": 346.0077686187534
+  },
+  "two_X4": {
+   "level_2_20MHz": -119.80952298673594,
+   "delta_dB": -12.056623141393672,
+   "expected_delta": -12.041199826559248,
+   "analytic_level": -119.79982670751782,
+   "sdm_jitter_fs": 172.8687399126048
+  },
+  "two_X8": {
+   "level_2_20MHz": -125.80850561432166,
+   "delta_dB": -18.05560576897939,
+   "expected_delta": -18.06179973983887,
+   "analytic_level": -125.82042662079745,
+   "sdm_jitter_fs": 86.71514102390245
+  },
+  "two_X16": {
+   "level_2_20MHz": -131.8291950632683,
+   "delta_dB": -24.076295217926017,
+   "expected_delta": -24.082399653118497,
+   "analytic_level": -131.8410265340771,
+   "sdm_jitter_fs": 43.31674733783946
+  },
+  "binary_X8": {
+   "level_2_20MHz": -125.80850561432166,
+   "delta_dB": -18.05560576897939,
+   "expected_delta": -18.06179973983887,
+   "analytic_level": -125.82042662079745,
+   "sdm_jitter_fs": 86.7151410239025
+  }
+ },
+ "A2_budget": {
+  "budget": {
+   "conv_X1": {
+    "t_off_ps": 371.8635868457622,
+    "jitter_fs": 699.2986331045072,
+    "jitter_analytic_fs": 699.6604780599424,
+    "component_jitter_fs": {
+     "sdm": 692.5633704581306,
+     "vco": 65.93375781240056,
+     "ref": 33.403385071606245,
+     "pfd": 21.530891243461493,
+     "cp": 62.88192607973625,
+     "total": 699.6604780599424
+    },
+    "L_100k": -116.26842314413022,
+    "L_1M": -107.91965625783223,
+    "L_10M": -108.47492287239633,
+    "max_pulse_ps": [
+     704.6572796940184
+    ],
+    "min_pulse_ps": [
+     40.064072198442254
+    ]
+   },
+   "two_X2": {
+    "t_off_ps": 287.4682549951262,
+    "jitter_fs": 358.33909197662695,
+    "jitter_analytic_fs": 358.8171343801461,
+    "component_jitter_fs": {
+     "sdm": 346.2816852290653,
+     "vco": 65.93375781240056,
+     "ref": 33.403385071606245,
+     "pfd": 15.22463920324168,
+     "cp": 56.070439692615565,
+     "total": 358.8171343801461
+    },
+    "L_100k": -116.42135454338316,
+    "L_1M": -112.05506476438168,
+    "L_10M": -114.50503709813984,
+    "max_pulse_ps": [
+     449.76316543853875,
+     535.460402660943
+    ],
+    "min_pulse_ps": [
+     39.8778469249896,
+     123.95198689435783
+    ]
+   },
+   "two_X8": {
+    "t_off_ps": 226.2404103060583,
+    "jitter_fs": 125.68545188078734,
+    "jitter_analytic_fs": 125.99890883745215,
+    "component_jitter_fs": {
+     "sdm": 86.57042130726632,
+     "vco": 65.93375781240056,
+     "ref": 33.403385071606245,
+     "pfd": 19.030799004052096,
+     "cp": 50.55758418548162,
+     "total": 125.99890883745215
+    },
+    "L_100k": -116.68199317285632,
+    "L_1M": -115.00889246400149,
+    "L_10M": -126.37180862128771,
+    "max_pulse_ps": [
+     266.6127888363179,
+     1288.5920507775518
+    ],
+    "min_pulse_ps": [
+     39.93853252688523,
+     185.39654133235695
+    ]
+   },
+   "binary_X8": {
+    "t_off_ps": 226.2404103060583,
+    "jitter_fs": 125.29439995748966,
+    "jitter_analytic_fs": 125.19148818292508,
+    "component_jitter_fs": {
+     "sdm": 86.57042130726632,
+     "vco": 65.93375781240056,
+     "ref": 33.403385071606245,
+     "pfd": 12.623603951422005,
+     "cp": 50.55758041984629,
+     "total": 125.19148818292508
+    },
+    "L_100k": -117.1579820039494,
+    "L_1M": -114.87224852749202,
+    "L_10M": -126.36594153887485,
+    "max_pulse_ps": [
+     266.71628392356536,
+     413.28717217103974,
+     392.8976001327549,
+     350.50844817936695
+    ],
+    "min_pulse_ps": [
+     39.83922963906352,
+     60.541469325035976,
+     81.2459671815127,
+     122.80631781058264
+    ]
+   }
+  },
+  "cp_only": {
+   "conv_X1": {
+    "level": -117.17533254201112,
+    "t_off_ps": 371.8635868457622,
+    "delta_dB": 0.0
+   },
+   "two_X2": {
+    "level": -118.13484331392391,
+    "t_off_ps": 287.4682549951262,
+    "delta_dB": -0.9595107719127896
+   },
+   "two_X8": {
+    "level": -119.07469242449963,
+    "t_off_ps": 226.2404103060583,
+    "delta_dB": -1.8993598824885112
+   },
+   "binary_X8": {
+    "level": -118.9034366384509,
+    "t_off_ps": 226.2404103060583,
+    "delta_dB": -1.728104096439779
+   }
+  },
+  "pfd_only": {
+   "conv_X1": {
+    "level": -118.4122635239318,
+    "sum_w2": 1.0,
+    "delta_dB": 0.0,
+    "expected_dB": 0.0
+   },
+   "two_X2": {
+    "level": -121.59810634514825,
+    "sum_w2": 0.5,
+    "delta_dB": -3.185842821216454,
+    "expected_dB": -3.010299956639812
+   },
+   "two_X8": {
+    "level": -119.75132034483444,
+    "sum_w2": 0.78125,
+    "delta_dB": -1.3390568209026412,
+    "expected_dB": -1.0720996964786835
+   },
+   "binary_X8": {
+    "level": -123.21279617270655,
+    "sum_w2": 0.34375,
+    "delta_dB": -4.800532648774748,
+    "expected_dB": -4.637572931616809
+   }
+  }
+ },
+ "A3_mismatch": {
+  "eps_sweep": [
+   {
+    "eps": 0.0001,
+    "spur_dBc": -81.21623051559021,
+    "predicted_dBc": -81.16419443466454,
+    "rule_of_thumb_dBc": -80.0
+   },
+   {
+    "eps": 0.0003,
+    "spur_dBc": -71.64093915383448,
+    "predicted_dBc": -71.62176934027129,
+    "rule_of_thumb_dBc": -70.45757490560675
+   },
+   {
+    "eps": 0.001,
+    "spur_dBc": -61.17266567184104,
+    "predicted_dBc": -61.16419443466454,
+    "rule_of_thumb_dBc": -60.0
+   },
+   {
+    "eps": 0.003,
+    "spur_dBc": -51.62940554897439,
+    "predicted_dBc": -51.62176934027129,
+    "rule_of_thumb_dBc": -50.45757490560675
+   },
+   {
+    "eps": 0.01,
+    "spur_dBc": -41.179300173506675,
+    "predicted_dBc": -41.16419443466454,
+    "rule_of_thumb_dBc": -40.0
+   },
+   {
+    "eps": 0.03,
+    "spur_dBc": -31.661140451183027,
+    "predicted_dBc": -31.621769340271292,
+    "rule_of_thumb_dBc": -30.45757490560675
+   }
+  ],
+  "fs_sweep": [
+   {
+    "f_spur": 50781.25,
+    "spur_dBc": -62.17871074520137,
+    "predicted_dBc": -62.18303387986612,
+    "rho": 0.8744355495201697
+   },
+   {
+    "f_spur": 203125.0,
+    "spur_dBc": -61.17266567184104,
+    "predicted_dBc": -61.16419443466454,
+    "rho": 0.8708866724134334
+   },
+   {
+    "f_spur": 812500.0,
+    "spur_dBc": -61.60123085329445,
+    "predicted_dBc": -61.56026504185165,
+    "rho": 0.8720013113171039
+   },
+   {
+    "f_spur": 3250000.0,
+    "spur_dBc": -77.09433023501737,
+    "predicted_dBc": -77.17041230008945,
+    "rho": 0.927398874969003
+   }
+  ],
+  "dem": {
+   "static": {
+    "spur_dBc": -53.700842303213406,
+    "L_inband": -116.90978972838904,
+    "jitter_fs": 152.12758790276172
+   },
+   "random": {
+    "spur_dBc": -88.26826462457042,
+    "L_inband": -114.03405852058215,
+    "jitter_fs": 144.39967058900265
+   },
+   "ideal": {
+    "L_inband": -117.0827306024013,
+    "jitter_fs": 127.08588047589822
+   }
+  },
+  "binary_mc": {
+   "sigma": 0.001,
+   "spur_dBc_mean": -70.1445736018413,
+   "spur_dBc_max": -60.01944253465834
+  },
+  "rho": {
+   "measured": 0.8708866724134334,
+   "closed_form": 0.8508105663098063,
+   "var_E_over_Q": 0.523841142654419
+  },
+  "no_mismatch_spur_dBc": -125.39036696245331,
+  "x_sweep": [
+   {
+    "X": 2,
+    "spur_dBc": -104.5572944109723,
+    "rho": 0.0007092151908086561,
+    "rho_closed_form": 0.07979318377817513,
+    "predicted_dBc": -127.80862771098386
+   },
+   {
+    "X": 4,
+    "spur_dBc": -66.23302405037188,
+    "rho": 0.5627514454057265,
+    "rho_closed_form": 0.5279158684692732,
+    "predicted_dBc": -66.29603073222641
+   },
+   {
+    "X": 8,
+    "spur_dBc": -61.17266567184104,
+    "rho": 0.8708866724134334,
+    "rho_closed_form": 0.8508105663098063,
+    "predicted_dBc": -61.16419443466454
+   },
+   {
+    "X": 16,
+    "spur_dBc": -59.679232399725066,
+    "rho": 0.9652177516651328,
+    "rho_closed_form": 0.9594709705944316,
+    "predicted_dBc": -59.67165684341388
+   }
+  ]
+ },
+ "A4_skew": {
+  "ideal": -125.39036696245331,
+  "2ps": {
+   "post_skew_spur": -125.3903669624382,
+   "dT1_no_retimer_spur": -57.8571857859709,
+   "dT1_no_retimer_pred": -57.63307637276636,
+   "dT1_retimed_spur": -125.39036696245331,
+   "static_phase_shift_fs": 250.0
+  },
+  "5ps": {
+   "post_skew_spur": -125.39036696376579,
+   "dT1_no_retimer_spur": -49.89877458661817,
+   "dT1_no_retimer_pred": -49.6742761993256,
+   "dT1_retimed_spur": -125.39036696245331,
+   "static_phase_shift_fs": 625.0
+  },
+  "20ps": {
+   "post_skew_spur": -125.39036696129146,
+   "dT1_no_retimer_spur": -37.85776907071255,
+   "dT1_no_retimer_pred": -37.633076372766354,
+   "dT1_retimed_spur": -125.39036696245331,
+   "static_phase_shift_fs": 2500.0
+  },
+  "noise_jitter_fs": {
+   "no_skew": 125.75068598868467,
+   "post_skew_20ps": 125.75102178235171,
+   "no_retimer_mmd300fs": 149.17184520105326
+  }
+ },
+ "A5_retimer": {
+  "sweep": [
+   {
+    "margin_over_sigma": 2.0,
+    "slip_rate": 0.02246856689453125,
+    "jitter_fs": 5903.033863861727,
+    "L_inband": -77.74941360896045
+   },
+   {
+    "margin_over_sigma": 3.0,
+    "slip_rate": 0.00135040283203125,
+    "jitter_fs": 1463.1421635244506,
+    "L_inband": -89.77584298179917
+   },
+   {
+    "margin_over_sigma": 4.0,
+    "slip_rate": 2.47955322265625e-05,
+    "jitter_fs": 236.94882969848211,
+    "L_inband": -106.43115782722573
+   },
+   {
+    "margin_over_sigma": 5.0,
+    "slip_rate": 0.0,
+    "jitter_fs": 125.70379419172038,
+    "L_inband": -115.15716177516535
+   },
+   {
+    "margin_over_sigma": 6.0,
+    "slip_rate": 0.0,
+    "jitter_fs": 125.70379419172038,
+    "L_inband": -115.15716177516535
+   }
+  ],
+  "code_dependent": {
+   "spur_dBc": -35.60528140701787,
+   "slips": 5800
+  }
+ },
+ "A6_cp_nonlin": {
+  "conv_X1": {
+   "t_off_auto_ps": 355.4123596177973,
+   "rows": [
+    {
+     "t_off_ps": 0.0,
+     "L_inband": -91.90441931073174
+    },
+    {
+     "t_off_ps": 50.0,
+     "L_inband": -92.78427549555525
+    },
+    {
+     "t_off_ps": 100.0,
+     "L_inband": -95.37891613014224
+    },
+    {
+     "t_off_ps": 150.0,
+     "L_inband": -99.72757205718159
+    },
+    {
+     "t_off_ps": 200.0,
+     "L_inband": -106.2485277293332
+    },
+    {
+     "t_off_ps": 250.00000000000003,
+     "L_inband": -116.14362482482461
+    },
+    {
+     "t_off_ps": 300.0,
+     "L_inband": -131.4614066264013
+    },
+    {
+     "t_off_ps": 350.00000000000006,
+     "L_inband": -133.48124730686195
+    },
+    {
+     "t_off_ps": 400.0,
+     "L_inband": -133.4812472973034
+    },
+    {
+     "t_off_ps": 450.0,
+     "L_inband": -133.48124728775235
+    }
+   ]
+  },
+  "two_X8": {
+   "t_off_auto_ps": 222.55280156065967,
+   "rows": [
+    {
+     "t_off_ps": 0.0,
+     "L_inband": -94.67138432571163
+    },
+    {
+     "t_off_ps": 50.0,
+     "L_inband": -98.19928869196488
+    },
+    {
+     "t_off_ps": 100.0,
+     "L_inband": -104.00372829662929
+    },
+    {
+     "t_off_ps": 150.0,
+     "L_inband": -117.97761409550704
+    },
+    {
+     "t_off_ps": 200.0,
+     "L_inband": -152.01969227471437
+    },
+    {
+     "t_off_ps": 250.00000000000003,
+     "L_inband": -152.0196923642523
+    },
+    {
+     "t_off_ps": 300.0,
+     "L_inband": -152.01969245357384
+    },
+    {
+     "t_off_ps": 350.00000000000006,
+     "L_inband": -152.01969254262815
+    },
+    {
+     "t_off_ps": 400.0,
+     "L_inband": -152.01969263135342
+    },
+    {
+     "t_off_ps": 450.0,
+     "L_inband": -152.01969271983268
+    }
+   ]
+  },
+  "binary_X8": {
+   "t_off_auto_ps": 222.55280156065967,
+   "rows": [
+    {
+     "t_off_ps": 0.0,
+     "L_inband": -112.29487878189965
+    },
+    {
+     "t_off_ps": 50.0,
+     "L_inband": -114.37036975744775
+    },
+    {
+     "t_off_ps": 100.0,
+     "L_inband": -119.6684671729694
+    },
+    {
+     "t_off_ps": 150.0,
+     "L_inband": -134.65135159875237
+    },
+    {
+     "t_off_ps": 200.0,
+     "L_inband": -152.01969227470954
+    },
+    {
+     "t_off_ps": 250.00000000000003,
+     "L_inband": -152.0196923642588
+    },
+    {
+     "t_off_ps": 300.0,
+     "L_inband": -152.01969245357853
+    },
+    {
+     "t_off_ps": 350.00000000000006,
+     "L_inband": -152.0196925426314
+    },
+    {
+     "t_off_ps": 400.0,
+     "L_inband": -152.01969263135038
+    },
+    {
+     "t_off_ps": 450.0,
+     "L_inband": -152.01969271983657
+    }
+   ]
+  }
+ },
+ "A7_xlimit": [
+  {
+   "f_ref": 26000000.0,
+   "arch": "two",
+   "X_max": 64
+  },
+  {
+   "f_ref": 26000000.0,
+   "arch": "binary",
+   "X_max": 64
+  },
+  {
+   "f_ref": 52000000.0,
+   "arch": "two",
+   "X_max": 32
+  },
+  {
+   "f_ref": 52000000.0,
+   "arch": "binary",
+   "X_max": 64
+  },
+  {
+   "f_ref": 104000000.0,
+   "arch": "two",
+   "X_max": 16
+  },
+  {
+   "f_ref": 104000000.0,
+   "arch": "binary",
+   "X_max": 64
+  },
+  {
+   "f_ref": 208000000.0,
+   "arch": "two",
+   "X_max": 8
+  },
+  {
+   "f_ref": 208000000.0,
+   "arch": "binary",
+   "X_max": 64
+  }
+ ],
+ "A8_lowjitter": {
+  "conv_X1": {
+   "jitter_fs": 361.41489389207277,
+   "component_jitter_fs": {
+    "sdm": 357.2509064684088,
+    "vco": 34.23672520953728,
+    "ref": 14.497546412384846,
+    "pfd": 18.667279614981098,
+    "cp": 38.649095851529104,
+    "total": 361.7357631143442
+   },
+   "f_vco": 5956270130.157471,
+   "t_off_ps": 373.9732952444846
+  },
+  "binary_X16": {
+   "jitter_fs": 54.06135167159467,
+   "component_jitter_fs": {
+    "sdm": 22.32818165427555,
+    "vco": 34.23672520953728,
+    "ref": 14.497546412384846,
+    "pfd": 10.819576843629916,
+    "cp": 30.485541868402784,
+    "total": 54.10463387847936
+   },
+   "f_vco": 5956270130.157471,
+   "t_off_ps": 217.5615891527616
+  },
+  "conditions": {
+   "f_ref": 104000000.0,
+   "N": 57,
+   "icp": 0.004,
+   "vco_L1M": -124.0,
+   "ref_floor": -168.0,
+   "fc": 1200000.0
+  }
+ },
+ "checks": [
+  {
+   "check": "A0 identity conv X=1",
+   "result": "PASS",
+   "measured": {
+    "coarse_error_identity": true,
+    "effective_modulus_identity": true,
+    "weighted_edge_equals_fine_sdm": true
+   },
+   "expected": "all True",
+   "note": "D_N+S+dB/X == y_fine/X ; sum w_i*(r1+d_i) == r_eff"
+  },
+  {
+   "check": "A0 identity two X=2",
+   "result": "PASS",
+   "measured": {
+    "coarse_error_identity": true,
+    "effective_modulus_identity": true,
+    "weighted_edge_equals_fine_sdm": true
+   },
+   "expected": "all True",
+   "note": "D_N+S+dB/X == y_fine/X ; sum w_i*(r1+d_i) == r_eff"
+  },
+  {
+   "check": "A0 identity two X=4",
+   "result": "PASS",
+   "measured": {
+    "coarse_error_identity": true,
+    "effective_modulus_identity": true,
+    "weighted_edge_equals_fine_sdm": true
+   },
+   "expected": "all True",
+   "note": "D_N+S+dB/X == y_fine/X ; sum w_i*(r1+d_i) == r_eff"
+  },
+  {
+   "check": "A0 identity two X=8",
+   "result": "PASS",
+   "measured": {
+    "coarse_error_identity": true,
+    "effective_modulus_identity": true,
+    "weighted_edge_equals_fine_sdm": true
+   },
+   "expected": "all True",
+   "note": "D_N+S+dB/X == y_fine/X ; sum w_i*(r1+d_i) == r_eff"
+  },
+  {
+   "check": "A0 identity binary X=4",
+   "result": "PASS",
+   "measured": {
+    "coarse_error_identity": true,
+    "effective_modulus_identity": true,
+    "weighted_edge_equals_fine_sdm": true
+   },
+   "expected": "all True",
+   "note": "D_N+S+dB/X == y_fine/X ; sum w_i*(r1+d_i) == r_eff"
+  },
+  {
+   "check": "A0 identity binary X=8",
+   "result": "PASS",
+   "measured": {
+    "coarse_error_identity": true,
+    "effective_modulus_identity": true,
+    "weighted_edge_equals_fine_sdm": true
+   },
+   "expected": "all True",
+   "note": "D_N+S+dB/X == y_fine/X ; sum w_i*(r1+d_i) == r_eff"
+  },
+  {
+   "check": "A1 sim-vs-analytic conv X=1",
+   "result": "PASS",
+   "measured": -107.75,
+   "expected": -107.76,
+   "note": "dBc/Hz"
+  },
+  {
+   "check": "A1 SDM noise two X=2",
+   "result": "PASS",
+   "measured": -6.03,
+   "expected": -6.02,
+   "note": "dB, band 2-20 MHz"
+  },
+  {
+   "check": "A1 sim-vs-analytic two X=2",
+   "result": "PASS",
+   "measured": -113.79,
+   "expected": -113.78,
+   "note": "dBc/Hz"
+  },
+  {
+   "check": "A1 SDM noise two X=4",
+   "result": "PASS",
+   "measured": -12.06,
+   "expected": -12.04,
+   "note": "dB, band 2-20 MHz"
+  },
+  {
+   "check": "A1 sim-vs-analytic two X=4",
+   "result": "PASS",
+   "measured": -119.81,
+   "expected": -119.8,
+   "note": "dBc/Hz"
+  },
+  {
+   "check": "A1 SDM noise two X=8",
+   "result": "PASS",
+   "measured": -18.06,
+   "expected": -18.06,
+   "note": "dB, band 2-20 MHz"
+  },
+  {
+   "check": "A1 sim-vs-analytic two X=8",
+   "result": "PASS",
+   "measured": -125.81,
+   "expected": -125.82,
+   "note": "dBc/Hz"
+  },
+  {
+   "check": "A1 SDM noise two X=16",
+   "result": "PASS",
+   "measured": -24.08,
+   "expected": -24.08,
+   "note": "dB, band 2-20 MHz"
+  },
+  {
+   "check": "A1 sim-vs-analytic two X=16",
+   "result": "PASS",
+   "measured": -131.83,
+   "expected": -131.84,
+   "note": "dBc/Hz"
+  },
+  {
+   "check": "A1 SDM noise binary X=8",
+   "result": "PASS",
+   "measured": -18.06,
+   "expected": -18.06,
+   "note": "dB, band 2-20 MHz"
+  },
+  {
+   "check": "A1 sim-vs-analytic binary X=8",
+   "result": "PASS",
+   "measured": -125.81,
+   "expected": -125.82,
+   "note": "dBc/Hz"
+  },
+  {
+   "check": "A2 jitter sim-vs-analytic conv X=1",
+   "result": "PASS",
+   "measured": 699.3,
+   "expected": 699.7,
+   "note": "fs (10k..fref/2)"
+  },
+  {
+   "check": "A2 jitter sim-vs-analytic two X=2",
+   "result": "PASS",
+   "measured": 358.3,
+   "expected": 358.8,
+   "note": "fs (10k..fref/2)"
+  },
+  {
+   "check": "A2 jitter sim-vs-analytic two X=8",
+   "result": "PASS",
+   "measured": 125.7,
+   "expected": 126.0,
+   "note": "fs (10k..fref/2)"
+  },
+  {
+   "check": "A2 jitter sim-vs-analytic binary X=8",
+   "result": "PASS",
+   "measured": 125.3,
+   "expected": 125.2,
+   "note": "fs (10k..fref/2)"
+  },
+  {
+   "check": "A2 CP-noise reduction two X=8 (patent: 1-2 dB)",
+   "result": "PASS",
+   "measured": -1.9,
+   "expected": "-1..-2",
+   "note": "dB in-band; from smaller T_OFFSET"
+  },
+  {
+   "check": "A2 PFD-noise reduction two X=2 (patent: 3 dB)",
+   "result": "PASS",
+   "measured": -3.19,
+   "expected": -3.01,
+   "note": "dB, independent per-slice PFD jitter"
+  },
+  {
+   "check": "A2 PFD-noise binary X=8 = 10log(sum w^2)",
+   "result": "PASS",
+   "measured": -4.8,
+   "expected": -4.64,
+   "note": "dB"
+  },
+  {
+   "check": "A3 spur = 20log10(eps(1-1/X)rho|H|) (two X=8, f_s=203 kHz)",
+   "result": "PASS",
+   "measured": 0.05,
+   "expected": "<0.5 dB error",
+   "note": "ideal (eps=0) spur -125 dBc"
+  },
+  {
+   "check": "A4 constant dT2/dT3 does not create spur",
+   "result": "PASS",
+   "measured": -125.4,
+   "expected": "<= ideal -125.4+1",
+   "note": "dBc, 20 ps skew"
+  },
+  {
+   "check": "A4 retimer removes dT1",
+   "result": "PASS",
+   "measured": -125.4,
+   "expected": "<= ideal -125.4+1",
+   "note": "dBc"
+  },
+  {
+   "check": "A4 dT1 without retimer matches pulse-train prediction",
+   "result": "PASS",
+   "measured": -49.9,
+   "expected": -49.7,
+   "note": "dBc"
+  },
+  {
+   "check": "A4 constant skew: no noise folding",
+   "result": "PASS",
+   "measured": 125.8,
+   "expected": 125.8,
+   "note": "fs"
+  },
+  {
+   "check": "A6 X=8 linear at T_off >= auto, while conv still folds at that T_off",
+   "result": "PASS",
+   "measured": -152.0,
+   "expected": "<-150 (no folding)",
+   "note": "dBc/Hz"
+  }
+ ],
+ "runtime_s": 38.79154396057129
+}

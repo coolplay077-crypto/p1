@@ -162,7 +162,7 @@ The acceptance condition is that every group has margins $m_i > 0, h_i > 0$ and 
 | Field group | Suggested fields | Definition notes |
 |---|---|---|
 | Event identity | `event_id, ref_kind, reset_epoch` | Distinguishes this reference, the dual-edge category and the reset generation |
-| Count coordinate | `clock_node_id, M, C_cap, q_cap` | States explicitly which clock node is counted; unitless mixed connection is forbidden |
+| Count coordinate | `clock_node_id, M, C_cap, q_cap` | States explicitly which clock node is counted; mixing quantities without units is forbidden |
 | Capture source | `candidate_id, capture_epoch, wrap_tag` | Indicates the candidate and the group-crossing state |
 | Plan/execution | `J_plan, J_observed, edge_polarity` | The actual receipt is independent of the command |
 | Correction | `kappa_C, kappa_N, alpha_sel` | In group units, raw-cycle units, and intra-cycle offset respectively |
@@ -176,12 +176,12 @@ The acceptance condition is that every group has margins $m_i > 0, h_i > 0$ and 
 | ID | Invariant | Handling on violation |
 |---|---|---|
 | I1 | The actual $CK_0$ cycles are continuous, and the origin of $N = MC + q$ is consistent with the carry | Block the valid phase; check reset/polarity/counter implementation |
-| I2 | Coarse and fine share the same anchor, or the anchor transformation is recorded explicitly | Correct, or INVALID; never add silently |
-| I3 | The unit of the correction and the set of errors it covers are explicit | Out of bounds sets invalid; do not truncate to ±1 |
-| I4 | $J_{observed}$ reflects real execution and is not self-certified by $J_{plan}$ | Mark the receipt unconfirmed; it does not enter fine_valid |
+| I2 | Coarse and fine share the same anchor, or the anchor transformation is recorded explicitly | Correct, or INVALID; never add them silently |
+| I3 | The unit of the correction and the set of errors it covers are explicit | Mark invalid when out of bounds; do not truncate to ±1 |
+| I4 | $J_{observed}$ reflects real execution and is not self-certified by $J_{plan}$ | Mark the receipt as unverified; it does not enter fine_valid |
 | I5 | Fine range, code legality and calibration are all satisfied | Downgrade to coarse/interval/invalid |
 | I6 | The two boundary candidates are equivalent in the common coordinate | An inconsistency is treated as a stitching error |
-| I7 | The low-rate computation meets the edge-selection deadline | late/miss, or re-plan and update $J$ |
+| I7 | The low-speed computation meets the edge-selection deadline | late/miss, or re-plan and update $J$ |
 | I8 | The full-counter rollover uses an explicit modular-arithmetic window | Reset/reacquire when beyond the unwrappable range |
 
 ### 8.3 Phase-integration pseudo-code

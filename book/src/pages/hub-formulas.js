@@ -247,7 +247,7 @@
 
       // deep links: #hub-formulas-eq-N opens the derivation and flashes the card
       function focusFromHash() {
-        const m = decodeURIComponent(location.hash.slice(1)).match(/^hub-formulas-eq-(\d+)$/);
+        const m = decodeURIComponent(Book.hash().slice(1)).match(/^hub-formulas-eq-(\d+)$/);
         if (!m) return;
         const card = document.getElementById(`${PAGE}-eq-${m[1]}`);
         if (!card) return;

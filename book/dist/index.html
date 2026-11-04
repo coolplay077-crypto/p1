@@ -3932,7 +3932,8 @@ c-1 5-5 9-11 9h-2L532 67 19 159h-2c-5 0-9-4-11-9l-5-22c-1-6 2-12 8-13z"/></svg><
       catch (e) { return `<code>${esc(src)}</code>`; }
     },
     on(kind, fn) { listeners[kind].add(fn); return () => listeners[kind].delete(fn); },
-    go(hash) { if (location.hash === hash) route(); else location.hash = hash; },
+    go(hash) { navigate(hash); },
+    hash() { return curHash; },
     toast,
     store: LS,
   });
@@ -4127,6 +4128,7 @@ c-1 5-5 9-11 9h-2L532 67 19 159h-2c-5 0-9-4-11-9l-5-22c-1-6 2-12 8-13z"/></svg><
   // Router
   // ---------------------------------------------------------------------------
   let currentPage = null;
+  let curHash = location.hash || '';
   function showPage(id) {
     const el = $(`.page[data-page="${CSS.escape(id)}"]`);
     if (!el) return null;
@@ -4189,7 +4191,7 @@ c-1 5-5 9-11 9h-2L532 67 19 159h-2c-5 0-9-4-11-9l-5-22c-1-6 2-12 8-13z"/></svg><
   }
 
   function route() {
-    const t = resolveTarget(location.hash);
+    const t = resolveTarget(curHash);
     const el = showPage(t.page);
     if (!el) return;
     if (t.find) {
@@ -4203,7 +4205,27 @@ c-1 5-5 9-11 9h-2L532 67 19 159h-2c-5 0-9-4-11-9l-5-22c-1-6 2-12 8-13z"/></svg><
     } else window.scrollTo(0, 0);
     document.body.classList.remove('menu-open');
   }
-  window.addEventListener('hashchange', route);
+  // Internal router: sandboxed viewers (e.g. embedded artifact frames) block fragment navigation,
+  // so links are intercepted and routed in-page; the URL is updated only where the host allows it.
+  function navigate(hash) {
+    if (!hash) return;
+    if (hash[0] !== '#') hash = '#' + hash;
+    const same = hash === curHash;
+    curHash = hash;
+    if (!same) { try { history.pushState(null, '', hash); } catch (e) { /* URL changes not permitted here */ } }
+    route();
+  }
+  window.addEventListener('hashchange', () => { if (location.hash !== curHash) { curHash = location.hash; route(); } });
+  window.addEventListener('popstate', () => { if (location.hash !== curHash) { curHash = location.hash; route(); } });
+  document.addEventListener('click', (e) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const a = e.target.closest && e.target.closest('a[href^="#"]');
+    if (!a || a.target) return;
+    const href = a.getAttribute('href');
+    if (!href || href.length < 2) return;
+    e.preventDefault();
+    navigate(href);
+  });
 
   function buildPageNav(id) {
     const order = readingOrder();
@@ -4606,7 +4628,7 @@ c-1 5-5 9-11 9h-2L532 67 19 159h-2c-5 0-9-4-11-9l-5-22c-1-6 2-12 8-13z"/></svg><
     else if (e.key === 'l' || e.key === 'L') { const m = ['zh', 'en', 'both']; setLang(m[(m.indexOf(Book.langMode()) + 1) % 3]); }
     else if (e.key === 't' || e.key === 'T') $('#btn-theme').click();
     else if (e.key === 'f' || e.key === 'F') $('#btn-focus').click();
-    else if (e.key === '[' || e.key === ']') { const a = $(`#page-nav a.${e.key === '[' ? 'prev' : 'next'}`); if (a) location.hash = a.getAttribute('href'); }
+    else if (e.key === '[' || e.key === ']') { const a = $(`#page-nav a.${e.key === '[' ? 'prev' : 'next'}`); if (a) navigate(a.getAttribute('href')); }
     else if (e.key === 'b' || e.key === 'B') { const s = currentSection(); if (s) toggleBookmark(s.id); }
   });
 
@@ -13090,14 +13112,14 @@ c-1 5-5 9-11 9h-2L532 67 19 159h-2c-5 0-9-4-11-9l-5-22c-1-6 2-12 8-13z"/></svg><
       el.addEventListener('click', (e) => {
         const a = e.target.closest('[data-goto]');
         if (!a) return;
-        if (location.hash === `#${PAGE}-${a.dataset.goto}`) {
+        if (Book.hash() === `#${PAGE}-${a.dataset.goto}`) {
           e.preventDefault();
           const card = reveal(a.dataset.goto);
           if (card) card.scrollIntoView({ block: 'start' });
         }
       });
       function focusFromHash() {
-        const m = decodeURIComponent(location.hash.slice(1)).match(/^hub-evidence-([RH]\d{2})$/);
+        const m = decodeURIComponent(Book.hash().slice(1)).match(/^hub-evidence-([RH]\d{2})$/);
         if (m) reveal(m[1]);
       }
       window.addEventListener('hashchange', focusFromHash);
@@ -13368,7 +13390,7 @@ c-1 5-5 9-11 9h-2L532 67 19 159h-2c-5 0-9-4-11-9l-5-22c-1-6 2-12 8-13z"/></svg><
 
       // deep links: #hub-formulas-eq-N opens the derivation and flashes the card
       function focusFromHash() {
-        const m = decodeURIComponent(location.hash.slice(1)).match(/^hub-formulas-eq-(\d+)$/);
+        const m = decodeURIComponent(Book.hash().slice(1)).match(/^hub-formulas-eq-(\d+)$/);
         if (!m) return;
         const card = document.getElementById(`${PAGE}-eq-${m[1]}`);
         if (!card) return;
@@ -13598,7 +13620,7 @@ c-1 5-5 9-11 9h-2L532 67 19 159h-2c-5 0-9-4-11-9l-5-22c-1-6 2-12 8-13z"/></svg><
         state.g = b.dataset.g; apply();
       });
       function focusFromHash() {
-        const id = decodeURIComponent(location.hash.slice(1));
+        const id = decodeURIComponent(Book.hash().slice(1));
         if (!id.startsWith(PAGE + '-')) return;
         const row = document.getElementById(id);
         if (!row) return;

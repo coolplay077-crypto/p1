@@ -254,14 +254,14 @@
       el.addEventListener('click', (e) => {
         const a = e.target.closest('[data-goto]');
         if (!a) return;
-        if (location.hash === `#${PAGE}-${a.dataset.goto}`) {
+        if (Book.hash() === `#${PAGE}-${a.dataset.goto}`) {
           e.preventDefault();
           const card = reveal(a.dataset.goto);
           if (card) card.scrollIntoView({ block: 'start' });
         }
       });
       function focusFromHash() {
-        const m = decodeURIComponent(location.hash.slice(1)).match(/^hub-evidence-([RH]\d{2})$/);
+        const m = decodeURIComponent(Book.hash().slice(1)).match(/^hub-evidence-([RH]\d{2})$/);
         if (m) reveal(m[1]);
       }
       window.addEventListener('hashchange', focusFromHash);

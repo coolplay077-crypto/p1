@@ -200,7 +200,7 @@
         state.g = b.dataset.g; apply();
       });
       function focusFromHash() {
-        const id = decodeURIComponent(location.hash.slice(1));
+        const id = decodeURIComponent(Book.hash().slice(1));
         if (!id.startsWith(PAGE + '-')) return;
         const row = document.getElementById(id);
         if (!row) return;

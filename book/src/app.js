@@ -60,7 +60,8 @@
       catch (e) { return `<code>${esc(src)}</code>`; }
     },
     on(kind, fn) { listeners[kind].add(fn); return () => listeners[kind].delete(fn); },
-    go(hash) { if (location.hash === hash) route(); else location.hash = hash; },
+    go(hash) { navigate(hash); },
+    hash() { return curHash; },
     toast,
     store: LS,
   });
@@ -255,6 +256,7 @@
   // Router
   // ---------------------------------------------------------------------------
   let currentPage = null;
+  let curHash = location.hash || '';
   function showPage(id) {
     const el = $(`.page[data-page="${CSS.escape(id)}"]`);
     if (!el) return null;
@@ -317,7 +319,7 @@
   }
 
   function route() {
-    const t = resolveTarget(location.hash);
+    const t = resolveTarget(curHash);
     const el = showPage(t.page);
     if (!el) return;
     if (t.find) {
@@ -331,7 +333,27 @@
     } else window.scrollTo(0, 0);
     document.body.classList.remove('menu-open');
   }
-  window.addEventListener('hashchange', route);
+  // Internal router: sandboxed viewers (e.g. embedded artifact frames) block fragment navigation,
+  // so links are intercepted and routed in-page; the URL is updated only where the host allows it.
+  function navigate(hash) {
+    if (!hash) return;
+    if (hash[0] !== '#') hash = '#' + hash;
+    const same = hash === curHash;
+    curHash = hash;
+    if (!same) { try { history.pushState(null, '', hash); } catch (e) { /* URL changes not permitted here */ } }
+    route();
+  }
+  window.addEventListener('hashchange', () => { if (location.hash !== curHash) { curHash = location.hash; route(); } });
+  window.addEventListener('popstate', () => { if (location.hash !== curHash) { curHash = location.hash; route(); } });
+  document.addEventListener('click', (e) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const a = e.target.closest && e.target.closest('a[href^="#"]');
+    if (!a || a.target) return;
+    const href = a.getAttribute('href');
+    if (!href || href.length < 2) return;
+    e.preventDefault();
+    navigate(href);
+  });
 
   function buildPageNav(id) {
     const order = readingOrder();
@@ -734,7 +756,7 @@
     else if (e.key === 'l' || e.key === 'L') { const m = ['zh', 'en', 'both']; setLang(m[(m.indexOf(Book.langMode()) + 1) % 3]); }
     else if (e.key === 't' || e.key === 'T') $('#btn-theme').click();
     else if (e.key === 'f' || e.key === 'F') $('#btn-focus').click();
-    else if (e.key === '[' || e.key === ']') { const a = $(`#page-nav a.${e.key === '[' ? 'prev' : 'next'}`); if (a) location.hash = a.getAttribute('href'); }
+    else if (e.key === '[' || e.key === ']') { const a = $(`#page-nav a.${e.key === '[' ? 'prev' : 'next'}`); if (a) navigate(a.getAttribute('href')); }
     else if (e.key === 'b' || e.key === 'B') { const s = currentSection(); if (s) toggleBookmark(s.id); }
   });
 

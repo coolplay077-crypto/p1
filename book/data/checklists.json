@@ -1,0 +1,203 @@
+{
+  "_note": "Checklist items for the learning hub. Goals G1-G7 = report §2.1; invariants I1-I8 = §10.2; questions Q1-Q5 = §13.2; routes = §7.4; corrections = §1.3. The 'protects' field is an editorial cross-reference written for this book (not stated in the report) and is conservative: it names only the goals an invariant plainly serves.",
+  "goals": [
+    {
+      "id": "G1",
+      "zh": { "title": "持续整数相位观测", "accept": "CNT 记录实际 CKV 周期，不是只在目标命中时才记录命令状态" },
+      "en": { "title": "Continuous integer phase observation", "accept": "The CNT records the actual CKV cycles, rather than recording the command state only when a target is hit" },
+      "sections": ["r-2-1", "r-3-2"],
+      "widgets": ["split-counter"]
+    },
+    {
+      "id": "G2",
+      "zh": { "title": "高位降速", "accept": "宽位高位允许在 /4 或 /8 域工作，少量低位状态可继续高速运行" },
+      "en": { "title": "High-bit rate reduction", "accept": "The wide high bits are allowed to operate in the /4 or /8 domain; a small number of low-bit states may keep running at high speed" },
+      "sections": ["r-2-1", "r-4-1", "r-4-2"],
+      "widgets": ["split-counter", "low-state-encoding"]
+    },
+    {
+      "id": "G3",
+      "zh": { "title": "原周期编号不丢失", "accept": "相位模型可追溯到所选原始 CKV 节点，而非只保留慢时钟边沿" },
+      "en": { "title": "Raw cycle index not lost", "accept": "The phase model is traceable to the selected raw CKV node, rather than retaining only slow-clock edges" },
+      "sections": ["r-2-1", "r-3-1"],
+      "widgets": ["clock-node-units"]
+    },
+    {
+      "id": "G4",
+      "zh": { "title": "粗细观测一致", "accept": "coarse 与 fine 对应同一物理锚点，或携带显式、可验证的坐标变换" },
+      "en": { "title": "Coarse/fine observations consistent", "accept": "Coarse and fine correspond to the same physical anchor, or carry an explicit, verifiable coordinate transformation" },
+      "sections": ["r-2-1", "r-3-3"],
+      "widgets": ["phase-anchor", "anchor-equivalence"]
+    },
+    {
+      "id": "G5",
+      "zh": { "title": "fine 真实量程受控", "accept": "目标为约一个原始 CKV 周期或更小；必须按真实输入间隔检查" },
+      "en": { "title": "True fine range under control", "accept": "The target is about one raw CKV cycle or less; it must be checked against the true input interval" },
+      "sections": ["r-2-1", "r-9-1", "r-9-5"],
+      "widgets": ["saturation-tdc", "range-calculator"]
+    },
+    {
+      "id": "G6",
+      "zh": { "title": "边界与故障可辨识", "accept": "wrap、采样错配、无效码、饱和、丢沿、重复沿不能静默变成有效相位" },
+      "en": { "title": "Boundaries and faults identifiable", "accept": "Wrap, sampling mismatch, invalid codes, saturation, missing edges and duplicate edges must not silently become valid phase" },
+      "sections": ["r-2-1", "r-6-1", "r-9-3"],
+      "widgets": ["torn-capture", "blind-spot"]
+    },
+    {
+      "id": "G7",
+      "zh": { "title": "P/S 不替代 CNT", "accept": "P/S 或 slot executor 负责物理边沿执行，不删除参考相关的 coarse 测量" },
+      "en": { "title": "P/S does not replace the CNT", "accept": "P/S or the slot executor is responsible for physical edge execution and does not remove the reference-related coarse measurement" },
+      "sections": ["r-2-1", "r-8-1", "r-11"],
+      "widgets": ["ps-executor"]
+    }
+  ],
+  "invariants": [
+    {
+      "id": "I1",
+      "zh": { "text": "实际 CK0 周期连续，N=MC+q 的原点与 carry 一致", "handling": "阻断有效相位；检查复位/极性/计数实现" },
+      "en": { "text": "The actual CK0 cycles are continuous, and the origin of N=MC+q is consistent with the carry", "handling": "Block the valid phase; check the reset/polarity/counter implementation" },
+      "protects": ["G1", "G3"],
+      "sections": ["r-3-2", "r-10-2"],
+      "widgets": ["split-counter"]
+    },
+    {
+      "id": "I2",
+      "zh": { "text": "coarse 与 fine 同锚点，或显式记录锚点变换", "handling": "校正或 INVALID，不静默相加" },
+      "en": { "text": "Coarse and fine share the same anchor, or the anchor transformation is explicitly recorded", "handling": "Correct, or INVALID; never add them silently" },
+      "protects": ["G4"],
+      "sections": ["r-3-3", "r-10-2"],
+      "widgets": ["phase-anchor"]
+    },
+    {
+      "id": "I3",
+      "zh": { "text": "correction 的单位和可覆盖错误集合明确", "handling": "超界置无效；不截断成 ±1" },
+      "en": { "text": "The units of the correction and the set of errors it can cover are explicit", "handling": "Mark invalid when out of bounds; do not truncate to ±1" },
+      "protects": ["G3", "G6"],
+      "sections": ["r-6-2", "r-10-2"],
+      "widgets": ["torn-capture"]
+    },
+    {
+      "id": "I4",
+      "zh": { "text": "J_observed 反映真实执行，不由 J_plan 自证", "handling": "标记回执未证实，不进入 fine_valid" },
+      "en": { "text": "J_observed reflects the real execution and is not self-certified by J_plan", "handling": "Mark the receipt as unverified; it does not enter fine_valid" },
+      "protects": ["G6", "G7"],
+      "sections": ["r-8-2", "r-10-2"],
+      "widgets": ["ps-executor"]
+    },
+    {
+      "id": "I5",
+      "zh": { "text": "fine 量程、码合法性和校准全部满足", "handling": "降级使用 coarse/区间/无效" },
+      "en": { "text": "The fine range, code legality and calibration are all satisfied", "handling": "Downgrade to coarse / an interval / invalid" },
+      "protects": ["G5", "G6"],
+      "sections": ["r-9-3", "r-10-2"],
+      "widgets": ["saturation-tdc"]
+    },
+    {
+      "id": "I6",
+      "zh": { "text": "两种边界候选在共同坐标下等价", "handling": "不一致视为 coarse/fine stitching 错误" },
+      "en": { "text": "The two boundary candidates are equivalent in a common coordinate", "handling": "Inconsistency is treated as a coarse/fine stitching error" },
+      "protects": ["G4"],
+      "sections": ["r-6-4", "r-10-2"],
+      "widgets": ["anchor-equivalence"]
+    },
+    {
+      "id": "I7",
+      "zh": { "text": "低速计算符合选沿 deadline", "handling": "late/miss，或重新规划并更新 J" },
+      "en": { "text": "The low-speed computation meets the edge-selection deadline", "handling": "late/miss, or re-plan and update J" },
+      "protects": ["G7"],
+      "sections": ["r-8-4", "r-10-2"],
+      "widgets": ["causality-timeline"]
+    },
+    {
+      "id": "I8",
+      "zh": { "text": "全 counter rollover 采用明确模运算窗口", "handling": "超出可展开范围时 reset/reacquire" },
+      "en": { "text": "Full-counter rollover uses an explicit modular-arithmetic window", "handling": "Reset/reacquire when beyond the range that can be unwrapped" },
+      "protects": ["G1"],
+      "sections": ["r-10-2"],
+      "widgets": ["rollover-window"]
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q1",
+      "zh": { "q": "到底以哪个节点作为原周期？", "artifact": "clock-node 表与全部倍率/相位原点", "done": "CNT、FCW、TDC、DTC、edge ID 同一量纲" },
+      "en": { "q": "Which node exactly serves as the raw cycle?", "artifact": "Clock-node table with all ratios and phase origins", "done": "CNT, FCW, TDC, DTC and edge ID in the same units" },
+      "sections": ["r-3-1", "r-3-4"],
+      "widgets": ["clock-node-units", "multiphase-units"]
+    },
+    {
+      "id": "Q2",
+      "zh": { "q": "C/q 在边界如何关联？", "artifact": "全 residue、wrap、候选切换真值表", "done": "每个允许状态都对应合法锚点或 INVALID" },
+      "en": { "q": "How are C and q related at the boundary?", "artifact": "Truth table covering all residues, wraps and candidate switches", "done": "Every permitted state corresponds to a legal anchor or INVALID" },
+      "sections": ["r-6-1", "r-6-3", "r-10-2"],
+      "widgets": ["torn-capture", "blind-spot", "rollover-window"]
+    },
+    {
+      "id": "Q3",
+      "zh": { "q": "低位如何控制真实选沿？", "artifact": "raw-state→slot→physical-edge 映射及 deadline", "done": "不能生成过去边沿；late/miss 行为确定" },
+      "en": { "q": "How do the low bits control the real edge selection?", "artifact": "raw-state→slot→physical-edge mapping and deadline", "done": "No past edge can be generated; late/miss behaviour is deterministic" },
+      "sections": ["r-8-1", "r-8-3", "r-8-4"],
+      "widgets": ["ps-executor", "causality-timeline"]
+    },
+    {
+      "id": "Q4",
+      "zh": { "q": "谁证明实际边沿编号？", "artifact": "J_observed 电路与独立校验路径", "done": "计划错误/丢沿注入后不会自证通过" },
+      "en": { "q": "Who proves the actual edge index?", "artifact": "J_observed circuit and an independent check path", "done": "After injection of plan errors or missing edges, it does not self-certify as passing" },
+      "sections": ["r-8-2", "r-10-1", "r-12-2"],
+      "widgets": ["ps-executor", "golden-model"]
+    },
+    {
+      "id": "Q5",
+      "zh": { "q": "short TDC 何时可信？", "artifact": "物理量程预算、SAT/VALID、校准/降级规范", "done": "饱和码不作为精确 fine，coarse 仍可解释" },
+      "en": { "q": "When can the short TDC be trusted?", "artifact": "Physical range budget, SAT/VALID, calibration and downgrade specification", "done": "Saturated codes are not used as an exact fine value; coarse remains interpretable" },
+      "sections": ["r-9-1", "r-9-3", "r-9-5"],
+      "widgets": ["saturation-tdc", "range-calculator"]
+    }
+  ],
+  "routes": [
+    {
+      "id": "A",
+      "zh": { "name": "路线 A：多候选捕获与安全路径选择", "solves": "避开特定边界附近的危险采样位置", "needs": "select 稳定、元组原子选择、固定/变化延迟" },
+      "en": { "name": "Route A: multi-candidate capture and safe path selection", "solves": "Avoids dangerous sampling positions near specific boundaries", "needs": "Stable select, atomic tuple selection, fixed or varying delays" },
+      "sections": ["r-7-1"],
+      "widgets": ["dual-candidate-capture"]
+    },
+    {
+      "id": "B",
+      "zh": { "name": "路线 B：沿计数传播方向匹配采样时刻", "solves": "各计数位传播不同步", "needs": "PVT min/max、同一逻辑 epoch、复位与采样脉冲宽度" },
+      "en": { "name": "Route B: sampling instants matched to the counting propagation", "solves": "Counter bits that do not propagate in step", "needs": "PVT min/max, the same logical epoch, reset and sampling pulse width" },
+      "sections": ["r-7-2"],
+      "widgets": ["matched-delay-sampling"]
+    },
+    {
+      "id": "C",
+      "zh": { "name": "路线 C：有界错配与冗余校正", "solves": "有界、可辨识的 epoch 不一致", "needs": "故障集合覆盖、修正单位、歧义时 INVALID" },
+      "en": { "name": "Route C: bounded mismatch and redundant correction", "solves": "Bounded, identifiable epoch inconsistencies", "needs": "Coverage of the fault set, correction units, INVALID when ambiguous" },
+      "sections": ["r-7-3"],
+      "widgets": ["torn-capture"]
+    }
+  ],
+  "corrections": [
+    {
+      "id": "C1",
+      "zh": { "text": "不能通用地写成 8C+q+e/8+ε。q 可能已包含 e 所表达的整周期位置；e/8 的单位也可能是分频后周期，不是原始 CKV 周期。必须先统一时钟节点、相位原点和量纲。", "link": "式 (7)–(8)" },
+      "en": { "text": "The general form 8C+q+e/8+ε cannot be used. q may already contain the whole-cycle position that e expresses; the unit of e/8 may be the divided period, not the raw CKV period. The clock node, phase origin and units must be unified first.", "link": "Eqs. (7)–(8)" },
+      "sections": ["r-1-3", "r-3-4"],
+      "widgets": ["multiphase-units"]
+    },
+    {
+      "id": "C2",
+      "zh": { "text": "不能把所有 epoch 错配都归结为 ±1 个原始周期。高、低位在组边界撕裂采样时，典型错误分别相对合法状态为 −M 与 +M。/8 高位错一组与 raw-CKV 错一周期是不同故障。", "link": "式 (10)" },
+      "en": { "text": "Not every epoch mismatch is a ±1 raw-cycle error. When high and low bits tear at a group boundary, the typical errors are −M and +M relative to the legal state. A high-bit error of one /8 group and a one-cycle error on the raw CKV are different faults.", "link": "Eq. (10)" },
+      "sections": ["r-1-3", "r-6-1", "r-6-2"],
+      "widgets": ["torn-capture"]
+    },
+    {
+      "id": "C3",
+      "zh": { "text": "Sony 不是“此前没有共享状态方法”的证据起点。Havens 专利已同时包含整数计数、小数检测、sub-fractional TDC，以及利用小数状态消除 one-count uncertainty 的处理。Sony 的贡献定位为另一条明确、紧凑的共享状态与修正实现。", "link": "式 (9)" },
+      "en": { "text": "Sony is not the starting point of evidence for 'no earlier shared-state method'. The Havens patent already combines integer counting, fractional detection, sub-fractional TDC and handling that uses the fractional state to remove the one-count uncertainty. Sony's contribution is a different, explicit and compact shared-state and correction implementation.", "link": "Eq. (9)" },
+      "sections": ["r-1-3", "r-4-6", "r-4-7"],
+      "widgets": ["sony-xor-correction"]
+    }
+  ]
+}

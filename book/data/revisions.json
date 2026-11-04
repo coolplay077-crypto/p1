@@ -1,0 +1,89 @@
+{
+  "_note": "Revision log from report §11 (10 rows, same order as the report table). 'before' is the earlier-round statement or tendency; 'handling' is this report's treatment; 'reason' is the report's stated reason; 'refs' are the report's bracketed references as cited in that row. 'kept' is the closing paragraph of §11.",
+  "items": [
+    {
+      "id": "V01",
+      "before": { "zh": "“/8 使 fine TDC 必然看到 8 个原周期，再由 snapshot 压回去”", "en": "“The /8 division means the fine TDC necessarily sees 8 raw cycles, which the snapshot then folds back.”" },
+      "handling": { "zh": "不成立，必须逐节点核对", "en": "Not valid; must be checked node by node" },
+      "reason": { "zh": "counter 降速、TDC 输入预分频与物理选沿是三件不同的事", "en": "Counter rate reduction, prescaling of the TDC input and the physical edge selection are three different things" },
+      "refs": ["R01", "R06", "R11"],
+      "sections": ["r-9-1", "r-11"]
+    },
+    {
+      "id": "V02",
+      "before": { "zh": "“Sony 才首次找到同状态参与整数与小数”", "en": "“Sony was the first to find a single state participating in both integer and fractional measurement.”" },
+      "handling": { "zh": "收紧为另一条直接实现", "en": "Narrowed to another direct implementation" },
+      "reason": { "zh": "Havens 已有共享 half-rate state、fractional correction 和 sub-fractional TDC", "en": "Havens already has a shared half-rate state, fractional correction and a sub-fractional TDC" },
+      "refs": ["R08"],
+      "sections": ["r-4-6", "r-4-7"]
+    },
+    {
+      "id": "V03",
+      "before": { "zh": "“统一采用 κ=−1/0/+1”", "en": "“Use κ = −1 / 0 / +1 uniformly.”" },
+      "handling": { "zh": "改为带单位、带故障集合的修正", "en": "Replaced by a correction that carries units and a fault set" },
+      "reason": { "zh": "raw-cycle 与 block-cycle 不同；高低位撕裂可错 ±M", "en": "Raw-cycle and block-cycle corrections differ; a high/low tear can err by ±M" },
+      "refs": [],
+      "sections": ["r-6-2", "r-6-1"]
+    },
+    {
+      "id": "V04",
+      "before": { "zh": "“$8C+q+e/8+\\epsilon$ 可作通用相位公式”", "en": "“8C + q + e/8 + ε can serve as a general phase formula.”" },
+      "handling": { "zh": "撤回通用性，改用锚点减残差", "en": "Generality withdrawn; replaced by anchor minus residual" },
+      "reason": { "zh": "q/e 可能重复表示同一相位区间；e/8 的时钟单位未统一", "en": "q and e may represent the same phase interval twice; the clock unit of e/8 is not unified" },
+      "refs": [],
+      "sections": ["r-3-3", "r-3-4"]
+    },
+    {
+      "id": "V05",
+      "before": { "zh": "“Kuo 原始 DCO 约 2 GHz，再 /4”", "en": "“Kuo's original DCO is about 2 GHz, then divided by 4.”" },
+      "handling": { "zh": "更正时钟层级", "en": "Clock hierarchy corrected" },
+      "reason": { "zh": "其 DCO 范围 5.7–8.4 GHz，约 2 GHz 是 /4 后量级", "en": "Its DCO range is 5.7–8.4 GHz; about 2 GHz is the order of magnitude after /4" },
+      "refs": ["R06"],
+      "sections": ["r-4-5", "r-3-1"]
+    },
+    {
+      "id": "V06",
+      "before": { "zh": "“Zong /4 split 保留的是原始 20 GHz 全部周期”", "en": "“Zong's /4 split preserves all cycles of the original 20 GHz.”" },
+      "handling": { "zh": "不作此结论", "en": "This conclusion is not drawn" },
+      "reason": { "zh": "Fig.9 的 counter 基准是前置 /8 后的 CKV", "en": "The counter reference in Fig. 9 is the CKV after a prior /8" },
+      "refs": ["R11"],
+      "sections": ["r-4-9", "r-3-1"]
+    },
+    {
+      "id": "V07",
+      "before": { "zh": "“相干必须等于同时锁存”", "en": "“Coherent must mean latched simultaneously.”" },
+      "handling": { "zh": "保留逻辑相干定义", "en": "The logical definition of coherence is kept" },
+      "reason": { "zh": "匹配延迟读出可在不同时刻取得同一逻辑 epoch", "en": "Matched-delay readout can obtain the same logical epoch at different instants" },
+      "refs": ["R05", "R11"],
+      "sections": ["r-4-4", "r-7-2"]
+    },
+    {
+      "id": "V08",
+      "before": { "zh": "“所有边界必须复原唯一物理边沿”", "en": "“Every boundary must recover a unique physical edge.”" },
+      "handling": { "zh": "改为一致候选或无效", "en": "Replaced by a consistent candidate or INVALID" },
+      "reason": { "zh": "不同锚点可以表示同一参考相位；不能把器件亚稳风险写成绝对保证", "en": "Different anchors can represent the same reference phase; device metastability risk cannot be written as an absolute guarantee" },
+      "refs": [],
+      "sections": ["r-6-4", "r-6-5"]
+    },
+    {
+      "id": "V09",
+      "before": { "zh": "“数字整数相消即可删除 CNT”", "en": "“Digital integer cancellation alone allows the CNT to be removed.”" },
+      "handling": { "zh": "明确不能这样推导", "en": "Explicitly not derivable this way" },
+      "reason": { "zh": "CNT 仍是真实 coarse 观测、回执校验与无效 fine 下的测量基础", "en": "The CNT remains the real coarse observation, the basis for receipt checking and the measurement when fine is invalid" },
+      "refs": [],
+      "sections": ["r-8-1", "r-9-4"]
+    },
+    {
+      "id": "V10",
+      "before": { "zh": "“通用 PISO 是 CNT-ADPLL 直接先例”", "en": "“A generic PISO is a direct precedent for the CNT-ADPLL.”" },
+      "handling": { "zh": "维持前轮降级", "en": "Downgrade from the previous round maintained" },
+      "reason": { "zh": "只能证明执行器原语，不能证明粗细相位链完整", "en": "It can only prove an executor primitive, not a complete coarse/fine phase chain" },
+      "refs": ["R18"],
+      "sections": ["r-2-2", "r-8-4"]
+    }
+  ],
+  "kept": {
+    "zh": "此次整合不是抹去前轮成果：/4-/8 split、persistent CNT、边界校正、short TDC、selected-edge coordinate、SAT/VALID 及执行回执等主线均保留。修订的是证据范围、单位、时序假设和不能直接推广的结论。",
+    "en": "This consolidation does not erase the previous rounds' results: the /4-/8 split, the persistent CNT, boundary correction, the short TDC, the selected-edge coordinate, SAT/VALID and execution receipts are all retained. What is revised is the evidence scope, the units, the timing assumptions and the conclusions that cannot be generalised directly."
+  }
+}

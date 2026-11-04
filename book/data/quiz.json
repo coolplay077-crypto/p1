@@ -1,0 +1,1240 @@
+{
+  "_note": "Quiz for the learning hub. type: single (one correct option), multi (one or more correct options), tf (two options: 正确/True and 错误/False). Every explanation cites the report section it rests on (section id in 'section'). Equations are cited by their report number.",
+  "items": [
+    {
+      "id": "Q01",
+      "type": "multi",
+      "section": "r-1-3",
+      "q": {
+        "zh": "下列哪些属于 §1.3 要求纠正的三点？",
+        "en": "Which of the following are among the three points that §1.3 requires to be corrected?"
+      },
+      "options": [
+        {
+          "zh": "不能通用地写成 8C+q+e/8+ε",
+          "en": "The general form 8C+q+e/8+ε must not be written as a universal formula",
+          "correct": true
+        },
+        {
+          "zh": "不能把所有 epoch 错配都归结为 ±1 个原始周期",
+          "en": "Not every epoch mismatch may be reduced to ±1 raw cycle",
+          "correct": true
+        },
+        {
+          "zh": "Sony 不是“此前没有共享状态方法”的证据起点",
+          "en": "Sony is not the evidence starting point for “no earlier shared-state method”",
+          "correct": true
+        },
+        {
+          "zh": "Kuo 的原始 DCO 约 2 GHz 再 /4",
+          "en": "Kuo's original DCO is about 2 GHz, then divided by 4",
+          "correct": false
+        }
+      ],
+      "explain": {
+        "zh": "依据 §1.3 的三点。“Kuo 原始 DCO 约 2 GHz”的更正属于 §11 的修订表（V05），不在 §1.3 的三点之内。",
+        "en": "Basis: the three points of §1.3. The Kuo DCO correction is a row of the §11 revision table (V05), not one of the three points of §1.3."
+      }
+    },
+    {
+      "id": "Q02",
+      "type": "tf",
+      "section": "r-3-2",
+      "q": {
+        "zh": "式 (1) N = MC + q 对正确状态成立，因此它本身足以证明“任意时刻独立采样 C 和 q 再拼接”是正确的。",
+        "en": "Equation (1) N = MC + q holds for correct states, so by itself it proves that sampling C and q independently at any instant and concatenating them is correct."
+      },
+      "options": [
+        {
+          "zh": "正确",
+          "en": "True",
+          "correct": false
+        },
+        {
+          "zh": "错误",
+          "en": "False",
+          "correct": true
+        }
+      ],
+      "explain": {
+        "zh": "§3.2：整数分解是定义，不是 CDC 正确性的证明；独立采样后拼接的正确性是同步、延迟匹配、编码和边界校正问题。",
+        "en": "§3.2: the integer split is a definition, not a proof of CDC correctness; whether independently sampled C and q can be concatenated correctly is a question of synchronisation, matched delay, encoding and boundary correction."
+      }
+    },
+    {
+      "id": "Q03",
+      "type": "single",
+      "section": "r-3-2",
+      "q": {
+        "zh": "在式 (2) 所要求的合法连续计数中，进位应当是哪一种？",
+        "en": "In the legal continuous counting required by Eq. (2), which transition is the carry?"
+      },
+      "options": [
+        {
+          "zh": "(C, M−1) → (C+1, 0)",
+          "en": "(C, M−1) → (C+1, 0)",
+          "correct": true
+        },
+        {
+          "zh": "(C, 0) → (C+1, M−1)",
+          "en": "(C, 0) → (C+1, M−1)",
+          "correct": false
+        },
+        {
+          "zh": "(C, M−1) → (C, 0)",
+          "en": "(C, M−1) → (C, 0)",
+          "correct": false
+        },
+        {
+          "zh": "(C, q) → (C, q+1)",
+          "en": "(C, q) → (C, q+1)",
+          "correct": false
+        }
+      ],
+      "explain": {
+        "zh": "依据 §3.2 式 (2)：低位从 M−1 回到 0 时，高位 C 加一。",
+        "en": "Basis: §3.2, Eq. (2): when the low residue wraps from M−1 to 0, the high count C increments."
+      }
+    },
+    {
+      "id": "Q04",
+      "type": "single",
+      "section": "r-3-2",
+      "q": {
+        "zh": "把 q 的最高位当作 /8 时钟使用时，下面哪种做法正确？",
+        "en": "If the most significant bit of q is used as a /8 clock, which practice is correct?"
+      },
+      "options": [
+        {
+          "zh": "看到信号名 CKVD8 就默认其有效沿等于式 (2) 的 carry",
+          "en": "Assume that because the signal is named CKVD8, its active edge equals the carry of Eq. (2)",
+          "correct": false
+        },
+        {
+          "zh": "核对高位触发极性、复位原点及流水延迟",
+          "en": "Check the trigger polarity, reset origin and pipeline delay of the high bit",
+          "correct": true
+        },
+        {
+          "zh": "上升沿与 carry 无关，因此可以忽略",
+          "en": "The rising edge is unrelated to the carry, so it can be ignored",
+          "correct": false
+        },
+        {
+          "zh": "所有 /8 时钟的极性都相同",
+          "en": "All /8 clocks share the same polarity",
+          "correct": false
+        }
+      ],
+      "explain": {
+        "zh": "§3.2：普通二进制 q[2] 的上升沿对应 3→4，下降沿对应 7→0；必须逐路径核对极性与原点，不能只看信号名。",
+        "en": "§3.2: for an ordinary binary q[2], the rising edge corresponds to 3→4 and the falling edge to 7→0; polarity and origin must be checked path by path, not inferred from the signal name."
+      }
+    },
+    {
+      "id": "Q05",
+      "type": "single",
+      "section": "r-3-1",
+      "q": {
+        "zh": "若改变所选的原始计数时钟 CK0，应当如何处理？",
+        "en": "If the chosen raw counting clock CK0 is changed, what must be done?"
+      },
+      "options": [
+        {
+          "zh": "只需改动 FCW",
+          "en": "Only the FCW needs to change",
+          "correct": false
+        },
+        {
+          "zh": "CNT 权重、FCW、fine 归一化和 edge ID 必须一起换算",
+          "en": "CNT weights, FCW, fine normalisation and edge IDs must all be converted together",
+          "correct": true
+        },
+        {
+          "zh": "只需改动 TDC 的 LSB",
+          "en": "Only the TDC LSB needs to change",
+          "correct": false
+        },
+        {
+          "zh": "CK0 必须始终是 LC DCO 本身",
+          "en": "CK0 must always be the LC DCO itself",
+          "correct": false
+        }
+      ],
+      "explain": {
+        "zh": "§3.1：CK0 可以是 LC DCO，也可以是工程选定的预分频节点；改变它时所有相关量都要换算。",
+        "en": "§3.1: CK0 may be the LC DCO or an engineering-selected pre-divided node; changing it requires converting every related quantity."
+      }
+    },
+    {
+      "id": "Q06",
+      "type": "single",
+      "section": "r-4-9",
+      "q": {
+        "zh": "Zong 2019 Fig.1 的 CKV 是什么节点？",
+        "en": "What node is the CKV in Zong 2019 Fig. 1?"
+      },
+      "options": [
+        {
+          "zh": "原始约 20 GHz 基波本身",
+          "en": "The original ~20 GHz fundamental itself",
+          "correct": false
+        },
+        {
+          "zh": "约 20 GHz 基波经 /4 与 /2（合计 /8）后的节点",
+          "en": "The node after the ~20 GHz fundamental passes through /4 and /2 (/8 in total)",
+          "correct": true
+        },
+        {
+          "zh": "LC DCO 的 2 GHz 节点",
+          "en": "The 2 GHz node of the LC DCO",
+          "correct": false
+        },
+        {
+          "zh": "Fig.9 的 counter 基准即原始 20 GHz",
+          "en": "The Fig. 9 counter reference is the original 20 GHz",
+          "correct": false
+        }
+      ],
+      "explain": {
+        "zh": "§3.1 与 §4.9：Fig.1 的 CKV 经前置分频，Fig.9 的 counter 基准是前置 /8 之后的 CKV；不能把其低两位等同于 20 GHz 基波的全部周期（§11 V06）。",
+        "en": "§3.1 and §4.9: the Fig. 1 CKV is after prescaling, and the Fig. 9 counter reference is the CKV after the preceding /8; its low two bits cannot be equated with all cycles of the 20 GHz fundamental (§11, V06)."
+      }
+    },
+    {
+      "id": "Q07",
+      "type": "single",
+      "section": "r-3-4",
+      "q": {
+        "zh": "在 /4、八相的理想示例中，若已令 a 为八相区域标签，把 q + a/8 直接相加会怎样？",
+        "en": "In the ideal /4, eight-phase example, if a is the eight-phase region label, what happens if q + a/8 is added directly?"
+      },
+      "options": [
+        {
+          "zh": "混合了单位，并可能重复计数",
+          "en": "Units are mixed and counting can be duplicated",
+          "correct": true
+        },
+        {
+          "zh": "得到正确的通用相位公式",
+          "en": "A correct general phase formula results",
+          "correct": false
+        },
+        {
+          "zh": "与 Φ0 无关，可以忽略",
+          "en": "It is unrelated to Φ0 and can be ignored",
+          "correct": false
+        },
+        {
+          "zh": "只在 M = 4 时可行",
+          "en": "It is valid only when M = 4",
+          "correct": false
+        }
+      ],
+      "explain": {
+        "zh": "§3.4：a 已经含有 q 的信息（式 (8)），再把 q + a/8 相加是混合单位并可能重复计数。",
+        "en": "§3.4: a already contains the information of q (Eq. (8)), so adding q + a/8 mixes units and may double-count."
+      }
+    },
+    {
+      "id": "Q08",
+      "type": "single",
+      "section": "r-4-5",
+      "q": {
+        "zh": "Kuo 的八相 CKV 为 /4 输出。若把相邻相位间隔 T_V/8 换算到前置 /4 之前的周期 T0，理想间隔是多少？",
+        "en": "Kuo's eight-phase CKV is the /4 output. Converting the adjacent-phase spacing T_V/8 to the period T0 before the /4, what is the ideal spacing?"
+      },
+      "options": [
+        {
+          "zh": "T0 / 8",
+          "en": "T0 / 8",
+          "correct": false
+        },
+        {
+          "zh": "T0 / 2",
+          "en": "T0 / 2",
+          "correct": true
+        },
+        {
+          "zh": "T0",
+          "en": "T0",
+          "correct": false
+        },
+        {
+          "zh": "4 T0",
+          "en": "4 T0",
+          "correct": false
+        }
+      ],
+      "explain": {
+        "zh": "§4.5：T_V = 4T0 时 T_V/8 = T0/2。直接写成 T0/8 是单位错误。",
+        "en": "§4.5: with T_V = 4T0, T_V/8 = T0/2. Writing T0/8 is a unit error."
+      }
+    },
+    {
+      "id": "Q09",
+      "type": "single",
+      "section": "r-4-7",
+      "q": {
+        "zh": "Sony 式 (9) 中，若 CRRCT = 1 且 SIGN = 1，原实施例送往相位比较器的修正量是多少？",
+        "en": "In Sony's Eq. (9), if CRRCT = 1 and SIGN = 1, what correction is sent to the phase comparator in the original embodiment?"
+      },
+      "options": [
+        {
+          "zh": "−1",
+          "en": "−1",
+          "correct": false
+        },
+        {
+          "zh": "+1",
+          "en": "+1",
+          "correct": true
+        },
+        {
+          "zh": "0",
+          "en": "0",
+          "correct": false
+        },
+        {
+          "zh": "+2",
+          "en": "+2",
+          "correct": false
+        }
+      ],
+      "explain": {
+        "zh": "§4.7 的表：CRRCT = 1 时，SIGN = 0 给出 −1，SIGN = 1 给出 +1；CRRCT = 0 给出 0。",
+        "en": "§4.7 table: with CRRCT = 1, SIGN = 0 gives −1 and SIGN = 1 gives +1; CRRCT = 0 gives 0."
+      }
+    },
+    {
+      "id": "Q10",
+      "type": "tf",
+      "section": "r-4-7",
+      "q": {
+        "zh": "式 (9) 的两个 XOR 足以保证对任意异步错误都能唯一复原相位。",
+        "en": "The two XORs of Eq. (9) are sufficient to guarantee unique recovery of the phase for any asynchronous error."
+      },
+      "options": [
+        {
+          "zh": "正确",
+          "en": "True",
+          "correct": false
+        },
+        {
+          "zh": "错误",
+          "en": "False",
+          "correct": true
+        }
+      ],
+      "explain": {
+        "zh": "§4.7：不能从式 (9) 推出对任意异步错误都保证唯一复原；该实施例也不能说已接上本项目的 short TDC。",
+        "en": "§4.7: Eq. (9) does not imply unique recovery for every asynchronous error, and the embodiment is not shown to connect to this project's short TDC."
+      }
+    },
+    {
+      "id": "Q11",
+      "type": "single",
+      "section": "r-4-6",
+      "q": {
+        "zh": "为什么不能说“Sony 才首次把同一状态用于整数与小数”？",
+        "en": "Why can one not say that “Sony was the first to use one state for both integer and fractional measurement”?"
+      },
+      "options": [
+        {
+          "zh": "Havens 专利已有整数计数、小数检测与 sub-fractional TDC，并用小数状态消除 one-count uncertainty",
+          "en": "The Havens patent already has integer counting, fractional detection and a sub-fractional TDC, and uses the fractional state to remove the one-count uncertainty",
+          "correct": true
+        },
+        {
+          "zh": "Havens 专利没有任何小数检测",
+          "en": "The Havens patent has no fractional detection at all",
+          "correct": false
+        },
+        {
+          "zh": "Havens 专利与 /8 计数器无关",
+          "en": "The Havens patent has nothing to do with /8 counters",
+          "correct": false
+        },
+        {
+          "zh": "Havens 专利使用的是 MASH 分频器",
+          "en": "The Havens patent uses a MASH divider",
+          "correct": false
+        }
+      ],
+      "explain": {
+        "zh": "§1.3 与 §4.6：Havens 已包含共享状态与 sub-fractional TDC，因此 Sony 的贡献应定位为另一条明确、紧凑的实现（§11 V02）。",
+        "en": "§1.3 and §4.6: Havens already includes a shared state and a sub-fractional TDC, so Sony's contribution is placed as another explicit, compact implementation (§11, V02)."
+      }
+    },
+    {
+      "id": "Q12",
+      "type": "multi",
+      "section": "r-6-1",
+      "q": {
+        "zh": "设旧状态 C=10, q=7（8C+q=87），下一原始边沿使低位回零、高位进位得到 C=11, q=0（88）。哪些撕裂结果的描述正确？",
+        "en": "Let the old state be C=10, q=7 (8C+q=87); the next raw edge resets the low bits and carries into the high count, giving C=11, q=0 (88). Which descriptions of the torn results are correct?"
+      },
+      "options": [
+        {
+          "zh": "旧高位 + 新低位得到 80，相对新状态 88 错 −8",
+          "en": "Old high + new low gives 80, which is −8 relative to the new state 88",
+          "correct": true
+        },
+        {
+          "zh": "新高位 + 旧低位得到 95，相对旧状态 87 错 +8",
+          "en": "New high + old low gives 95, which is +8 relative to the old state 87",
+          "correct": true
+        },
+        {
+          "zh": "旧高位 + 新低位得到 80，相对旧状态 87 错 +8",
+          "en": "Old high + new low gives 80, which is +8 relative to the old state 87",
+          "correct": false
+        },
+        {
+          "zh": "新高位 + 旧低位得到 95，相对新状态 88 错 +7 且仅是 ±1 原周期",
+          "en": "New high + old low gives 95, which is +7 relative to 88 and is only a ±1 raw-cycle error",
+          "correct": false
+        }
+      ],
+      "explain": {
+        "zh": "§6.1 表与式 (1)：高低字撕裂的错误是 ±M（此例为 ±8），而不是 ±1 原周期；相对侧不同，差值也不同（80 相对 87 为 −7）。",
+        "en": "§6.1 table and Eq. (1): a high/low word tear produces ±M errors (±8 here), not ±1 raw cycle; the difference depends on which legal anchor is the reference (80 is −7 relative to 87)."
+      }
+    },
+    {
+      "id": "Q13",
+      "type": "single",
+      "section": "r-6-2",
+      "q": {
+        "zh": "在式 (10) 的接口中，κ_C 的单位是什么？",
+        "en": "In the interface of Eq. (10), what is the unit of κ_C?"
+      },
+      "options": [
+        {
+          "zh": "原始 CKV 周期",
+          "en": "raw CKV cycles",
+          "correct": false
+        },
+        {
+          "zh": "一个慢计数组",
+          "en": "one slow count group",
+          "correct": true
+        },
+        {
+          "zh": "分频后的相位",
+          "en": "divided-clock phase",
+          "correct": false
+        },
+        {
+          "zh": "无单位的整数",
+          "en": "a unitless integer",
+          "correct": false
+        }
+      ],
+      "explain": {
+        "zh": "§6.2：κ_C 单位为一个慢计数组，κ_N 单位为一个原始 CKV 周期；不要用同一个无单位 κ 混合三种职责。",
+        "en": "§6.2: κ_C is in units of one slow count group, κ_N in units of one raw CKV cycle; a single unitless κ must not combine three roles."
+      }
+    },
+    {
+      "id": "Q14",
+      "type": "tf",
+      "section": "r-6-2",
+      "q": {
+        "zh": "κ_C ∈ {−1, 0, +1} 对任何捕获延迟都是合理的修正范围。",
+        "en": "κ_C ∈ {−1, 0, +1} is a reasonable correction range for any capture delay."
+      },
+      "options": [
+        {
+          "zh": "正确",
+          "en": "True",
+          "correct": false
+        },
+        {
+          "zh": "错误",
+          "en": "False",
+          "correct": true
+        }
+      ],
+      "explain": {
+        "zh": "§6.2：只有在采样延迟与同步延迟已证明最多跨一组时才合理；若可延迟多组，修正集合必须扩展，或直接判为无效。",
+        "en": "§6.2: this is reasonable only when the sampling and synchronisation delays are proved to span at most one group; if more groups are possible, the correction set must be extended or the observation declared invalid."
+      }
+    },
+    {
+      "id": "Q15",
+      "type": "single",
+      "section": "r-6-3",
+      "q": {
+        "zh": "对 M = 4 或 8，一个完整组的误差（N → N+M）对 q 与原周期奇偶会有什么影响？",
+        "en": "For M = 4 or 8, what does a whole-group error (N → N+M) do to q and to the raw-cycle parity?"
+      },
+      "options": [
+        {
+          "zh": "改变 q，但不改变奇偶",
+          "en": "Changes q but not the parity",
+          "correct": false
+        },
+        {
+          "zh": "不改变 q，也不改变奇偶",
+          "en": "Changes neither q nor the parity",
+          "correct": true
+        },
+        {
+          "zh": "改变奇偶，但不改变 q",
+          "en": "Changes the parity but not q",
+          "correct": false
+        },
+        {
+          "zh": "两者都随机变化",
+          "en": "Both change at random",
+          "correct": false
+        }
+      ],
+      "explain": {
+        "zh": "§6.3 式 (11)：(N+M) mod M = N mod M，且 (N+M) mod 2 = N mod 2，因此这种低位盲区不能靠 q 或 raw parity 发现。",
+        "en": "§6.3, Eq. (11): (N+M) mod M = N mod M and (N+M) mod 2 = N mod 2, so this low-bit blind spot cannot be detected from q or the raw parity."
+      }
+    },
+    {
+      "id": "Q16",
+      "type": "single",
+      "section": "r-6-3",
+      "q": {
+        "zh": "要检测 block mismatch（整组错误），应当额外保留什么？",
+        "en": "To detect a block mismatch (a whole-group error), what should be kept in addition?"
+      },
+      "options": [
+        {
+          "zh": "只保留 q",
+          "en": "Only q",
+          "correct": false
+        },
+        {
+          "zh": "能跨组翻转的状态，例如 wrap toggle / sequence，或高位最低位的独立观测",
+          "en": "State that toggles across groups, such as a wrap toggle or sequence, or an independent observation of the high-bit LSB",
+          "correct": true
+        },
+        {
+          "zh": "把 raw parity 当作 block 标志",
+          "en": "Use the raw parity as a block flag",
+          "correct": false
+        },
+        {
+          "zh": "增加 fine TDC 的位宽",
+          "en": "More bits for the fine TDC",
+          "correct": false
+        }
+      ],
+      "explain": {
+        "zh": "§6.3：高位 parity 只能在错误已被限定到相邻组时区分；相差两个组会再次别名，这是冗余码覆盖范围问题。",
+        "en": "§6.3: a high-bit parity only distinguishes errors that are limited to adjacent groups; a two-group offset aliases again. This is a question of the coverage of the redundant code."
+      }
+    },
+    {
+      "id": "Q17",
+      "type": "single",
+      "section": "r-6-4",
+      "q": {
+        "zh": "式 (12) J − μ = (J+1) − (μ+1) 所表达的是什么？",
+        "en": "What does Eq. (12), J − μ = (J+1) − (μ+1), express?"
+      },
+      "options": [
+        {
+          "zh": "锚点与残差同步平移时，相位不变",
+          "en": "Shifting the anchor and the residual together leaves the phase unchanged",
+          "correct": true
+        },
+        {
+          "zh": "任意相位都可以随意平移",
+          "en": "Any phase may be shifted arbitrarily",
+          "correct": false
+        },
+        {
+          "zh": "两者都必须平移 ±M",
+          "en": "Both must be shifted by ±M",
+          "correct": false
+        },
+        {
+          "zh": "只在 μ = 0 时成立",
+          "en": "It holds only when μ = 0",
+          "correct": false
+        }
+      ],
+      "explain": {
+        "zh": "§6.4 式 (12)，并由 §12.1 的 L05 锚点等价检查（64 个 J、4 个 μ，256 个案例）确认。",
+        "en": "§6.4, Eq. (12), confirmed by the L05 anchor-equivalence check in §12.1 (64 values of J, 4 values of μ, 256 cases)."
+      }
+    },
+    {
+      "id": "Q18",
+      "type": "single",
+      "section": "r-6-5",
+      "q": {
+        "zh": "一位变化的 Gray 或 Johnson 状态，能否使采样触发器不再有模拟亚稳态风险？",
+        "en": "Can a one-bit-change Gray or Johnson state remove the analogue metastability risk of a sampling flip-flop?"
+      },
+      "options": [
+        {
+          "zh": "能，只要位数足够",
+          "en": "Yes, given enough bits",
+          "correct": false
+        },
+        {
+          "zh": "不能；它只限制数字码的相邻性",
+          "en": "No; it only limits the adjacency of the digital code",
+          "correct": true
+        }
+      ],
+      "explain": {
+        "zh": "§6.5：一位变化的码限制数字码相邻性，但不会让采样触发器不再有模拟亚稳态风险。",
+        "en": "§6.5: a one-bit-change code limits digital adjacency, but it does not remove the analogue metastability risk of the sampling flip-flop."
+      }
+    },
+    {
+      "id": "Q19",
+      "type": "single",
+      "section": "r-7-1",
+      "q": {
+        "zh": "多候选捕获方案中，建议的选择单位是什么？",
+        "en": "In a multi-candidate capture scheme, what is the recommended unit of selection?"
+      },
+      "options": [
+        {
+          "zh": "粗相位选 A、细相位默认 B",
+          "en": "Coarse selects A, fine defaults to B",
+          "correct": false
+        },
+        {
+          "zh": "候选元组 {coarse, low_state, boundary_side, fine_anchor_id, candidate_id}",
+          "en": "The candidate tuple {coarse, low_state, boundary_side, fine_anchor_id, candidate_id}",
+          "correct": true
+        },
+        {
+          "zh": "单个 select 信号",
+          "en": "A single select signal",
+          "correct": false
+        },
+        {
+          "zh": "每个寄存器独立选择",
+          "en": "Each register selects independently",
+          "correct": false
+        }
+      ],
+      "explain": {
+        "zh": "§7.1：选择之后的整个元组必须来自同一候选，而不是 coarse 选 A、fine 默认 B。",
+        "en": "§7.1: the whole tuple after selection must come from the same candidate, not coarse selecting A while fine defaults to B."
+      }
+    },
+    {
+      "id": "Q20",
+      "type": "single",
+      "section": "r-7-2",
+      "q": {
+        "zh": "匹配延迟采样中，为什么要求所有组针对同一个目标逻辑 epoch？",
+        "en": "In matched-delay sampling, why must all groups target the same logical epoch?"
+      },
+      "options": [
+        {
+          "zh": "因为所有寄存器必须零偏差同时锁存",
+          "en": "Because every register must latch simultaneously with zero skew",
+          "correct": false
+        },
+        {
+          "zh": "因为“等到稳定再采”并不能保证所有组采到同一拍",
+          "en": "Because “wait until stable, then sample” does not guarantee that all groups sample the same tick",
+          "correct": true
+        },
+        {
+          "zh": "因为 M 必须等于 2",
+          "en": "Because M must equal 2",
+          "correct": false
+        },
+        {
+          "zh": "因为采样不需要 setup 约束",
+          "en": "Because sampling needs no setup constraint",
+          "correct": false
+        }
+      ],
+      "explain": {
+        "zh": "§7.2 与 §4.4、§11（V07）：相干快照的本质是同一逻辑 epoch，而不是同一时刻或零偏差时钟。",
+        "en": "§7.2, with §4.4 and §11 (V07): a coherent snapshot is a matter of one logical epoch, not of one instant or of zero-skew clocks."
+      }
+    },
+    {
+      "id": "Q21",
+      "type": "multi",
+      "section": "r-7-4",
+      "q": {
+        "zh": "关于 §7.4 的三条路线，哪些说法正确？",
+        "en": "Which statements about the three routes in §7.4 are correct?"
+      },
+      "options": [
+        {
+          "zh": "路线 A 直接解决的是避开特定边界附近的危险采样位置",
+          "en": "Route A directly solves avoiding dangerous sampling positions near specific boundaries",
+          "correct": true
+        },
+        {
+          "zh": "路线 B 仍须独立证明 PVT min/max 与同一逻辑 epoch",
+          "en": "Route B still requires an independent proof of PVT min/max and of the same logical epoch",
+          "correct": true
+        },
+        {
+          "zh": "路线 C 的冗余校正不需要说明修正单位",
+          "en": "Route C's redundant correction does not need to state its correction unit",
+          "correct": false
+        },
+        {
+          "zh": "把一个文献的 safe retimer 与另一个文献的 correction 直接相加，就自然闭合",
+          "en": "Adding one paper's safe retimer to another paper's correction closes all boundaries automatically",
+          "correct": false
+        }
+      ],
+      "explain": {
+        "zh": "§7.4：三条路线各自解决的问题不同，仍须独立证明；组合后必须重新检查联合状态空间。",
+        "en": "§7.4: each route solves a different problem and still needs its own proof; after combination the joint state space must be checked again."
+      }
+    },
+    {
+      "id": "Q22",
+      "type": "single",
+      "section": "r-8-1",
+      "q": {
+        "zh": "式 (16) J_plan = M·H_J + s_J 中，s_J 的取值范围是什么？",
+        "en": "In Eq. (16), J_plan = M·H_J + s_J, what is the range of s_J?"
+      },
+      "options": [
+        {
+          "zh": "{0, …, M−1}",
+          "en": "{0, …, M−1}",
+          "correct": true
+        },
+        {
+          "zh": "{1, …, M}",
+          "en": "{1, …, M}",
+          "correct": false
+        },
+        {
+          "zh": "{0, …, 2M}",
+          "en": "{0, …, 2M}",
+          "correct": false
+        },
+        {
+          "zh": "任意整数",
+          "en": "Any integer",
+          "correct": false
+        }
+      ],
+      "explain": {
+        "zh": "§8.1 式 (16)：s_J 是组内的槽位，取 0 到 M−1；慢速域处理高位匹配与未来计划，高速少量状态负责 slot 与脉冲形成。",
+        "en": "§8.1, Eq. (16): s_J is the in-group slot, from 0 to M−1; the slow domain handles high-bit matching and future plans, while a few fast states handle slot enables and pulse formation."
+      }
+    },
+    {
+      "id": "Q23",
+      "type": "tf",
+      "section": "r-8-2",
+      "q": {
+        "zh": "只要计划（J_plan）正确，就可以把它当作实际执行的证据，而不必单独测量 J_observed。",
+        "en": "As long as the plan (J_plan) is correct, it may be taken as evidence of actual execution without separately measuring J_observed."
+      },
+      "options": [
+        {
+          "zh": "正确",
+          "en": "True",
+          "correct": false
+        },
+        {
+          "zh": "错误",
+          "en": "False",
+          "correct": true
+        }
+      ],
+      "explain": {
+        "zh": "§8.2：错沿、丢沿、重复沿和 gate 控制晚到，可以完全不改变数字计划；因此必须区分 J_plan 与 J_observed（另见 §10.2 的 I4）。",
+        "en": "§8.2: wrong, missing or duplicated edges, and late gate control, can leave the digital plan unchanged; so J_plan and J_observed must be kept apart (see I4 in §10.2)."
+      }
+    },
+    {
+      "id": "Q24",
+      "type": "single",
+      "section": "r-8-3",
+      "q": {
+        "zh": "REF 到来后，经过 snapshot、CDC、decode、低速计算再去控制选择器。能否在此之后选择刚刚过去的最近 CKV 边沿？",
+        "en": "After REF arrives, the snapshot, CDC, decode and low-speed computation then control the selector. May the most recent CKV edge that has just passed be selected?"
+      },
+      "options": [
+        {
+          "zh": "可以，只要 q 计算正确",
+          "en": "Yes, as long as q is computed correctly",
+          "correct": false
+        },
+        {
+          "zh": "不可以；须事先预测、并行捕获候选，或选用仍可执行的未来边沿",
+          "en": "No; one must predict in advance, capture candidates in parallel, or select a future edge that can still be executed",
+          "correct": true
+        }
+      ],
+      "explain": {
+        "zh": "§8.3：即使 q 完全正确，也不能倒退时间把已经过去的边沿重新送入 TDC；Kuo 的 time-predictive 选相属于有先验规划的路线。",
+        "en": "§8.3: even with a correct q, time cannot be rewound to send an edge that has already passed to the TDC; Kuo's time-predictive selection belongs to the route with prior planning."
+      }
+    },
+    {
+      "id": "Q25",
+      "type": "single",
+      "section": "r-8-4",
+      "q": {
+        "zh": "若式 (17) 的选沿 deadline 不满足，下面哪种处理符合 §8.4？",
+        "en": "If the edge-selection deadline of Eq. (17) is not met, which handling is consistent with §8.4?"
+      },
+      "options": [
+        {
+          "zh": "悄悄在下一 slot 补发，并仍返回原来的 edge ID",
+          "en": "Quietly re-issue in the next slot and still return the original edge ID",
+          "correct": false
+        },
+        {
+          "zh": "明确标记 LATE/MISS、重新规划不同的 J，或切换测量策略",
+          "en": "Explicitly mark LATE/MISS, re-plan a different J, or switch the measurement strategy",
+          "correct": true
+        }
+      ],
+      "explain": {
+        "zh": "§8.4：任何补发都应改变执行回执及相位坐标；不能保留原 edge ID 而静默改变边沿。",
+        "en": "§8.4: any re-issue must change the execution receipt and the phase coordinate; the original edge ID must not be kept while the edge silently moves."
+      }
+    },
+    {
+      "id": "Q26",
+      "type": "tf",
+      "section": "r-8-4",
+      "q": {
+        "zh": "通用 PISO 输出连续的“1”电平，一定等于需要的两个独立采样边沿。",
+        "en": "A generic PISO outputting a continuous “1” level is necessarily equivalent to the two independent sampling edges that are needed."
+      },
+      "options": [
+        {
+          "zh": "正确",
+          "en": "True",
+          "correct": false
+        },
+        {
+          "zh": "错误",
+          "en": "False",
+          "correct": true
+        }
+      ],
+      "explain": {
+        "zh": "§8.4：相邻事件须保证两个合法 pulse 不合并、不丢失、不重复；通用 PISO 的连续电平行为不一定满足这一点（另见 §2.2、§11 V10）。",
+        "en": "§8.4: adjacent events must keep two legal pulses from merging, being lost or being duplicated; a generic PISO's continuous-level behaviour does not necessarily do so (see also §2.2 and §11, V10)."
+      }
+    },
+    {
+      "id": "Q27",
+      "type": "single",
+      "section": "r-8-5",
+      "q": {
+        "zh": "MASH 在本报告中的地位是什么？",
+        "en": "What is the status of MASH in this report?"
+      },
+      "options": [
+        {
+          "zh": "基础测量问题的前提条件",
+          "en": "A precondition of the basic measurement problem",
+          "correct": false
+        },
+        {
+          "zh": "扩展层；不能因找到 MASH 或其缺失而改变文献同构判断",
+          "en": "An extension layer; neither finding a MASH nor its absence changes the judgement of literature isomorphism",
+          "correct": true
+        }
+      ],
+      "explain": {
+        "zh": "§8.5：MASH future edge 属于扩展层，它的阶数、状态范围、dither 与反馈预测误差还需另行量化。",
+        "en": "§8.5: MASH future-edge planning is an extension layer; its order, state range, dither and feedback prediction error still need separate quantification."
+      }
+    },
+    {
+      "id": "Q28",
+      "type": "single",
+      "section": "r-9-1",
+      "q": {
+        "zh": "设饱和函数 Q(x) 把所有 x ≥ R 都输出为 R，则 Q(1.5R) = Q(3R) = R。能否仅凭输出恢复原输入？",
+        "en": "Let a saturating function Q(x) output R for every x ≥ R, so Q(1.5R) = Q(3R) = R. Can the original input be recovered from the output alone?"
+      },
+      "options": [
+        {
+          "zh": "能，输出 R 对应唯一输入",
+          "en": "Yes, output R corresponds to a unique input",
+          "correct": false
+        },
+        {
+          "zh": "不能；不同输入已被映射为同一码，之后的整数修正也无法恢复",
+          "en": "No; different inputs have been mapped to the same code, and no later integer correction can recover them",
+          "correct": true
+        }
+      ],
+      "explain": {
+        "zh": "§9.1 与 §12.1 的 L06：饱和不可逆；数字上可以做 modulo，但这不能证明模拟 TDC 可以缩到一个周期。",
+        "en": "§9.1 and L06 in §12.1: saturation is not invertible; modulo arithmetic in the digital domain does not show that the analogue TDC can be shrunk to one period."
+      }
+    },
+    {
+      "id": "Q29",
+      "type": "single",
+      "section": "r-9-2",
+      "q": {
+        "zh": "式 (18) Δt̂ = d̂_pin − (τ̂_E − τ̂_R) 的作用是什么？",
+        "en": "What does Eq. (18), Δt̂ = d̂_pin − (τ̂_E − τ̂_R), do?"
+      },
+      "options": [
+        {
+          "zh": "从 pin 间隔中去除路径延迟，恢复事件间隔",
+          "en": "Removes path delays from the pin interval to recover the event interval",
+          "correct": true
+        },
+        {
+          "zh": "把 TDC 码直接当作原周期数",
+          "en": "Treats the TDC code directly as a count of raw cycles",
+          "correct": false
+        },
+        {
+          "zh": "计算 CNT 的进位",
+          "en": "Computes the CNT carry",
+          "correct": false
+        },
+        {
+          "zh": "定义 fine_valid 标志",
+          "en": "Defines the fine_valid flag",
+          "correct": false
+        }
+      ],
+      "explain": {
+        "zh": "§9.2 式 (18)：路径延迟与 DTC 的符号须统一；归一化到原周期见式 (19)。",
+        "en": "§9.2, Eq. (18): the signs of path delay and DTC must be consistent; normalisation to raw cycles is Eq. (19)."
+      }
+    },
+    {
+      "id": "Q30",
+      "type": "single",
+      "section": "r-9-3",
+      "q": {
+        "zh": "式 (20) 中的 range 判据 V_range 应当由什么保证？",
+        "en": "In Eq. (20), what should guarantee the range criterion V_range?"
+      },
+      "options": [
+        {
+          "zh": "仿真器中不可见的理想真实相位",
+          "en": "The ideal true phase, which is invisible in the simulator",
+          "correct": false
+        },
+        {
+          "zh": "电路可实现的 saturate / overflow / 窗口检查",
+          "en": "A circuit-implementable saturate, overflow or window check",
+          "correct": true
+        }
+      ],
+      "explain": {
+        "zh": "§9.3：range_ok 必须来自电路可实现的检查，而不是仿真器里不可见的理想真实相位。",
+        "en": "§9.3: range_ok must come from a circuit-implementable check, not from an ideal true phase that is invisible in simulation."
+      }
+    },
+    {
+      "id": "Q31",
+      "type": "single",
+      "section": "r-9-4",
+      "q": {
+        "zh": "式 (21) 与 (22)：coarse 相位误差 e_c = R − N_R 的差分为什么对应频率误差？",
+        "en": "Equations (21) and (22): why does the difference of the coarse phase error e_c = R − N_R correspond to a frequency error?"
+      },
+      "options": [
+        {
+          "zh": "e_c[k] − e_c[k−1] = FCW[k] − (N_R[k] − N_R[k−1])，即量化的频率误差观测",
+          "en": "e_c[k] − e_c[k−1] = FCW[k] − (N_R[k] − N_R[k−1]), i.e. a quantised frequency-error observation",
+          "correct": true
+        },
+        {
+          "zh": "e_c 本身就是频率误差",
+          "en": "e_c itself is the frequency error",
+          "correct": false
+        },
+        {
+          "zh": "差分恒等于零",
+          "en": "The difference is always zero",
+          "correct": false
+        }
+      ],
+      "explain": {
+        "zh": "§9.4：CNT 不天然意味着一条独立 FLL；只有另行设计频率误差控制器、状态机或增益路径时，才可称为 FLL-assisted。",
+        "en": "§9.4: a CNT does not by itself imply an independent FLL; it may only be called FLL-assisted when a separate frequency-error controller, state machine or gain path is designed."
+      }
+    },
+    {
+      "id": "Q32",
+      "type": "tf",
+      "section": "r-9-5",
+      "q": {
+        "zh": "在 §9.5 的理想示例（f0 = 8 GHz，T0 = 125 ps，/4 后 500 ps，八相间距 62.5 ps）中，因此 TDC 的量程必然是 ±31.25 ps。",
+        "en": "In the ideal example of §9.5 (f0 = 8 GHz, T0 = 125 ps, 500 ps after /4, eight-phase spacing 62.5 ps), the TDC range is therefore necessarily ±31.25 ps."
+      },
+      "options": [
+        {
+          "zh": "正确",
+          "en": "True",
+          "correct": false
+        },
+        {
+          "zh": "错误",
+          "en": "False",
+          "correct": true
+        }
+      ],
+      "explain": {
+        "zh": "§9.5：±31.25 ps 只是理想的最近相位残差范围；还需加入预测误差、相位不均匀、路径误差、瞬态频偏和判决 guard，且量程必须由实际测量流程导出。",
+        "en": "§9.5: ±31.25 ps is only the ideal nearest-phase residual range; prediction error, phase non-uniformity, path error, transient offset and decision guard must be added, and the range must be derived from the actual measurement flow."
+      }
+    },
+    {
+      "id": "Q33",
+      "type": "single",
+      "section": "r-10-2",
+      "q": {
+        "zh": "关于 W-bit 总计数的回绕（I8），下列哪种说法正确？",
+        "en": "Regarding the wrap of a W-bit total count (I8), which statement is correct?"
+      },
+      "options": [
+        {
+          "zh": "增加一个符号位即可自动保证模差可唯一展开",
+          "en": "Adding one sign bit automatically guarantees that the modular difference can be unwrapped uniquely",
+          "correct": false
+        },
+        {
+          "zh": "需要计数宽度与观测间隔的联合约束，典型条件是差的幅度小于 2^(W−1)",
+          "en": "A joint constraint on counter width and observation interval is needed; the typical condition is that the magnitude of the difference is less than 2^(W−1)",
+          "correct": true
+        }
+      ],
+      "explain": {
+        "zh": "§10.2 的 I8 说明：这是计数宽度和观测间隔的联合约束，不是增加一个符号位就自动成立。",
+        "en": "§10.2, I8: this is a joint constraint on counter width and observation interval, not something a single added sign bit makes true."
+      }
+    },
+    {
+      "id": "Q34",
+      "type": "multi",
+      "section": "r-10-1",
+      "q": {
+        "zh": "关于建议的 EventFrame 接口，哪些说法正确？",
+        "en": "Which statements about the proposed EventFrame interface are correct?"
+      },
+      "options": [
+        {
+          "zh": "J_plan 与 J_observed 分开，实际回执独立于命令",
+          "en": "J_plan and J_observed are separate; the actual receipt is independent of the command",
+          "correct": true
+        },
+        {
+          "zh": "fine_raw 与 fine_valid 分开，饱和不等于精确残差",
+          "en": "fine_raw and fine_valid are separate; saturation is not an exact residual",
+          "correct": true
+        },
+        {
+          "zh": "kappa_C、kappa_N、alpha_sel 分别为组单位、原周期单位、周期内偏移",
+          "en": "kappa_C, kappa_N and alpha_sel are in group units, raw-cycle units and in-cycle offset respectively",
+          "correct": true
+        },
+        {
+          "zh": "phase_source 只允许写为 fine",
+          "en": "phase_source may only be written as fine",
+          "correct": false
+        }
+      ],
+      "explain": {
+        "zh": "§10.1 的 EventFrame 字段表。它是接口建议，不是已发布的 RTL；phase_source 必须区分 fine、coarse 与 invalid。",
+        "en": "§10.1 EventFrame field table. It is an interface proposal, not published RTL; phase_source must distinguish fine, coarse and invalid."
+      }
+    },
+    {
+      "id": "Q35",
+      "type": "multi",
+      "section": "r-12-1",
+      "q": {
+        "zh": "关于 §12.1 的 9860 个逻辑案例，下列哪些说法正确？",
+        "en": "Regarding the 9860 logic cases of §12.1, which statements are correct?"
+      },
+      "options": [
+        {
+          "zh": "它们是用精确有理数运算执行的逻辑与量纲检查",
+          "en": "They are logic and dimensional checks performed with exact rational arithmetic",
+          "correct": true
+        },
+        {
+          "zh": "它们不包含 RTL 时序、亚稳态或闭环噪声",
+          "en": "They do not include RTL timing, metastability or closed-loop noise",
+          "correct": true
+        },
+        {
+          "zh": "它们等同于 9860 次电路仿真",
+          "en": "They are equivalent to 9860 circuit simulations",
+          "correct": false
+        },
+        {
+          "zh": "它们已经覆盖晶体管与 PVT 验证",
+          "en": "They already cover transistor and PVT verification",
+          "correct": false
+        }
+      ],
+      "explain": {
+        "zh": "§12.1：计数不是“9860 次电路仿真”；检查用于发现公式和接口层错误，晶体管/PVT 验证属于 §12.4 的另一层。",
+        "en": "§12.1: the count is not “9860 circuit simulations”; the checks find formula and interface-level errors, while transistor/PVT verification belongs to another layer in §12.4."
+      }
+    },
+    {
+      "id": "Q36",
+      "type": "single",
+      "section": "r-12-5",
+      "q": {
+        "zh": "§12.5 建议的验证顺序是什么？",
+        "en": "What verification order does §12.5 recommend?"
+      },
+      "options": [
+        {
+          "zh": "先比较闭环噪声与锁定时间，最后检查事件身份",
+          "en": "Compare closed-loop noise and lock time first, and check event identity last",
+          "correct": false
+        },
+        {
+          "zh": "事件身份正确 → 有效性完整 → 局部时序通过 → 再比较闭环噪声、spur、锁定时间",
+          "en": "Event identity correct → validity complete → local timing passes → then compare closed-loop noise, spurs and lock time",
+          "correct": true
+        }
+      ],
+      "explain": {
+        "zh": "§12.5：PLL 能重新拉回并不意味着 detector 正确；闭环测试不能替代局部正确性。",
+        "en": "§12.5: a PLL that pulls back into lock does not prove that the detector is correct; closed-loop tests cannot replace local correctness."
+      }
+    },
+    {
+      "id": "Q37",
+      "type": "single",
+      "section": "r-13-1",
+      "q": {
+        "zh": "§13.1 指出的真正文献空白是什么？",
+        "en": "What does §13.1 identify as the real literature gap?"
+      },
+      "options": [
+        {
+          "zh": "公开文献中没有任何 /8 分频计数器",
+          "en": "No public literature describes any /8 divider counter",
+          "correct": false
+        },
+        {
+          "zh": "各环节分别有公开依据，缺的是在一份可核验的实现中同时闭合所有连接、编码和时序",
+          "en": "Each component has public support, but no verifiable implementation closes all connections, encodings and timing together",
+          "correct": true
+        },
+        {
+          "zh": "行业常用做法已经补足了全部空白",
+          "en": "Common industry practice already fills all the gaps",
+          "correct": false
+        },
+        {
+          "zh": "全部组成环节都没有公开依据",
+          "en": "None of the components has public support",
+          "correct": false
+        }
+      ],
+      "explain": {
+        "zh": "§13.1：公开资料已经分别支持组成环节，但不能用“行业常用”补足空白（另见 §1.4：未核实到的组合不等于没有先前技术）。",
+        "en": "§13.1: public sources support the components separately, but “common in industry” cannot fill the gap (see also §1.4: not verified is not the same as no prior art)."
+      }
+    },
+    {
+      "id": "Q38",
+      "type": "single",
+      "section": "r-2-3",
+      "q": {
+        "zh": "证据等级 D 在报告中表示什么？",
+        "en": "What does evidence grade D mean in the report?"
+      },
+      "options": [
+        {
+          "zh": "官方元数据可核对，内部电路未充分核实",
+          "en": "Official metadata can be checked; internal circuits are not fully verified",
+          "correct": false
+        },
+        {
+          "zh": "本报告的推导、示例或候选工程规范；不是原文公式，也不是已完成的电路验证",
+          "en": "The report's own derivation, example or candidate engineering specification; not a source formula, and not a completed circuit verification",
+          "correct": true
+        },
+        {
+          "zh": "本次核对了专利原文",
+          "en": "The patent text was checked in this round",
+          "correct": false
+        },
+        {
+          "zh": "前轮保存的结论，本次未重新取得原始证据",
+          "en": "A conclusion kept from an earlier round, not re-obtained as original evidence in this round",
+          "correct": false
+        }
+      ],
+      "explain": {
+        "zh": "§2.3 证据等级表：D 为本报告推导、示例或候选工程规范。注意 H 表示前轮保存、本次未重新取得完整原始证据。",
+        "en": "§2.3 evidence-grade table: D is the report's own derivation, example or candidate engineering specification. Note that H means kept from an earlier round without full original evidence re-obtained in this round."
+      }
+    },
+    {
+      "id": "Q39",
+      "type": "single",
+      "section": "r-4-2",
+      "q": {
+        "zh": "Xu / Lindfors 的 /4 实例说明了什么？",
+        "en": "What does the Xu / Lindfors /4 example show?"
+      },
+      "options": [
+        {
+          "zh": "原周期 residue 必须保留，但它不一定要用高速二进制低位加法器实现；高速侧可保存易实现的状态，慢速侧再解码",
+          "en": "The raw-cycle residue must be kept, but it need not be implemented as a fast binary low-bit adder; the fast side may keep easily implemented states and the slow side decodes them",
+          "correct": true
+        },
+        {
+          "zh": "必须使用高速二进制低位加法器",
+          "en": "A fast binary low-bit adder is required",
+          "correct": false
+        }
+      ],
+      "explain": {
+        "zh": "§4.2：状态编码并不免除 epoch 一致性；该资料不能单独证明同一低位状态已经控制 short TDC 的物理选沿。",
+        "en": "§4.2: state encoding does not remove the need for epoch consistency; this source alone does not prove that the same low-bit state controls the physical edge of a short TDC."
+      }
+    },
+    {
+      "id": "Q40",
+      "type": "single",
+      "section": "r-4-1",
+      "q": {
+        "zh": "能否把 TI 的 Fig.4 解释为“先把 fine TDC 输入统一变为 8T0，再由 snapshot 自动压缩成 T0”？",
+        "en": "May TI's Fig. 4 be read as “first make the fine TDC input 8T0, then let the snapshot automatically compress it to T0”?"
+      },
+      "options": [
+        {
+          "zh": "可以",
+          "en": "Yes",
+          "correct": false
+        },
+        {
+          "zh": "不可以；该解释超出原文，且 Fig.4 的高位极性与流水原点须逐路径核对",
+          "en": "No; that reading goes beyond the source, and the high-bit polarity and pipeline origin of Fig. 4 must be checked path by path",
+          "correct": true
+        }
+      ],
+      "explain": {
+        "zh": "§4.1：TI 的 CKVD8 与 SEL_EDGE 证明的是高低位分解与候选选择，不能机械拼接成其他结构。",
+        "en": "§4.1: TI's CKVD8 and SEL_EDGE establish the high/low split and candidate selection; they cannot be mechanically assembled into another structure."
+      }
+    }
+  ]
+}

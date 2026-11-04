@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MTK 19.3 多路径反馈 PLL 技术分析</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600&display=swap">
+
+<style>
+/* Layout: one reading column (~68ch) whose figures widen to 1040px; an analyzer-style marker readout is the signature detail */
+:root {
+  --bg: #f3f5f8; --panel: #ffffff; --fg: #121820; --fg2: #3b4552; --muted: #677382;
+  --rule: #d6dce4; --grid: #e6eaf0; --accent: #1b55ad; --accent-soft: #e5edf9;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --ref: #8a939e;
+  --good: #0ca30c; --warn: #fab219; --warn-ink: #7a5200; --good-ink: #075f07;
+  --font-display: "Noto Serif SC", "Songti SC", "STSong", serif;
+  --font-body: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+  --step--1: 0.8125rem; --step-0: 1rem; --step-1: 1.1875rem; --step-2: 1.5rem; --step-3: 2.125rem;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0e1115; --panel: #151a20; --fg: #e6eaef; --fg2: #b8c1cc; --muted: #8a94a1;
+  --rule: #2a313a; --grid: #222932; --accent: #7eabf2; --accent-soft: #172538;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --ref: #78818c;
+  --good: #0ca30c; --warn: #fab219; --warn-ink: #fcd27a; --good-ink: #7fdc7f; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0e1115; --panel: #151a20; --fg: #e6eaef; --fg2: #b8c1cc; --muted: #8a94a1;
+  --rule: #2a313a; --grid: #222932; --accent: #7eabf2; --accent-soft: #172538;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --ref: #78818c;
+  --good: #0ca30c; --warn: #fab219; --warn-ink: #fcd27a; --good-ink: #7fdc7f; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: var(--step-0); line-height: 1.75;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 64px; }
+.wrap { max-width: 1040px; margin: 0 auto; }
+.prose { max-width: 68ch; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; text-wrap: balance; line-height: 1.3; margin: 0; }
+h1 { font-size: var(--step-3); letter-spacing: 0.01em; }
+h2 { font-size: var(--step-2); }
+h3 { font-size: var(--step-1); }
+p { margin: 0; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.small { font-size: var(--step--1); }
+.muted { color: var(--muted); }
+.eyebrow { font-family: var(--font-mono); font-size: var(--step--1); letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+header.top { padding-block: 40px 28px; display: grid; gap: 14px; border-bottom: 1px solid var(--rule); }
+.lead { color: var(--fg2); font-size: var(--step-1); line-height: 1.7; max-width: 62ch; }
+.spec { display: flex; flex-wrap: wrap; gap: 6px 18px; font-family: var(--font-mono); font-size: var(--step--1); color: var(--fg2); }
+.spec span b { color: var(--fg); font-weight: 500; }
+nav.toc { display: flex; flex-wrap: wrap; gap: 6px 16px; padding-block: 14px; font-size: var(--step--1); border-bottom: 1px solid var(--rule); }
+nav.toc a { text-decoration: none; color: var(--fg2); }
+nav.toc a:hover { color: var(--accent); }
+main { display: grid; gap: 56px; padding-top: 40px; }
+section { display: grid; gap: 18px; scroll-margin-top: 16px; }
+section > header { display: grid; gap: 4px; }
+.sec-no { font-family: var(--font-mono); font-size: var(--step--1); color: var(--muted); }
+ul.findings { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; max-width: 76ch; }
+ul.findings li { display: grid; grid-template-columns: 5.5em 1fr; gap: 12px; align-items: baseline; }
+.tag { font-size: 0.75rem; font-weight: 500; padding: 1px 8px; border-radius: 999px; justify-self: start; white-space: nowrap; border: 1px solid var(--rule); }
+.tag-ok { color: var(--good-ink); border-color: var(--good); }
+.tag-mid { color: var(--fg2); }
+.tag-open { color: var(--warn-ink); border-color: var(--warn); }
+.panel { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 18px; min-width: 0; }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 18px; align-items: start; }
+.cols > * { min-width: 0; }
+figure { margin: 0; display: grid; gap: 10px; min-width: 0; }
+figcaption { font-size: var(--step--1); color: var(--fg2); line-height: 1.6; }
+figcaption b { color: var(--fg); font-weight: 500; }
+.chart { position: relative; width: 100%; min-width: 0; touch-action: pan-y; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: var(--step--1); color: var(--fg2); }
+.legend i { display: inline-block; width: 18px; height: 0; border-top: 2px solid; vertical-align: middle; margin-right: 6px; }
+.legend i.dot { width: 9px; height: 9px; border-radius: 50%; border: 0; }
+.legend i.band { height: 10px; border: 0; opacity: .25; }
+.tip { position: absolute; pointer-events: none; background: var(--panel); border: 1px solid var(--rule); border-radius: 5px; padding: 6px 9px; font-size: 12px;
+  line-height: 1.5; color: var(--fg); box-shadow: 0 4px 14px rgba(0,0,0,.12); white-space: nowrap; z-index: 2; }
+.tip .k { color: var(--muted); }
+.ax text { fill: var(--muted); font-family: var(--font-mono); font-size: 11px; }
+.ax-title { fill: var(--fg2); font-family: var(--font-body); font-size: 11.5px; }
+.grid line { stroke: var(--grid); stroke-width: 1; }
+.base line { stroke: var(--rule); stroke-width: 1; }
+.cross { stroke: var(--muted); stroke-width: 1; }
+.l-s1 { stroke: var(--s1); } .l-s2 { stroke: var(--s2); } .l-s3 { stroke: var(--s3); } .l-ref { stroke: var(--ref); }
+.f-s1 { fill: var(--s1); } .f-s2 { fill: var(--s2); } .f-s3 { fill: var(--s3); } .f-ref { fill: var(--ref); }
+.sw-s1 { border-color: var(--s1) !important; background: var(--s1); } .sw-s2 { border-color: var(--s2) !important; background: var(--s2); }
+.sw-s3 { border-color: var(--s3) !important; background: var(--s3); } .sw-ref { border-color: var(--ref) !important; background: var(--ref); }
+.legend i:not(.dot):not(.band) { background: none !important; }
+.line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.line.thin { stroke-width: 1.5; }
+.dot { stroke: var(--panel); stroke-width: 2; }
+.lbl { fill: var(--fg2); font-size: 11.5px; font-family: var(--font-body); }
+.bar-lbl { fill: var(--fg2); font-size: 12px; font-family: var(--font-body); }
+.bar-val { fill: var(--fg); font-size: 11.5px; font-family: var(--font-mono); }
+.whisk { stroke: var(--fg2); stroke-width: 1.5; }
+details.data { font-size: var(--step--1); }
+details.data summary { cursor: pointer; color: var(--accent); }
+.tbl-wrap { overflow-x: auto; min-width: 0; }
+table { border-collapse: collapse; width: 100%; font-size: var(--step--1); }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { color: var(--muted); font-weight: 500; font-size: 0.75rem; letter-spacing: 0.04em; }
+table.wide { min-width: 720px; } table.mid { min-width: 500px; }
+td.num, th.num { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+/* analyzer marker readout */
+.readout { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 14px 16px; font-family: var(--font-mono);
+  font-size: 12.5px; font-variant-numeric: tabular-nums; min-width: 0; }
+.readout .hd { color: var(--accent); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
+.readout table { font-size: 12.5px; }
+.readout td, .readout th { padding: 3px 8px; border-bottom: 0; text-align: right; }
+.readout td:first-child, .readout th:first-child { text-align: left; color: var(--fg2); }
+.readout td.pos { color: var(--warn-ink); } .readout td.neg { color: var(--fg2); }
+.readout .ft { margin-top: 8px; color: var(--muted); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+/* signal-chain diagram */
+.chain { display: grid; gap: 10px; }
+.row { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; }
+.blk { border: 1px solid var(--rule); background: var(--panel); border-radius: 5px; padding: 8px 11px; font-size: var(--step--1); line-height: 1.45; min-width: 0; }
+.blk b { display: block; font-weight: 500; color: var(--fg); }
+.blk span { color: var(--muted); font-family: var(--font-mono); font-size: 11.5px; }
+.blk.hl { border-color: var(--accent); background: var(--accent-soft); }
+.arr { align-self: center; color: var(--muted); font-family: var(--font-mono); }
+.eq { font-family: var(--font-mono); font-size: 13px; background: var(--panel); border: 1px solid var(--rule); border-left: 3px solid var(--accent);
+  padding: 10px 14px; border-radius: 4px; overflow-x: auto; line-height: 1.9; }
+.kind, .res { font-size: 0.75rem; white-space: nowrap; }
+.kind { color: var(--fg2); }
+.res { display: inline-flex; align-items: center; gap: 5px; font-weight: 500; }
+.res-ic { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.res-pass { color: var(--good-ink); } .res-pass .res-ic { background: var(--good); }
+.res-deviation { color: var(--warn-ink); } .res-deviation .res-ic { background: var(--warn); border-radius: 1px; transform: rotate(45deg); }
+.filters { display: flex; flex-wrap: wrap; gap: 8px; }
+.filters button { font: inherit; font-size: var(--step--1); padding: 4px 12px; border-radius: 999px; border: 1px solid var(--rule);
+  background: var(--panel); color: var(--fg2); cursor: pointer; }
+.filters button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+ol.design { margin: 0; padding-left: 1.4em; display: grid; gap: 12px; max-width: 80ch; }
+ol.design li::marker { font-family: var(--font-mono); color: var(--muted); }
+ol.design b { font-weight: 500; }
+.note { font-size: var(--step--1); color: var(--muted); max-width: 80ch; }
+code { font-family: var(--font-mono); font-size: 0.9em; background: var(--accent-soft); padding: 0 4px; border-radius: 3px; }
+@media (max-width: 560px) { ul.findings li { grid-template-columns: 1fr; gap: 2px; } h1 { font-size: 1.75rem; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+</head>
+<body>
+
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">ISSCC 2025 · Session 19 · Paper 19.3 · MediaTek</div>
+  <h1>多路径反馈小数分频 PLL 技术分析</h1>
+  <p class="lead">对 34 fs 抖动、−255.5 dB FoM 的 MediaTek 多路径反馈 PLL 做行为级复现，用幻灯片上的实测标记标定 Python 模型，逐项核对专利 US 11,509,315 B2，并给出非理想因素和设计注意项。哪些结论被数据支持、哪些只是拟合结果、哪些从现有资料定不下来，本文分开标注。</p>
+  <div class="spec"><span>工艺 <b>22 nm CMOS</b></span><span>参考 <b>80 MHz × 2</b></span><span>VCO <b>7.3–9.5 GHz</b></span><span>抖动 <b>33.8 fs</b>（10 kHz–100 MHz）</span><span>功耗 <b>24.4 mW</b></span><span>FoM <b>−255.5 dB</b></span><span>小数杂散 <b>−64.8 dBc</b></span><span>面积 <b>0.39 mm²</b></span></div>
+  <p class="small muted">依据：19.3 报告幻灯片（33 页）、US 11,509,315 B2（16 项权利要求）。模型与数据：<code>mtk_pll/</code>，本页由 <code>make_html_report.py</code> 从 <code>results/isscc25_19p3_results.json</code> 生成。</p>
+</header>
+<nav class="toc" aria-label="目录"><a href="#findings">结论</a><a href="#mechanism">机理</a><a href="#patent">专利核对</a><a href="#model">模型标定</a><a href="#checks-sec">验证一览</a><a href="#nonideal">非理想因素</a><a href="#design">设计注意项</a><a href="#limits">边界</a></nav>
+<main>
+
+<section id="findings">
+  <header><span class="sec-no">01</span><h2>结论</h2></header>
+  <ul class="findings">
+    <li><span class="tag tag-ok">成立</span><span>19.3 是专利 binary 实施例（FIG. 11/13）的流片。M=4 的切片电流 Icp/4、Icp/4、Icp/2 与权利要求 6 完全一致，专利的 PSEL/进位算术在 M = 2/4/8 下逐周期严格成立。</span></li>
+    <li><span class="tag tag-ok">成立</span><span>多路径把有效量化台阶缩到 T_VCO/M：M=4 时 SDM 噪声按构造降低 12.08 dB。两条实测曲线反推出的降幅最优约 15 dB，≤ 9 dB 不被支持。</span></li>
+    <li><span class="tag tag-mid">拟合</span><span>模型复现幻灯片 29 的 10 个实测标记，最大误差 0.49 dB，积分抖动解析 34.3 fs、时域仿真 34.2 fs（实测 33.78 fs）。这是拟合结果，只用这 10 个标记插值积分就有 33.3 fs。</span></li>
+    <li><span class="tag tag-open">未闭合</span><span>近端多路径收益：实测 10 kHz 处 3.8 dB，只用 M=4 数据拟合的模型只给 0.6 dB（预测关闭多路径曲线的误差 rms 2.66 dB）。需要一个随导通时间平方增长的大 1/f 项（I_DN 闪烁或 Q_OFST 偏置/VDD 噪声），幻灯片无法区分。</span></li>
+    <li><span class="tag tag-open">未闭合</span><span>小数杂散：3σ = 0.5% 切片失配能解释幅度（实测位于总体第 59 百分位），但 C_DN 电荷压缩（C_DN·V_A ≈ 40 pF·V、零失配，带内均值 −71.5 dBc，实测 −72.5 dBc）同样能解释。两者形状残差相近（失配 1.79 dB，压缩 1.84–1.89 dB），而且都没有复现实测低偏移处的抬升。</span></li>
+    <li><span class="tag tag-mid">修正</span><span>专利“电流失配约 0.1%，不是主要问题”是相对时序失配而言，这一点成立（−78.7 vs −49.9 dBc）；但对 −70 dBc 级的杂散规格，0.1–0.5% 的失配已不可忽略。</span></li>
+    <li><span class="tag tag-open">未闭合</span><span>抖动随 VCO 频率的趋势与实测相反（模型 7.94 GHz 处 36.0 fs，实测 32.6 fs）；实测 −101 dBc 参考杂散的来源也未定（模型加 S/H 后约 −117 dBc）。</span></li>
+  </ul>
+</section>
+
+<section id="mechanism">
+  <header><span class="sec-no">02</span><h2>架构与机理</h2></header>
+  <div class="chain" aria-label="信号链">
+    <div class="row"><div class="blk"><b>80 MHz XO</b><span>× 2 倍频</span></div><div class="arr">→</div>
+      <div class="blk hl"><b>3 路 PFD/CP 切片</b><span>Icp/2 · Icp/4 · Icp/4</span></div><div class="arr">→</div>
+      <div class="blk"><b>环路滤波器</b><span>S/H 每周期重分配</span></div><div class="arr">→</div>
+      <div class="blk"><b>双核反 Class-F VCO</b><span>7.3–9.5 GHz</span></div></div>
+    <div class="row"><div class="blk"><b>MASH 1-1-1（细分辨率）</b><span>→ ∫ → PSEL, carry</span></div><div class="arr">→</div>
+      <div class="blk"><b>MMD</b><span>N_MMD = N + D_N + carry</span></div><div class="arr">→</div>
+      <div class="blk hl"><b>多路径重定时器</b><span>CK_MMD 或 CK_MMD + 1·T_VCO，按 PSEL 位选择</span></div><div class="arr">→ 回到 PFD</div></div>
+  </div>
+  <div class="prose" style="display:grid;gap:12px">
+    <p>每个切片的 PFD 看到的是同一个 MMD 边沿，或者晚一个 VCO 周期的边沿。CP 电荷按切片电流加权求和，所以环路看到的“有效边沿”落在两者之间，台阶为 T_VCO/M。这等价于把 SDM 的分辨率提高 M 倍，延时单元却只是 VCO 时钟打拍的 DFF，延时天然等于 T_VCO，不需要 DTC 的增益或 INL 校准。</p>
+  </div>
+  <div class="eq">t_eff = t_MMD + T_VCO · Σ w_i·d_i = t_MMD + (B/M)·T_VCO　　w = 1/4, 1/4, 1/2；d_i ∈ {0, 1}；B = 0…M−1<br>ΔQ_step = Icp·T_VCO / M　　⇒　SDM 量化噪声 ∝ (T_VCO/M)²，降低 20·log₁₀M dB（M=4：12.04 dB）</div>
+  <div class="prose"><p>代价有三个。第一，电荷加权的精度落在切片电流比上，比例误差直接变成 B 锯齿相关的带内小数杂散。第二，粗边沿本身仍然带着 −B·T/M 的锯齿，所以 CP 偏置要覆盖全部切片边沿的跨度，而不只是有效边沿。第三，每条 PSEL 路径都要在一个 VCO 周期（9.5 GHz 时 105 ps）内完成重定时。</p></div>
+  <div class="tbl-wrap"><table class="mid"><thead><tr><th class="num">M</th><th class="num">粗边沿峰峰值</th><th class="num">有效边沿峰峰值</th><th class="num">全部切片跨度</th><th class="num">所需偏置 T_off</th></tr></thead><tbody><tr><td class="num">1</td><td class="num">3.91T</td><td class="num">3.91T</td><td class="num">3.91T</td><td class="num">T_nl + 1.97T</td></tr><tr><td class="num">2</td><td class="num">2.43T</td><td class="num">1.95T</td><td class="num">2.91T</td><td class="num">T_nl + 1.47T</td></tr><tr><td class="num">4</td><td class="num">1.72T</td><td class="num">0.99T</td><td class="num">2.45T</td><td class="num">T_nl + 1.23T</td></tr><tr><td class="num">8</td><td class="num">1.35T</td><td class="num">0.48T</td><td class="num">2.22T</td><td class="num">T_nl + 1.12T</td></tr></tbody></table></div>
+  <p class="note">幻灯片 12 说 M=4 的时间展宽是 2T，模型给出的全部切片跨度是 2.45T，所需偏置是 T_nl + 1.23T（幻灯片公式按 T_nl + T 计）。所以幻灯片公式高估了热噪声收益（2.25 vs 1.58 dB），却低估了随导通时间平方缩放的 1/f 收益（3.15 dB）。</p>
+</section>
+
+<section id="patent">
+  <header><span class="sec-no">03</span><h2>与专利 US 11,509,315 B2 的核对</h2></header>
+  <div class="tbl-wrap"><table class="wide">
+    <thead><tr><th>专利条目</th><th>专利内容</th><th>19.3 对应</th><th>结论</th></tr></thead><tbody>
+    <tr><td>权利要求 1 / 9（独立）</td><td>两路电流源与 PFD；分频时钟控制器含重定时电路，按振荡时钟边沿对两路分频时钟都重定时</td><td>幻灯片 8：每片一个 CK_VCO-GATED 重定时 DFF，固定片也重定时</td><td>一致；19.3 另加时钟门控</td></tr>
+    <tr><td>权利要求 2 / 10</td><td>MMD + SDM；第二路相对第一路延时整数个 T_VCO，延时与模数由 SDM 控制</td><td>幻灯片 8 数字宏（MASH 1-1-1 → ∫ → PSEL、carry）</td><td>一致（逐周期恒等式）</td></tr>
+    <tr><td>权利要求 3–4 / 11–12，FIG. 4</td><td>DTC = 延时单元（DFF，或带校准的 VCDL）+ MUX</td><td>两个共享 DFF 产生 CK_RETIME(0)/(1)，每片一个 MUX</td><td>一致；共享延时 DFF 是 19.3 的实现选择</td></tr>
+    <tr><td>权利要求 5 / 13，FIG. 5–10</td><td>二片式 (1−1/X, 1/X)·Icp</td><td>只在 M=2 时重合</td><td>19.3 在 M ≥ 4 不用二片式</td></tr>
+    <tr><td>权利要求 6 / 14，FIG. 11</td><td>(1/2ⁿ, 1/2ⁿ, 2/2ⁿ)·Icp，n=2</td><td>幻灯片 11：Icp/4、Icp/4、Icp/2</td><td>完全一致（19.3 实现点）</td></tr>
+    <tr><td>权利要求 7 / 15，FIG. 13</td><td>再加 (4/2ⁿ)·Icp，n=3</td><td>对应 M=8</td><td>一致</td></tr>
+    <tr><td>权利要求 8 / 16</td><td>重定时触发器位置：MMD→PFD1、DTC→PFD2</td><td>多路径重定时器</td><td>一致</td></tr>
+    <tr><td>FIG. 15</td><td>ΔT1 由重定时消除；ΔT2、ΔT3 固定，不折叠</td><td>幻灯片 13 (1)(2)、14</td><td>一致；重定时裕量须大于偏斜</td></tr>
+    <tr><td>说明书第 10 栏限制</td><td>二片式 CP2 的 (X−1)T 额外脉宽须在下一个参考沿前结束，故改用 binary</td><td>19.3 用 binary</td><td>原理一致，但在 19.3 工作点不起作用（见下表）</td></tr>
+    <tr><td>—</td><td>—</td><td>倍频器、开关电容 Q_OFST + S/H、双核 VCO、时钟门控</td><td>19.3 新增</td></tr>
+    </tbody></table></div>
+  <div class="cols">
+    <figure><figcaption><b>二片式 vs binary，在 160 MHz / 9.5 GHz 下。</b>二片式的脉冲结束时刻远小于 T_ref/2 = 3125 ps，专利的窗口限制在 X ≤ 16 时都不起作用；binary 的实际收益是额外脉宽从 (X−1)T 降到 1T，以及更少的 VCO 速率延时 DFF。</figcaption>
+      <div class="tbl-wrap"><table class="mid"><thead><tr><th class="num">X</th><th class="num">二片式延时 DFF</th><th class="num">额外脉宽 ps</th><th class="num">脉冲结束 ps</th><th class="num">binary 延时 DFF</th><th class="num">额外脉宽 ps</th></tr></thead><tbody><tr><td class="num">2</td><td class="num">1</td><td class="num">+105</td><td class="num">284</td><td class="num">1</td><td class="num">+105</td></tr><tr><td class="num">4</td><td class="num">3</td><td class="num">+316</td><td class="num">494</td><td class="num">1</td><td class="num">+105</td></tr><tr><td class="num">8</td><td class="num">7</td><td class="num">+737</td><td class="num">915</td><td class="num">1</td><td class="num">+105</td></tr><tr><td class="num">16</td><td class="num">15</td><td class="num">+1579</td><td class="num">1757</td><td class="num">1</td><td class="num">+105</td></tr></tbody></table></div></figure>
+    <figure><figcaption><b>专利声明的效果，在 19.3 工作点上。</b></figcaption>
+      <div class="tbl-wrap"><table><thead><tr><th>专利声明</th><th>结果</th></tr></thead><tbody>
+      <tr><td>SDM −12 dB</td><td>按构造 −12.08 dB；实测反推最优约 15 dB</td></tr>
+      <tr><td>CP −1~2 dB</td><td>热噪声 1.58 dB（算术）；拟合模型总量 2.85 dB；实测近端 3.8 dB</td></tr>
+      <tr><td>PFD −3 dB</td><td>等分 −3.01；FIG. 7 −2.04；FIG. 9 −1.07；19.3 binary −4.26 dB（幻灯片无法检验）</td></tr>
+      <tr><td>电流失配 0.001</td><td>0.001 按 σ 理解：−78.7 dBc；按 3σ 理解：−88.2 dBc；实测 −72.5 dBc</td></tr>
+      <tr><td>抖动 &lt; 50 fs</td><td>实测 33.8 fs</td></tr>
+      </tbody></table></div></figure>
+  </div>
+</section>
+
+<section id="model">
+  <header><span class="sec-no">04</span><h2>模型与实测标定</h2></header>
+  <div class="prose"><p>模型按 PFD 周期步进，环路滤波器和 VCO 用精确状态空间离散，每片 CP 电荷按它自己的边沿时刻计算。CP 只有 DN 方向，偏置电荷 Q_OFST 来自开关电容。VCO 噪声用幻灯片 27 的自由振荡标记拟合（含 1/f³，拐点 305 kHz）后合成。环路带宽、相位裕度和带内噪声分配用幻灯片 29 的实测标记拟合。</p></div>
+  <figure class="panel">
+    <div class="legend"><span><i class="sw-s1"></i>模型 M=4</span><span><i class="dot sw-s1"></i>实测 M=4 标记</span><span><i class="sw-s2"></i>模型 关闭多路径</span><span><i class="dot sw-s2"></i>实测 关闭多路径（数字化）</span><span><i class="sw-ref"></i>VCO 自由振荡</span></div>
+    <div class="chart" id="c-pn"></div>
+    <figcaption><b>相位噪声，在 VCO/2 = 4.75 GHz 处。</b>拟合 C 同时用了 M=4 标记和关闭多路径的数字化曲线。只用 M=4 标记的拟合 A 预测关闭多路径曲线时 rms 误差 2.66 dB，近端偏小。10–30 MHz 的隆起是 SDM 量化噪声，多路径把它压低了约 12 dB。</figcaption>
+    <details class="data"><summary>数据表（每隔 10 个点）</summary><div class="tbl-wrap"><table><thead><tr><th>频偏</th><th class="num">模型 M=4</th><th class="num">模型 关闭多路径</th></tr></thead><tbody><tr><td>10 kHz</td><td class="num">−114.8</td><td class="num">−112.8</td></tr><tr><td>17.8 kHz</td><td class="num">−118.0</td><td class="num">−115.7</td></tr><tr><td>31.6 kHz</td><td class="num">−120.6</td><td class="num">−118.2</td></tr><tr><td>56.2 kHz</td><td class="num">−122.4</td><td class="num">−120.2</td></tr><tr><td>100 kHz</td><td class="num">−123.0</td><td class="num">−121.3</td></tr><tr><td>178 kHz</td><td class="num">−122.9</td><td class="num">−121.7</td></tr><tr><td>316 kHz</td><td class="num">−123.2</td><td class="num">−122.4</td></tr><tr><td>562 kHz</td><td class="num">−124.9</td><td class="num">−124.3</td></tr><tr><td>1 MHz</td><td class="num">−128.7</td><td class="num">−128.2</td></tr><tr><td>1.77828 MHz</td><td class="num">−134.5</td><td class="num">−133.0</td></tr><tr><td>3.16228 MHz</td><td class="num">−140.6</td><td class="num">−135.8</td></tr><tr><td>5.62341 MHz</td><td class="num">−144.9</td><td class="num">−136.6</td></tr><tr><td>10 MHz</td><td class="num">−147.3</td><td class="num">−137.4</td></tr><tr><td>17.7828 MHz</td><td class="num">−149.4</td><td class="num">−139.1</td></tr><tr><td>31.6228 MHz</td><td class="num">−152.0</td><td class="num">−142.6</td></tr><tr><td>56.2341 MHz</td><td class="num">−154.5</td><td class="num">−148.5</td></tr><tr><td>100 MHz</td><td class="num">−155.6</td><td class="num">−155.0</td></tr></tbody></table></div></details>
+  </figure>
+  <div class="cols">
+    <div class="readout" aria-label="实测标记与模型对照">
+      <div class="hd"><span>MKR  幻灯片 29  闭环</span><span>载波 4.750118943 GHz</span></div>
+      <div class="tbl-wrap"><table><thead><tr><th>频偏</th><th>实测 dBc/Hz</th><th>模型</th><th>Δ dB</th></tr></thead><tbody><tr><td>10 kHz</td><td>−115.12</td><td>−114.80</td><td class="pos">+0.33</td></tr><tr><td>30 kHz</td><td>−121.18</td><td>−120.38</td><td class="pos">+0.80</td></tr><tr><td>40 kHz</td><td>−121.84</td><td>−121.44</td><td class="pos">+0.41</td></tr><tr><td>100 kHz</td><td>−122.63</td><td>−123.03</td><td class="neg">−0.40</td></tr><tr><td>300 kHz</td><td>−123.34</td><td>−123.14</td><td class="pos">+0.20</td></tr><tr><td>402 kHz</td><td>−124.24</td><td>−123.70</td><td class="pos">+0.54</td></tr><tr><td>1 MHz</td><td>−128.46</td><td>−128.72</td><td class="neg">−0.26</td></tr><tr><td>3 MHz</td><td>−139.81</td><td>−140.13</td><td class="neg">−0.32</td></tr><tr><td>10 MHz</td><td>−147.70</td><td>−147.35</td><td class="pos">+0.35</td></tr><tr><td>40 MHz</td><td>−154.87</td><td>−153.12</td><td class="pos">+1.75</td></tr></tbody></table></div>
+      <div class="ft"><span>RMS Jitter 实测 33.782 fs</span><span>模型 34.3 fs</span></div>
+    </div>
+    <figure class="panel">
+      <div class="chart" id="c-budget"></div>
+      <figcaption><b>抖动预算（10 kHz–100 MHz，拟合 C）。</b>须线是 14 组近最优拟合给出的范围：VCO、SDM、输出噪底是确定的；参考白噪与 CP、CP 热噪声与 1/f 都分不开（I_DN 1/f 拐点 17–300 MHz 都能拟合）。</figcaption>
+      <details class="data"><summary>数据表</summary><div class="tbl-wrap"><table><thead><tr><th>噪声源</th><th class="num">fs</th><th class="num">范围</th></tr></thead><tbody><tr><td>VCO 自由振荡残余</td><td class="num">23.6</td><td class="num">23.5–23.7</td></tr><tr><td>CP / 偏置 1/f（∝ 导通时间²）</td><td class="num">14.9</td><td class="num">13.4–15.3</td></tr><tr><td>参考白噪（XO+倍频）</td><td class="num">12.8</td><td class="num">10.1–16.1</td></tr><tr><td>SDM 量化噪声</td><td class="num">8.1</td><td class="num">8.1–8.2</td></tr><tr><td>输出噪底（÷2/缓冲）</td><td class="num">7.8</td><td class="num">7.8–7.8</td></tr><tr><td>CP 热噪声</td><td class="num">6.4</td><td class="num">2.4–10.9</td></tr><tr><td>参考近端 1/f</td><td class="num">5.6</td><td class="num">5.4–6.2</td></tr><tr><td>各片 PFD/重定时</td><td class="num">4.7</td><td class="num">4.7–4.7</td></tr><tr><td>偏置电荷 kT/C</td><td class="num">3.9</td><td class="num">3.4–3.9</td></tr></tbody></table></div></details>
+    </figure>
+  </div>
+</section>
+
+<section id="checks-sec">
+  <header><span class="sec-no">05</span><h2>验证一览</h2></header>
+  <div class="prose"><p>每项检查按证据性质分为四类：算术（按构造成立）、拟合一致性（与拟合用过的数据比较）、留出验证（未参与拟合的数据或幻灯片上独立的结论）、说法对照（论文与专利的说法彼此对照）。只有后两类算独立证据。</p></div>
+  <div class="spec"><span>算术 <b>17 通过</b></span><span>拟合一致性 <b>6 通过</b></span><span>留出验证 <b>4 通过 / 5 未复现</b></span><span>说法对照 <b>2 通过 / 1 不符</b></span></div>
+  <div class="filters" role="group" aria-label="按类别筛选">
+    <button type="button" data-k="all" aria-pressed="true">全部</button><button type="button" data-k="validation" aria-pressed="false">留出验证</button>
+    <button type="button" data-k="claim" aria-pressed="false">说法对照</button><button type="button" data-k="consistency" aria-pressed="false">拟合一致性</button>
+    <button type="button" data-k="arith" aria-pressed="false">算术</button></div>
+  <div class="tbl-wrap"><table id="checks" class="wide"><thead><tr><th>编号</th><th>检查</th><th>类别</th><th>结果</th><th>测得</th><th>说明</th></tr></thead><tbody><tr data-kind="arith"><td class="mono">D0</td><td>专利等价的 PSEL/进位算术与切片电流，M=2</td><td><span class="kind kind-arith">算术</span></td><td><span class="res res-pass"><span class="res-ic" aria-hidden="true"></span>通过</span></td><td class="mono small">恒等式成立；权重 0.5 : 0.5</td><td class="small muted"></td></tr>
+<tr data-kind="arith"><td class="mono">D0</td><td>专利等价的 PSEL/进位算术与切片电流，M=4</td><td><span class="kind kind-arith">算术</span></td><td><span class="res res-pass"><span class="res-ic" aria-hidden="true"></span>通过</span></td><td class="mono small">恒等式成立；权重 0.5 : 0.25 : 0.25</td><td class="small muted"></td></tr>
+<tr data-kind="arith"><td class="mono">D0</td><td>专利等价的 PSEL/进位算术与切片电流，M=8</td><td><span class="kind kind-arith">算术</span></td><td><span class="res res-pass"><span class="res-ic" aria-hidden="true"></span>通过</span></td><td class="mono small">恒等式成立；权重 0.5 : 0.25 : 0.125 : 0.125</td><td class="small muted"></td></tr>
+<tr data-kind="validation"><td class="mono">D0</td><td>幻灯片 12 的“M=4 时 DSM 展宽 2T” vs 全部切片边沿跨度</td><td><span class="kind kind-validation">留出验证</span></td><td><span class="res res-deviation"><span class="res-ic" aria-hidden="true"></span>未复现</span></td><td class="mono small">2.45T (粗边沿 1.72T)</td><td class="small muted">CP 导通时间由最早的切片边沿决定</td></tr>
+<tr data-kind="arith"><td class="mono">D1</td><td>VCO 在 1 MHz 处相噪（幻灯片 27 标记）vs 幻灯片 28</td><td><span class="kind kind-arith">算术</span></td><td><span class="res res-pass"><span class="res-ic" aria-hidden="true"></span>通过</span></td><td class="mono small">−126.43 dBc/Hz</td><td class="small muted"></td></tr>
+<tr data-kind="arith"><td class="mono">D1</td><td>VCO FoM / FoM_T</td><td><span class="kind kind-arith">算术</span></td><td><span class="res res-pass"><span class="res-ic" aria-hidden="true"></span>通过</span></td><td class="mono small">194.27 / 200.29 dB</td><td class="small muted"></td></tr>
+<tr data-kind="arith"><td class="mono">D1</td><td>PLL FoM（33.8 / 37.7 fs，24.4 mW）</td><td><span class="kind kind-arith">算术</span></td><td><span class="res res-pass"><span class="res-ic" aria-hidden="true"></span>通过</span></td><td class="mono small">−255.55 / −254.6 dB</td><td class="small muted"></td></tr>
+<tr data-kind="arith"><td class="mono">D1</td><td>FoM_N 以 80 MHz XO 为参考频率</td><td><span class="kind kind-arith">算术</span></td><td><span class="res res-pass"><span class="res-ic" aria-hidden="true"></span>通过</span></td><td class="mono small">−276.3 dB</td><td class="small muted"></td></tr>
+<tr data-kind="arith"><td class="mono">D1</td><td>含杂散抖动 37.7 fs vs 33.8 fs + −70.9 dBc 一对杂散</td><td><span class="kind kind-arith">算术</span></td><td><span class="res res-pass"><span class="res-ic" aria-hidden="true"></span>通过</span></td><td class="mono small">36.43 fs</td><td class="small muted">差值来自其他杂散线</td></tr>
+<tr data-kind="consistency"><td class="mono">D2</td><td>拟合 A 复现幻灯片 29 的 10 个实测标记</td><td><span class="kind kind-consistency">拟合一致性</span></td><td><span class="res res-pass"><span class="res-ic" aria-hidden="true"></span>通过</span></td><td class="mono small">最大误差 0.49 dB</td><td class="small muted"></td></tr>
+<tr data-kind="consistency"><td class="mono">D2</td><td>联合拟合 C：M=4 标记与数字化的 M=1 曲线</td><td><span class="kind kind-consistency">拟合一致性</span></td><td><span class="res res-pass"><span class="res-ic" aria-hidden="true"></span>通过</span></td><td class="mono small">M=4 最大 1.75 dB；M=1 rms 0.79 dB</td><td class="small muted"></td></tr>
+<tr data-kind="consistency"><td class="mono">D2</td><td>时域仿真 vs 解析模型抖动</td><td><span class="kind kind-consistency">拟合一致性</span></td><td><span class="res res-pass"><span class="res-ic" aria-hidden="true"></span>通过</span></td><td class="mono small">34.18 ± 0.15 fs</td><td class="small muted">3 个随机种子</td></tr>
+<tr data-kind="consistency"><td class="mono">D2</td><td>抖动 vs 实测 33.78 fs（由拟合决定）</td><td><span class="kind kind-consistency">拟合一致性</span></td><td><span class="res res-pass"><span class="res-ic" aria-hidden="true"></span>通过</span></td><td class="mono small">34.18 fs</td><td class="small muted">由标记拟合决定（只用标记积分就有 33.3 fs）</td></tr>
+<tr data-kind="validation"><td class="mono">D2-H1</td><td>留出：只用 M=4 拟合，预测关闭多路径的曲线</td><td><span class="kind kind-validation">留出验证</span></td><td><span class="res res-deviation"><span class="res-ic" aria-hidden="true"></span>未复现</span></td><td class="mono small">rms 2.66 dB</td><td class="small muted">最大 5.6 dB；抖动 43.9 fs vs 数字化曲线 49.4 fs；唯一有区分力的相噪留出检验</td></tr>
+<tr data-kind="consistency"><td class="mono">D2-H2</td><td>幻灯片 30 另一信道的标记（跨信道一致性）</td><td><span class="kind kind-consistency">拟合一致性</span></td><td><span class="res res-pass"><span class="res-ic" aria-hidden="true"></span>通过</span></td><td class="mono small">0.44 / 0.54 dB</td><td class="small muted">无区分力：直接照搬幻灯片 29 的标记也有 0.42 dB</td></tr>
+<tr data-kind="validation"><td class="mono">D2-H3</td><td>留出：抖动随 VCO 频率变化（冻结环路、固定 T_off）</td><td><span class="kind kind-validation">留出验证</span></td><td><span class="res res-deviation"><span class="res-ic" aria-hidden="true"></span>未复现</span></td><td class="mono small">K_VCO 不变：最大误差 3.35 fs，斜率方向相反</td><td class="small muted"></td></tr>
+<tr data-kind="validation"><td class="mono">D2-H4</td><td>“两种模式用同一 Q_OFST”被实测 M=1 曲线排除</td><td><span class="kind kind-validation">留出验证</span></td><td><span class="res res-pass"><span class="res-ic" aria-hidden="true"></span>通过</span></td><td class="mono small">100 kHz 处 −104.4 dBc/Hz</td><td class="small muted">M=1 需要更大的偏置，与幻灯片 12 的含义一致</td></tr>
+<tr data-kind="arith"><td class="mono">D3</td><td>SDM 噪声 M=4 vs M=1（−20·log4）</td><td><span class="kind kind-arith">算术</span></td><td><span class="res res-pass"><span class="res-ic" aria-hidden="true"></span>通过</span></td><td class="mono small">−12.08 dB</td><td class="small muted"></td></tr>
+<tr data-kind="consistency"><td class="mono">D3</td><td>联合拟合不支持 ≤ 9 dB 的 SDM 降幅</td><td><span class="kind kind-consistency">拟合一致性</span></td><td><span class="res res-pass"><span class="res-ic" aria-hidden="true"></span>通过</span></td><td class="mono small">最优 15 dB</td><td class="small muted">与拟合同一组数据；2–10 MHz 的目读点起主导</td></tr>
+<tr data-kind="validation"><td class="mono">D4</td><td>杂散幅度：实测带内均值处于 3σ=0.5% 失配总体的 5–95%</td><td><span class="kind kind-validation">留出验证</span></td><td><span class="res res-pass"><span class="res-ic" aria-hidden="true"></span>通过</span></td><td class="mono small">第 59 百分位</td><td class="small muted">只检验幅度；3σ 的 90% 置信区间很宽</td></tr>
+<tr data-kind="validation"><td class="mono">D4</td><td>杂散形状：失配机理的形状残差</td><td><span class="kind kind-validation">留出验证</span></td><td><span class="res res-deviation"><span class="res-ic" aria-hidden="true"></span>未复现</span></td><td class="mono small">形状残差 1.79 dB</td><td class="small muted">曲线形状由环路 |H| 决定；实测低偏移处的抬升未复现</td></tr>
+<tr data-kind="validation"><td class="mono">D4</td><td>能否区分失配与 C_DN 电荷压缩</td><td><span class="kind kind-validation">留出验证</span></td><td><span class="res res-deviation"><span class="res-ic" aria-hidden="true"></span>未复现</span></td><td class="mono small">压缩 1.84 vs 失配 1.79 dB</td><td class="small muted">两者残差相近，幻灯片无法区分两种机理</td></tr>
+<tr data-kind="validation"><td class="mono">D4</td><td>幻灯片 13：3σ=0.5% 失配的折叠噪声约 −127 dBc/Hz</td><td><span class="kind kind-validation">留出验证</span></td><td><span class="res res-pass"><span class="res-ic" aria-hidden="true"></span>通过</span></td><td class="mono small">−125.7 dBc/Hz</td><td class="small muted">双边、最坏方向 3σ，9.5 GHz</td></tr>
+<tr data-kind="arith"><td class="mono">D5</td><td>满足建立时间时，重定时消除 MUX/CK-Q 偏斜</td><td><span class="kind kind-arith">算术</span></td><td><span class="res res-pass"><span class="res-ic" aria-hidden="true"></span>通过</span></td><td class="mono small">杂散 −156.7 dBc</td><td class="small muted"></td></tr>
+<tr data-kind="arith"><td class="mono">D5</td><td>重定时后的固定偏斜不产生杂散</td><td><span class="kind kind-arith">算术</span></td><td><span class="res res-pass"><span class="res-ic" aria-hidden="true"></span>通过</span></td><td class="mono small">杂散 −156.7 dBc</td><td class="small muted"></td></tr>
+<tr data-kind="validation"><td class="mono">D6</td><td>S/H 电荷重分配（而非开关电容偏置本身）抑制纹波杂散</td><td><span class="kind kind-validation">留出验证</span></td><td><span class="res res-pass"><span class="res-ic" aria-hidden="true"></span>通过</span></td><td class="mono small">S/H −116.8 · 泄放 −82.9 · 开关电容无 S/H −76.9 dBc</td><td class="small muted">假设 K_VCO = 150 MHz/V、T_nl = 50 ps；对 p3/C3 敏感</td></tr>
+<tr data-kind="arith"><td class="mono">D9</td><td>权利要求 5（X=2）切片电流 = 19.3 的 M=2</td><td><span class="kind kind-arith">算术</span></td><td><span class="res res-pass"><span class="res-ic" aria-hidden="true"></span>通过</span></td><td class="mono small">0.5 : 0.5</td><td class="small muted">与 D0 的权重重复</td></tr>
+<tr data-kind="arith"><td class="mono">D9</td><td>权利要求 6（n=2）切片电流 = 19.3 的 M=4</td><td><span class="kind kind-arith">算术</span></td><td><span class="res res-pass"><span class="res-ic" aria-hidden="true"></span>通过</span></td><td class="mono small">0.25 : 0.25 : 0.5</td><td class="small muted">与 D0 的权重重复</td></tr>
+<tr data-kind="arith"><td class="mono">D9</td><td>权利要求 7（n=3）切片电流 = 19.3 的 M=8</td><td><span class="kind kind-arith">算术</span></td><td><span class="res res-pass"><span class="res-ic" aria-hidden="true"></span>通过</span></td><td class="mono small">0.125 : 0.125 : 0.25 : 0.5</td><td class="small muted">与 D0 的权重重复</td></tr>
+<tr data-kind="arith"><td class="mono">D9</td><td>专利“SDM 噪声 −12 dB”（M=4）</td><td><span class="kind kind-arith">算术</span></td><td><span class="res res-pass"><span class="res-ic" aria-hidden="true"></span>通过</span></td><td class="mono small">−12.08 dB</td><td class="small muted">与 D3 重复</td></tr>
+<tr data-kind="arith"><td class="mono">D9</td><td>专利“CP 噪声 −1~2 dB”：热噪声导通时间比</td><td><span class="kind kind-arith">算术</span></td><td><span class="res res-pass"><span class="res-ic" aria-hidden="true"></span>通过</span></td><td class="mono small">1.58 dB</td><td class="small muted">10·log(T_off 之比)；T_nl → 0 时为 2.05 dB</td></tr>
+<tr data-kind="claim"><td class="mono">D9</td><td>专利“CP 噪声 −1~2 dB”vs 拟合模型 CP 噪声总量</td><td><span class="kind kind-claim">说法对照</span></td><td><span class="res res-deviation"><span class="res-ic" aria-hidden="true"></span>未复现</span></td><td class="mono small">2.85 dB</td><td class="small muted">CP 噪声 23.1 → 16.7 fs；实测带内收益 10k/20k/100k 处 3.8/2.9/1.7 dB</td></tr>
+<tr data-kind="arith"><td class="mono">D9</td><td>专利“PFD −3 dB”：等分成立，binary 更多</td><td><span class="kind kind-arith">算术</span></td><td><span class="res res-pass"><span class="res-ic" aria-hidden="true"></span>通过</span></td><td class="mono small">−4.26 dB</td><td class="small muted">二片式 FIG. 7/9 只有 −2.04/−1.07 dB</td></tr>
+<tr data-kind="claim"><td class="mono">D9</td><td>专利：电流失配杂散（0.001）≪ 时序失配杂散（1 ps 未重定时）</td><td><span class="kind kind-claim">说法对照</span></td><td><span class="res res-pass"><span class="res-ic" aria-hidden="true"></span>通过</span></td><td class="mono small">−78.7 vs −49.9 dBc</td><td class="small muted">相对比较的说法成立</td></tr>
+<tr data-kind="claim"><td class="mono">D9</td><td>专利举例“RMS 抖动 &lt; 50 fs”由实测 33.8 fs 满足</td><td><span class="kind kind-claim">说法对照</span></td><td><span class="res res-pass"><span class="res-ic" aria-hidden="true"></span>通过</span></td><td class="mono small">33.782 fs</td><td class="small muted">论文数据对专利说法，未用模型</td></tr></tbody></table></div>
+</section>
+
+<section id="nonideal">
+  <header><span class="sec-no">06</span><h2>非理想因素</h2></header>
+  <div class="cols">
+    <figure class="panel">
+      <div class="legend"><span><i class="dot sw-s2"></i>实测</span><span><i class="sw-s1"></i>失配中位</span><span><i class="band sw-s1"></i>失配 10–90%</span><span><i class="sw-s3"></i>C_DN 压缩</span></div>
+      <div class="chart" id="c-spur"></div>
+      <figcaption><b>小数杂散随偏移频率。</b>杂散相量对切片电流误差严格线性，起作用的组合约为 ε_a + ε_b − 2ε_half。两种机理都把带内幅度落在实测附近，形状都由环路传函决定，从数据上分不开。</figcaption>
+      <details class="data"><summary>数据表</summary><div class="tbl-wrap"><table><thead><tr><th>偏移</th><th class="num">实测</th><th class="num">p10</th><th class="num">中位</th><th class="num">p90</th><th class="num">压缩</th></tr></thead><tbody><tr><td>10 kHz</td><td class="num">−74.2</td><td class="num">−88.6</td><td class="num">−74.2</td><td class="num">−66.4</td><td class="num">−71.5</td></tr><tr><td>20 kHz</td><td class="num">−73.9</td><td class="num">−88.6</td><td class="num">−74.2</td><td class="num">−66.3</td><td class="num">−71.4</td></tr><tr><td>40 kHz</td><td class="num">−73.3</td><td class="num">−88.5</td><td class="num">−74.1</td><td class="num">−66.3</td><td class="num">−71.3</td></tr><tr><td>80 kHz</td><td class="num">−71.9</td><td class="num">−88.1</td><td class="num">−73.7</td><td class="num">−65.9</td><td class="num">−70.9</td></tr><tr><td>100 kHz</td><td class="num">−71.1</td><td class="num">−88.0</td><td class="num">−73.6</td><td class="num">−65.7</td><td class="num">−70.8</td></tr><tr><td>200 kHz</td><td class="num">−70.3</td><td class="num">−87.2</td><td class="num">−72.8</td><td class="num">−64.9</td><td class="num">−70.1</td></tr><tr><td>400 kHz</td><td class="num">−71.1</td><td class="num">−87.3</td><td class="num">−72.9</td><td class="num">−65.0</td><td class="num">−70.1</td></tr><tr><td>600 kHz</td><td class="num">−72.5</td><td class="num">−88.3</td><td class="num">−74.0</td><td class="num">−66.1</td><td class="num">−71.4</td></tr><tr><td>800 kHz</td><td class="num">−72.6</td><td class="num">−90.0</td><td class="num">−75.7</td><td class="num">−67.8</td><td class="num">−72.9</td></tr><tr><td>1 MHz</td><td class="num">−73.8</td><td class="num">−91.8</td><td class="num">−77.4</td><td class="num">−69.6</td><td class="num">−74.6</td></tr><tr><td>2 MHz</td><td class="num">−84.6</td><td class="num">−99.8</td><td class="num">−85.5</td><td class="num">−77.6</td><td class="num">−82.8</td></tr><tr><td>4 MHz</td><td class="num">−89.3</td><td class="num">−110.6</td><td class="num">−96.2</td><td class="num">−88.4</td><td class="num">−93.8</td></tr></tbody></table></div></details>
+    </figure>
+    <figure class="panel">
+      <div class="legend"><span><i class="sw-s2"></i>M=1</span><span><i class="sw-s1"></i>M=4</span></div>
+      <div class="chart" id="c-fold"></div>
+      <figcaption><b>CP 偏置不足时的折叠噪声。</b>CP 只有 DN 方向，软启动区 T_nl = 50 ps。M=4 只需 T_nl + 1.2T 就进入线性区，M=1 要 ≥ 2T。最小 T_off 在 9.5 GHz 为 178 ps，7.3 GHz 为 218 ps，固定的 C_OFST·VDD/I_DN 须按频段底端设计。</figcaption>
+      <details class="data"><summary>数据表</summary><div class="tbl-wrap"><table><thead><tr><th class="num">偏置</th><th class="num">M=1</th><th class="num">M=4</th></tr></thead><tbody><tr><td class="num">0.0T</td><td class="num">−78</td><td class="num">−94</td></tr><tr><td class="num">0.3T</td><td class="num">−82</td><td class="num">−100</td></tr><tr><td class="num">0.6T</td><td class="num">−87</td><td class="num">−110</td></tr><tr><td class="num">0.9T</td><td class="num">−94</td><td class="num">−129</td></tr><tr><td class="num">1.2T</td><td class="num">−103</td><td class="num">−171</td></tr><tr><td class="num">1.5T</td><td class="num">−117</td><td class="num">−171</td></tr><tr><td class="num">1.8T</td><td class="num">−144</td><td class="num">−171</td></tr><tr><td class="num">2.1T</td><td class="num">−160</td><td class="num">−171</td></tr><tr><td class="num">2.4T</td><td class="num">−160</td><td class="num">−171</td></tr></tbody></table></div></details>
+    </figure>
+    <figure class="panel">
+      <div class="legend"><span><i class="sw-s1"></i>每片独立 DFF</span><span><i class="sw-s2"></i>共享第一级 DFF</span></div>
+      <div class="chart" id="c-rt"></div>
+      <figcaption><b>重定时器裕量。</b>4σ 时抖动已升到 61/78 fs。5σ、6σ 在仿真长度内没有观察到滑周期，“≥ 5σ”是从 4–4.5σ 外推的。PSEL 晚一个周期：153 fs，1 MHz 处 −114.5 dBc/Hz。</figcaption>
+      <details class="data"><summary>数据表</summary><div class="tbl-wrap"><table><thead><tr><th class="num">裕量</th><th class="num">每片 fs</th><th class="num">共享 fs</th></tr></thead><tbody><tr><td class="num">3.5σ</td><td class="num">128</td><td class="num">198</td></tr><tr><td class="num">4.0σ</td><td class="num">61</td><td class="num">78</td></tr><tr><td class="num">4.5σ</td><td class="num">38</td><td class="num">38</td></tr><tr><td class="num">5.0σ</td><td class="num">34</td><td class="num">34</td></tr><tr><td class="num">6.0σ</td><td class="num">34</td><td class="num">34</td></tr></tbody></table></div></details>
+    </figure>
+    <figure class="panel">
+      <div class="legend"><span><i class="sw-s2"></i>实测</span><span><i class="sw-s1"></i>模型 K_VCO 不变</span><span><i class="sw-ref"></i>模型 K_VCO ∝ f³</span></div>
+      <div class="chart" id="c-jvf"></div>
+      <figcaption><b>抖动随 VCO 频率（留出检验，未复现）。</b>冻结环路滤波器、T_off 固定为频段底端所需的 204 ps，VCO 相噪按幻灯片 27 的频率曲线。模型在低频端抖动更大，实测相反；幻灯片没有给出各频段的环路参数和输出噪底。</figcaption>
+      <details class="data"><summary>数据表</summary><div class="tbl-wrap"><table><thead><tr><th class="num">GHz</th><th class="num">实测</th><th class="num">模型</th><th class="num">模型 f³</th></tr></thead><tbody><tr><td class="num">7.94</td><td class="num">32.6</td><td class="num">36.0</td><td class="num">38.2</td></tr><tr><td class="num">8.27</td><td class="num">32.7</td><td class="num">34.5</td><td class="num">35.5</td></tr><tr><td class="num">8.53</td><td class="num">33.3</td><td class="num">34.8</td><td class="num">35.7</td></tr><tr><td class="num">8.80</td><td class="num">33.6</td><td class="num">35.0</td><td class="num">35.7</td></tr><tr><td class="num">9.06</td><td class="num">33.9</td><td class="num">34.8</td><td class="num">35.2</td></tr><tr><td class="num">9.34</td><td class="num">33.7</td><td class="num">35.0</td><td class="num">35.2</td></tr><tr><td class="num">9.50</td><td class="num">33.8</td><td class="num">35.4</td><td class="num">35.4</td></tr></tbody></table></div></details>
+    </figure>
+  </div>
+  <div class="cols">
+    <figure><figcaption><b>参考杂散（160 MHz，在 VCO 处，dBc）。</b>假设 K_VCO = 150 MHz/V、Icp = 2 mA。S/H 同时重分配是必要条件；但模型加上 S/H 后比实测 −101 dBc 还低，实测值由其他机制决定（倍频器奇偶沿交替 5 ps 时 80 MHz 杂散约 −102 dBc，是候选之一）。</figcaption>
+      <div class="tbl-wrap"><table><thead><tr><th>电荷注入方式</th><th class="num">p3=8</th><th class="num">拟合 p3</th><th class="num">p3=40</th></tr></thead><tbody><tr><td>泄放电流偏置，CP 脉冲直接进环路滤波器</td><td class="num">−92</td><td class="num">−83</td><td class="num">−81</td></tr><tr><td>开关电容偏置，CP 脉冲不经 S/H</td><td class="num">−86</td><td class="num">−77</td><td class="num">−75</td></tr><tr><td>S/H 同时重分配，偏斜 20 ps</td><td class="num">−126</td><td class="num">−117</td><td class="num">−114</td></tr><tr><td>S/H 同时重分配，偏斜 5 ps</td><td class="num">−138</td><td class="num">−129</td><td class="num">−127</td></tr></tbody></table></div></figure>
+    <figure><figcaption><b>M 的取舍（抖动 fs）。</b>在 200 kHz 杂散信道上仿真 10 个失配样本（3σ = 0.5%），含杂散和折叠噪声。M=8 的噪声收益约 1 fs，会被更高的失配敏感度抵消；M=2 的 B 被 SDM 打乱，失配几乎不起作用。</figcaption>
+      <div class="tbl-wrap"><table class="mid"><thead><tr><th class="num">M</th><th class="num">只计噪声</th><th class="num">无失配仿真</th><th class="num">失配中位</th><th class="num">失配 p90</th></tr></thead><tbody><tr><td class="num">M=2</td><td class="num">37.9</td><td class="num">38.3</td><td class="num">38.4</td><td class="num">38.8</td></tr><tr><td class="num">M=4</td><td class="num">34.3</td><td class="num">34.2</td><td class="num">35.4</td><td class="num">41.5</td></tr><tr><td class="num">M=8</td><td class="num">33.1</td><td class="num">32.9</td><td class="num">38.3</td><td class="num">47.7</td></tr></tbody></table></div></figure>
+  </div>
+</section>
+
+<section id="design">
+  <header><span class="sec-no">07</span><h2>设计注意项（按优先级）</h2></header>
+  <ol class="design">
+    <li><b>切片电流比与 CP 电荷线性度。</b>二者都产生带内小数杂散，实测数据分不开。所有切片用同一单元拼成，共质心、长沟道、cascode；后仿提取每片电荷随脉宽的曲线，要求 C_DN·V_A ≫ 40 pF·V；必要时以 PSEL 为回归量做后台校准，或单元轮换（杂散转为噪声）。</li>
+    <li><b>偏置 T_off = Q_OFST / I_DN 按频段底端设计。</b>7.3 GHz 需要 218 ps，再加上 VDD、C_OFST、Icp 容差和倍频器残差；低于 T_nl + 1.2T 时折叠骤增 40 dB 以上。</li>
+    <li><b>重定时与门控 VCO 时钟。</b>T_VCO = 105 ps，每条 PSEL 路径按 PVT 做 STA，裕量 ≥ 5σ；共享的第一级 DFF 出错会移动全部切片，要求更严。裕量小于路径偏斜时约 −9 dBc。</li>
+    <li><b>PSEL 与 N_MMD 同周期对齐。</b>晚一个周期，抖动恶化到 153 fs。</li>
+    <li><b>Q_OFST 的电源与偏置噪声。</b>Q_OFST = C_OFST·VDD，锁定相差对电源的灵敏度 0.223 ps/mV；每个采样须 &lt; 134 µV rms，1/f 成分直接进带内，也是近端大 1/f 项的候选来源。为它单独配 LDO 和滤波。</li>
+    <li><b>倍频器占空比校准。</b>45/55% 的 XO 不校准时，奇偶沿交替约 625 ps：80 MHz 杂散约 −60 dBc，T_off 还要多留约 313 ps；−101 dBc 级要求交替 &lt; 约 5 ps。</li>
+    <li><b>参考杂散。</b>UP/DN 电荷必须在采样相同时重分配；实测 −101 dBc 的来源需要单独排查。</li>
+    <li><b>M 的选择。</b>保持 M=4；先解决匹配，再考虑增大 M。</li>
+    <li><b>下一步的抖动预算。</b>VCO 约 23.6 fs 是最大单项，近端由 CP/偏置的 1/f 项主导。</li>
+  </ol>
+</section>
+
+<section id="limits">
+  <header><span class="sec-no">08</span><h2>模型边界与复跑</h2></header>
+  <ul class="note" style="display:grid;gap:6px;padding-left:1.2em;margin:0">
+    <li>只有幻灯片，没有正文。Icp、K_VCO、T_nl、VDD、每片 PFD 抖动、参考白噪底是假设；fc、PM、第三极点、CP 噪声倍率与 1/f 拐点、XO 近端噪声是拟合值。dB 改善量和机理结论对这些假设不敏感，绝对的偏置噪声、参考杂散依赖它们。</li>
+    <li>关闭多路径的曲线：9–300 kHz 为像素提取（±1 dB），2–10 MHz 为目读（±1.5 dB，4–12 MHz 被文字遮挡）。</li>
+    <li>未建模：参考周期内的脉冲纹波、VCO 双核模式竞争、器件级电荷注入与过压、泄放源的 1/f 噪声。</li>
+    <li>复跑：<code>cd mtk_pll &amp;&amp; python3 run_isscc25_19p3.py &amp;&amp; python3 make_html_report.py</code>。Markdown 版报告：<code>docs/ISSCC2025_19.3_MTK多路径反馈PLL_复现与专利核对.md</code>。</li>
+  </ul>
+</section>
+</main>
+</div>
+
+
+<script>
+(function () {
+  const D = {"pn":{"model_m4":[[10000.0,-114.8],[10592.537251772897,-115.14],[11220.18454301963,-115.47],[11885.022274370189,-115.81],[12589.254117941662,-116.13],[13335.21432163324,-116.45],[14125.375446227554,-116.77],[14962.356560944329,-117.08],[15848.93192461114,-117.39],[16788.040181225588,-117.69],[17782.794100389227,-117.98],[18836.49089489802,-118.27],[19952.62314968879,-118.56],[21134.890398366475,-118.84],[22387.21138568338,-119.11],[23713.737056616552,-119.37],[25118.86431509582,-119.63],[26607.250597988084,-119.88],[28183.82931264455,-120.13],[29853.82618917957,-120.36],[31622.776601683792,-120.59],[33496.54391578279,-120.81],[35481.33892335753,-121.03],[37583.74042884443,-121.23],[39810.71705534969,-121.42],[42169.65034285822,-121.61],[44668.359215096345,-121.78],[47315.12589614803,-121.95],[50118.72336272725,-122.1],[53088.444423098794,-122.24],[56234.13251903491,-122.37],[59566.214352901094,-122.49],[63095.7344480193,-122.6],[66834.39175686149,-122.69],[70794.57843841374,-122.77],[74989.42093324558,-122.84],[79432.82347242821,-122.9],[84139.51416451947,-122.95],[89125.0938133746,-122.99],[94406.08762859226,-123.01],[100000.0,-123.03],[105925.37251772897,-123.04],[112201.84543019629,-123.04],[118850.22274370189,-123.04],[125892.54117941661,-123.03],[133352.1432163324,-123.01],[141253.75446227554,-123.0],[149623.56560944326,-122.98],[158489.3192461114,-122.96],[167880.40181225588,-122.94],[177827.94100389228,-122.93],[188364.9089489802,-122.92],[199526.23149688786,-122.91],[211348.90398366476,-122.91],[223872.11385683378,-122.92],[237137.37056616554,-122.94],[251188.6431509582,-122.97],[266072.50597988087,-123.01],[281838.2931264455,-123.06],[298538.26189179573,-123.13],[316227.7660168379,-123.21],[334965.43915782793,-123.3],[354813.3892335753,-123.41],[375837.4042884443,-123.53],[398107.1705534969,-123.67],[421696.5034285822,-123.83],[446683.5921509635,-124.01],[473151.2589614803,-124.2],[501187.2336272725,-124.42],[530884.4442309879,-124.65],[562341.3251903491,-124.91],[595662.1435290109,-125.19],[630957.344480193,-125.49],[668343.9175686149,-125.81],[707945.7843841374,-126.15],[749894.2093324559,-126.52],[794328.2347242822,-126.92],[841395.1416451947,-127.33],[891250.9381337459,-127.77],[944060.8762859226,-128.23],[1000000.0,-128.72],[1059253.7251772897,-129.23],[1122018.4543019652,-129.75],[1188502.2274370189,-130.3],[1258925.411794166,-130.87],[1333521.432163324,-131.45],[1412537.5446227554,-132.05],[1496235.6560944358,-132.66],[1584893.1924611141,-133.28],[1678804.018122559,-133.9],[1778279.410038923,-134.54],[1883649.089489802,-135.18],[1995262.3149688828,-135.81],[2113489.0398366475,-136.45],[2238721.1385683375,-137.08],[2371373.7056616554,-137.71],[2511886.4315095823,-138.32],[2660725.059798814,-138.92],[2818382.931264455,-139.51],[2985382.618917957,-140.08],[3162277.660168379,-140.64],[3349654.3915782794,-141.17],[3548133.8923357604,-141.68],[3758374.042884443,-142.17],[3981071.705534969,-142.63],[4216965.034285823,-143.07],[4466835.921509635,-143.49],[4731512.589614812,-143.89],[5011872.336272725,-144.26],[5308844.442309879,-144.6],[5623413.251903491,-144.93],[5956621.435290109,-145.24],[6309573.444801942,-145.52],[6683439.175686149,-145.79],[7079457.843841373,-146.05],[7498942.093324558,-146.29],[7943282.347242821,-146.52],[8413951.416451965,-146.74],[8912509.381337458,-146.95],[9440608.762859225,-147.15],[10000000.0,-147.35],[10592537.251772897,-147.55],[11220184.543019652,-147.74],[11885022.27437019,-147.94],[12589254.11794166,-148.13],[13335214.32163324,-148.33],[14125375.446227554,-148.53],[14962356.560944358,-148.74],[15848931.924611142,-148.95],[16788040.18122559,-149.17],[17782794.100389227,-149.39],[18836490.89489802,-149.62],[19952623.14968883,-149.86],[21134890.398366477,-150.1],[22387211.385683376,-150.36],[23713737.056616552,-150.62],[25118864.315095823,-150.88],[26607250.59798814,-151.15],[28183829.31264455,-151.43],[29853826.189179573,-151.71],[31622776.60168379,-151.99],[33496543.915782794,-152.27],[35481338.923357606,-152.55],[37583740.42884443,-152.83],[39810717.05534969,-153.1],[42169650.342858225,-153.37],[44668359.21509635,-153.63],[47315125.89614812,-153.88],[50118723.36272725,-154.11],[53088444.423098795,-154.33],[56234132.51903491,-154.54],[59566214.35290109,-154.73],[63095734.44801943,-154.9],[66834391.756861486,-155.05],[70794578.43841374,-155.18],[74989420.93324558,-155.3],[79432823.47242822,-155.39],[84139514.16451965,-155.47],[89125093.8133746,-155.53],[94406087.62859225,-155.58],[100000000.0,-155.62]],"model_m1":[[10000.0,-112.78],[10592.537251772897,-113.09],[11220.18454301963,-113.39],[11885.022274370189,-113.69],[12589.254117941662,-113.99],[13335.21432163324,-114.28],[14125.375446227554,-114.57],[14962.356560944329,-114.85],[15848.93192461114,-115.14],[16788.040181225588,-115.41],[17782.794100389227,-115.69],[18836.49089489802,-115.96],[19952.62314968879,-116.23],[21134.890398366475,-116.49],[22387.21138568338,-116.75],[23713.737056616552,-117.01],[25118.86431509582,-117.26],[26607.250597988084,-117.5],[28183.82931264455,-117.75],[29853.82618917957,-117.98],[31622.776601683792,-118.22],[33496.54391578279,-118.44],[35481.33892335753,-118.66],[37583.74042884443,-118.88],[39810.71705534969,-119.09],[42169.65034285822,-119.29],[44668.359215096345,-119.49],[47315.12589614803,-119.68],[50118.72336272725,-119.86],[53088.444423098794,-120.03],[56234.13251903491,-120.2],[59566.214352901094,-120.35],[63095.7344480193,-120.5],[66834.39175686149,-120.64],[70794.57843841374,-120.77],[74989.42093324558,-120.89],[79432.82347242821,-121.0],[84139.51416451947,-121.1],[89125.0938133746,-121.19],[94406.08762859226,-121.27],[100000.0,-121.34],[105925.37251772897,-121.4],[112201.84543019629,-121.46],[118850.22274370189,-121.51],[125892.54117941661,-121.55],[133352.1432163324,-121.59],[141253.75446227554,-121.62],[149623.56560944326,-121.65],[158489.3192461114,-121.68],[167880.40181225588,-121.71],[177827.94100389228,-121.74],[188364.9089489802,-121.77],[199526.23149688786,-121.81],[211348.90398366476,-121.85],[223872.11385683378,-121.9],[237137.37056616554,-121.95],[251188.6431509582,-122.02],[266072.50597988087,-122.09],[281838.2931264455,-122.17],[298538.26189179573,-122.27],[316227.7660168379,-122.38],[334965.43915782793,-122.5],[354813.3892335753,-122.63],[375837.4042884443,-122.78],[398107.1705534969,-122.94],[421696.5034285822,-123.13],[446683.5921509635,-123.32],[473151.2589614803,-123.54],[501187.2336272725,-123.77],[530884.4442309879,-124.03],[562341.3251903491,-124.3],[595662.1435290109,-124.59],[630957.344480193,-124.91],[668343.9175686149,-125.24],[707945.7843841374,-125.6],[749894.2093324559,-125.98],[794328.2347242822,-126.37],[841395.1416451947,-126.79],[891250.9381337459,-127.23],[944060.8762859226,-127.68],[1000000.0,-128.15],[1059253.7251772897,-128.63],[1122018.4543019652,-129.13],[1188502.2274370189,-129.63],[1258925.411794166,-130.14],[1333521.432163324,-130.64],[1412537.5446227554,-131.15],[1496235.6560944358,-131.64],[1584893.1924611141,-132.13],[1678804.018122559,-132.59],[1778279.410038923,-133.03],[1883649.089489802,-133.45],[1995262.3149688828,-133.84],[2113489.0398366475,-134.19],[2238721.1385683375,-134.52],[2371373.7056616554,-134.81],[2511886.4315095823,-135.07],[2660725.059798814,-135.29],[2818382.931264455,-135.49],[2985382.618917957,-135.66],[3162277.660168379,-135.81],[3349654.3915782794,-135.94],[3548133.8923357604,-136.05],[3758374.042884443,-136.14],[3981071.705534969,-136.23],[4216965.034285823,-136.3],[4466835.921509635,-136.37],[4731512.589614812,-136.43],[5011872.336272725,-136.49],[5308844.442309879,-136.55],[5623413.251903491,-136.6],[5956621.435290109,-136.66],[6309573.444801942,-136.72],[6683439.175686149,-136.78],[7079457.843841373,-136.84],[7498942.093324558,-136.91],[7943282.347242821,-136.99],[8413951.416451965,-137.07],[8912509.381337458,-137.16],[9440608.762859225,-137.25],[10000000.0,-137.36],[10592537.251772897,-137.47],[11220184.543019652,-137.6],[11885022.27437019,-137.74],[12589254.11794166,-137.89],[13335214.32163324,-138.05],[14125375.446227554,-138.23],[14962356.560944358,-138.43],[15848931.924611142,-138.64],[16788040.18122559,-138.86],[17782794.100389227,-139.1],[18836490.89489802,-139.37],[19952623.14968883,-139.65],[21134890.398366477,-139.95],[22387211.385683376,-140.27],[23713737.056616552,-140.61],[25118864.315095823,-140.97],[26607250.59798814,-141.35],[28183829.31264455,-141.75],[29853826.189179573,-142.18],[31622776.60168379,-142.63],[33496543.915782794,-143.1],[35481338.923357606,-143.6],[37583740.42884443,-144.12],[39810717.05534969,-144.67],[42169650.342858225,-145.24],[44668359.21509635,-145.84],[47315125.89614812,-146.47],[50118723.36272725,-147.12],[53088444.423098795,-147.8],[56234132.51903491,-148.5],[59566214.35290109,-149.23],[63095734.44801943,-149.97],[66834391.756861486,-150.72],[70794578.43841374,-151.47],[74989420.93324558,-152.21],[79432823.47242822,-152.91],[84139514.16451965,-153.56],[89125093.8133746,-154.14],[94406087.62859225,-154.62],[100000000.0,-155.0]],"vco_free":[[10000.0,-78.65],[10592.537251772897,-79.4],[11220.18454301963,-80.14],[11885.022274370189,-80.88],[12589.254117941662,-81.62],[13335.21432163324,-82.36],[14125.375446227554,-83.1],[14962.356560944329,-83.84],[15848.93192461114,-84.57],[16788.040181225588,-85.31],[17782.794100389227,-86.05],[18836.49089489802,-86.78],[19952.62314968879,-87.52],[21134.890398366475,-88.25],[22387.21138568338,-88.99],[23713.737056616552,-89.72],[25118.86431509582,-90.45],[26607.250597988084,-91.18],[28183.82931264455,-91.91],[29853.82618917957,-92.64],[31622.776601683792,-93.36],[33496.54391578279,-94.09],[35481.33892335753,-94.82],[37583.74042884443,-95.54],[39810.71705534969,-96.26],[42169.65034285822,-96.98],[44668.359215096345,-97.7],[47315.12589614803,-98.42],[50118.72336272725,-99.13],[53088.444423098794,-99.85],[56234.13251903491,-100.56],[59566.214352901094,-101.27],[63095.7344480193,-101.98],[66834.39175686149,-102.68],[70794.57843841374,-103.39],[74989.42093324558,-104.09],[79432.82347242821,-104.79],[84139.51416451947,-105.48],[89125.0938133746,-106.18],[94406.08762859226,-106.87],[100000.0,-107.56],[105925.37251772897,-108.25],[112201.84543019629,-108.93],[118850.22274370189,-109.61],[125892.54117941661,-110.29],[133352.1432163324,-110.97],[141253.75446227554,-111.64],[149623.56560944326,-112.31],[158489.3192461114,-112.97],[167880.40181225588,-113.64],[177827.94100389228,-114.3],[188364.9089489802,-114.95],[199526.23149688786,-115.61],[211348.90398366476,-116.25],[223872.11385683378,-116.9],[237137.37056616554,-117.54],[251188.6431509582,-118.18],[266072.50597988087,-118.82],[281838.2931264455,-119.45],[298538.26189179573,-120.08],[316227.7660168379,-120.7],[334965.43915782793,-121.32],[354813.3892335753,-121.94],[375837.4042884443,-122.55],[398107.1705534969,-123.16],[421696.5034285822,-123.77],[446683.5921509635,-124.37],[473151.2589614803,-124.97],[501187.2336272725,-125.56],[530884.4442309879,-126.16],[562341.3251903491,-126.75],[595662.1435290109,-127.33],[630957.344480193,-127.91],[668343.9175686149,-128.49],[707945.7843841374,-129.07],[749894.2093324559,-129.64],[794328.2347242822,-130.21],[841395.1416451947,-130.77],[891250.9381337459,-131.34],[944060.8762859226,-131.9],[1000000.0,-132.46],[1059253.7251772897,-133.01],[1122018.4543019652,-133.56],[1188502.2274370189,-134.11],[1258925.411794166,-134.66],[1333521.432163324,-135.2],[1412537.5446227554,-135.74],[1496235.6560944358,-136.28],[1584893.1924611141,-136.81],[1678804.018122559,-137.34],[1778279.410038923,-137.87],[1883649.089489802,-138.4],[1995262.3149688828,-138.92],[2113489.0398366475,-139.44],[2238721.1385683375,-139.96],[2371373.7056616554,-140.47],[2511886.4315095823,-140.99],[2660725.059798814,-141.49],[2818382.931264455,-142.0],[2985382.618917957,-142.5],[3162277.660168379,-142.99],[3349654.3915782794,-143.49],[3548133.8923357604,-143.97],[3758374.042884443,-144.46],[3981071.705534969,-144.93],[4216965.034285823,-145.4],[4466835.921509635,-145.87],[4731512.589614812,-146.33],[5011872.336272725,-146.78],[5308844.442309879,-147.23],[5623413.251903491,-147.66],[5956621.435290109,-148.09],[6309573.444801942,-148.51],[6683439.175686149,-148.92],[7079457.843841373,-149.32],[7498942.093324558,-149.71],[7943282.347242821,-150.08],[8413951.416451965,-150.45],[8912509.381337458,-150.8],[9440608.762859225,-151.14],[10000000.0,-151.46],[10592537.251772897,-151.77],[11220184.543019652,-152.07],[11885022.27437019,-152.35],[12589254.11794166,-152.62],[13335214.32163324,-152.87],[14125375.446227554,-153.11],[14962356.560944358,-153.33],[15848931.924611142,-153.53],[16788040.18122559,-153.73],[17782794.100389227,-153.91],[18836490.89489802,-154.07],[19952623.14968883,-154.23],[21134890.398366477,-154.37],[22387211.385683376,-154.5],[23713737.056616552,-154.62],[25118864.315095823,-154.73],[26607250.59798814,-154.83],[28183829.31264455,-154.92],[29853826.189179573,-155.0],[31622776.60168379,-155.07],[33496543.915782794,-155.14],[35481338.923357606,-155.2],[37583740.42884443,-155.26],[39810717.05534969,-155.3],[42169650.342858225,-155.35],[44668359.21509635,-155.39],[47315125.89614812,-155.43],[50118723.36272725,-155.46],[53088444.423098795,-155.49],[56234132.51903491,-155.51],[59566214.35290109,-155.54],[63095734.44801943,-155.56],[66834391.756861486,-155.58],[70794578.43841374,-155.59],[74989420.93324558,-155.61],[79432823.47242822,-155.62],[84139514.16451965,-155.63],[89125093.8133746,-155.64],[94406087.62859225,-155.65],[100000000.0,-155.66]],"meas_m4":[[10000.0,-115.1223],[30000.0,-121.1841],[40000.0,-121.8444],[100000.0,-122.6283],[300000.0,-123.3384],[402394.0,-124.2386],[1000000.0,-128.4607],[3000000.0,-139.8124],[10000000.0,-147.7038],[40000000.0,-154.8702]],"meas_m1":[[9000.0,-110.6],[11000.0,-112.0],[12000.0,-112.5],[14000.0,-113.7],[16000.0,-114.7],[18000.0,-115.4],[25000.0,-117.5],[30000.0,-118.2],[40000.0,-119.7],[50000.0,-120.6],[70000.0,-120.7],[100000.0,-120.9],[150000.0,-121.3],[200000.0,-121.4],[300000.0,-121.8],[2000000.0,-133.5],[3000000.0,-135.5],[5000000.0,-137.0],[10000000.0,-138.1],[20000000.0,-138.4],[30000000.0,-140.9],[50000000.0,-146.1],[70000000.0,-150.7]]},"budget":[{"k":"vco","name":"VCO 自由振荡残余","short":"VCO 残余","v":23.56,"lo":23.54,"hi":23.7},{"k":"cp_flicker","name":"CP / 偏置 1/f（∝ 导通时间²）","short":"CP/偏置 1/f","v":14.88,"lo":13.37,"hi":15.26},{"k":"ref_common","name":"参考白噪（XO+倍频）","short":"参考白噪","v":12.83,"lo":10.09,"hi":16.05},{"k":"sdm","name":"SDM 量化噪声","short":"SDM 量化","v":8.13,"lo":8.11,"hi":8.16},{"k":"out_floor","name":"输出噪底（÷2/缓冲）","short":"输出噪底","v":7.75,"lo":7.75,"hi":7.75},{"k":"cp","name":"CP 热噪声","short":"CP 热噪声","v":6.39,"lo":2.4,"hi":10.95},{"k":"ref_flicker","name":"参考近端 1/f","short":"参考 1/f","v":5.63,"lo":5.36,"hi":6.24},{"k":"pfd_slice","name":"各片 PFD/重定时","short":"PFD/重定时","v":4.72,"lo":4.65,"hi":4.73},{"k":"cp_offset","name":"偏置电荷 kT/C","short":"偏置 kT/C","v":3.9,"lo":3.39,"hi":3.92}],"spur":{"off":[10000.0,20000.0,40000.0,80000.0,100000.0,200000.0,400000.0,600000.0,800000.0,1000000.0,2000000.0,4000000.0],"meas":[-74.2,-73.9,-73.3,-71.9,-71.1,-70.3,-71.1,-72.5,-72.6,-73.8,-84.6,-89.3],"p10":[-88.63021173655108,-88.55019623897252,-88.5124646068664,-88.12062701089711,-87.95093096863172,-87.17216643889418,-87.2699680725451,-88.33997311166564,-90.04059247570378,-91.77840528726769,-99.82288189576332,-110.62496105170369],"p50":[-74.24648208897199,-74.1532035248814,-74.13695316159536,-73.73614468792695,-73.5672881529604,-72.76982271313108,-72.86779983084466,-73.99254823001468,-75.65798215015779,-77.43569308478654,-85.46093091983802,-96.24987379401986],"p90":[-66.37418789277746,-66.27748125346818,-66.26224799079297,-65.86439156147276,-65.69655467345291,-64.89735311709187,-64.98903342537307,-66.12481860850323,-67.78107482546666,-69.55382507762744,-77.59290242261241,-88.41691049819967],"comp":[-71.46158440790404,-71.35276248439148,-71.28597313845941,-70.8884724856905,-70.7711341889229,-70.05316782300007,-70.09803894702911,-71.37201126852572,-72.88914717392758,-74.57308819235153,-82.82215261588578,-93.7691662895977]},"fold":{"m1":[[0.0,-78.4],[0.3,-82.1],[0.6,-87.1],[0.8999999999999999,-93.7],[1.2,-102.7],[1.5,-117.1],[1.7999999999999998,-143.8],[2.1,-159.5],[2.4,-159.5]],"m4":[[0.0,-93.9],[0.3,-99.9],[0.6,-110.1],[0.8999999999999999,-128.9],[1.2,-171.1],[1.5,-171.2],[1.7999999999999998,-171.2],[2.1,-171.2],[2.4,-171.2]]},"rt":{"per":[[3.5,128.4],[4.0,61.3],[4.5,37.8],[5.0,34.4],[6.0,34.4]],"shared":[[3.5,198.3],[4.0,78.3],[4.5,38.2],[5.0,34.4],[6.0,34.4]]},"jvf":{"meas":[[7.937,32.6],[8.266,32.7],[8.533,33.3],[8.797,33.6],[9.064,33.9],[9.336,33.7],[9.501,33.8]],"model":[[7.937,35.95],[8.266,34.47],[8.533,34.75],[8.797,34.99],[9.064,34.79],[9.336,35.01],[9.501,35.36]],"model_f3":[[7.937,38.22],[8.266,35.48],[8.533,35.69],[8.797,35.72],[9.064,35.2],[9.336,35.16],[9.501,35.36]]}};
+  const NS = "http://www.w3.org/2000/svg";
+  const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
+  const fHz = v => v >= 1e6 ? (+(v / 1e6).toPrecision(3)) + " MHz" : (+(v / 1e3).toPrecision(3)) + " kHz";
+  const neg = s => String(s).replace("-", "−");
+
+  function chart(host, cfg) {
+    const draw = () => {
+      host.innerHTML = "";
+      const W = Math.max(280, host.clientWidth), H = Math.round(Math.min(cfg.h || 300, Math.max(220, W * 0.62)));
+      const m = { l: 54, r: cfg.mr || 18, t: 28, b: 40 };
+      const pw = W - m.l - m.r, ph = H - m.t - m.b;
+      const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": cfg.aria }, host);
+      const X = cfg.x, Y = cfg.y;
+      const sx = X.log ? v => m.l + (Math.log10(v) - Math.log10(X.min)) / (Math.log10(X.max) - Math.log10(X.min)) * pw
+                       : v => m.l + (v - X.min) / (X.max - X.min) * pw;
+      const sy = v => m.t + (1 - (v - Y.min) / (Y.max - Y.min)) * ph;
+      const g = el("g", { class: "grid" }, svg), ax = el("g", { class: "ax" }, svg);
+      Y.ticks.forEach(t => { el("line", { x1: m.l, x2: m.l + pw, y1: sy(t), y2: sy(t) }, g);
+        const tx = el("text", { x: m.l - 7, y: sy(t) + 4, "text-anchor": "end" }, ax); tx.textContent = Y.fmt ? Y.fmt(t) : neg(t); });
+      X.ticks.forEach(t => { el("line", { x1: sx(t), x2: sx(t), y1: m.t, y2: m.t + ph }, g);
+        const tx = el("text", { x: sx(t), y: m.t + ph + 16, "text-anchor": "middle" }, ax); tx.textContent = X.fmt ? X.fmt(t) : t; });
+      const b = el("g", { class: "base" }, svg); el("line", { x1: m.l, x2: m.l + pw, y1: m.t + ph, y2: m.t + ph }, b);
+      const xt = el("text", { x: m.l + pw, y: H - 4, "text-anchor": "end", class: "ax-title" }, svg); xt.textContent = X.title;
+      const yt = el("text", { x: 4, y: 12, class: "ax-title" }, svg); yt.textContent = Y.title;
+      const cid = "clip" + Math.random().toString(36).slice(2);
+      el("rect", { x: m.l, y: m.t - 6, width: pw, height: ph + 6 }, el("clipPath", { id: cid }, el("defs", {}, svg)));
+      const plot = el("g", { "clip-path": `url(#${cid})` }, svg);
+      const pts = [];
+      cfg.series.forEach(s => {
+        if (s.type === "band") {
+          const top = s.hi.map(p => [sx(p[0]), sy(p[1])]), bot = s.lo.map(p => [sx(p[0]), sy(p[1])]).reverse();
+          el("path", { d: "M" + top.concat(bot).map(p => p.join(",")).join("L") + "Z", class: "f-" + s.c, "fill-opacity": 0.13 }, plot);
+          return;
+        }
+        if (s.type === "line") {
+          el("path", { d: "M" + s.d.map(p => sx(p[0]).toFixed(1) + "," + sy(p[1]).toFixed(1)).join("L"), class: "line l-" + s.c + (s.thin ? " thin" : "") }, plot);
+        }
+        s.d.forEach(p => { if (p[1] >= Y.min && p[1] <= Y.max) pts.push({ x: sx(p[0]), y: sy(p[1]), v: p, s }); });
+      });
+      cfg.series.filter(s => s.type === "dots").forEach(s => s.d.forEach(p => el("circle", { cx: sx(p[0]), cy: sy(p[1]), r: 4.5, class: "dot f-" + s.c }, plot)));
+      (cfg.labels || []).forEach(L => { const t = el("text", { x: sx(L.x) + (L.dx || 0), y: sy(L.y) + (L.dy || 0), class: "lbl", "text-anchor": L.anchor || "start" }, svg); t.textContent = L.t; });
+      const cross = el("line", { y1: m.t, y2: m.t + ph, class: "cross", visibility: "hidden" }, svg);
+      const ring = el("circle", { r: 6.5, fill: "none", class: "l-s1", "stroke-width": 2, visibility: "hidden" }, svg);
+      const tip = document.createElement("div"); tip.className = "tip"; tip.hidden = true; host.appendChild(tip);
+      const move = ev => {
+        const r = svg.getBoundingClientRect(), k = W / r.width;
+        const mx = (ev.clientX - r.left) * k, my = (ev.clientY - r.top) * k;
+        let best = null, bd = 1e9;
+        pts.forEach(p => { const d = Math.hypot(p.x - mx, (p.y - my) * 0.35); if (d < bd) { bd = d; best = p; } });
+        if (!best || bd > 60) { tip.hidden = true; cross.setAttribute("visibility", "hidden"); ring.setAttribute("visibility", "hidden"); return; }
+        cross.setAttribute("x1", best.x); cross.setAttribute("x2", best.x); cross.setAttribute("visibility", "visible");
+        ring.setAttribute("cx", best.x); ring.setAttribute("cy", best.y); ring.setAttribute("class", "l-" + best.s.c); ring.setAttribute("visibility", "visible");
+        tip.innerHTML = `<div><span class="k">${best.s.name}</span></div><div>${(cfg.x.tip || (v => v))(best.v[0])}  ·  <b>${neg((cfg.y.tip || (v => v))(best.v[1]))}</b></div>`;
+        tip.hidden = false;
+        const tw = tip.offsetWidth, px = best.x / k, py = best.y / k;
+        tip.style.left = Math.min(Math.max(0, px + 12), r.width - tw) + "px"; tip.style.top = Math.max(0, py - 52) + "px";
+      };
+      svg.addEventListener("pointermove", move); svg.addEventListener("pointerdown", move);
+      svg.addEventListener("pointerleave", () => { tip.hidden = true; cross.setAttribute("visibility", "hidden"); ring.setAttribute("visibility", "hidden"); });
+    };
+    draw();
+    if (window.ResizeObserver) { let w = host.clientWidth; new ResizeObserver(() => { if (Math.abs(host.clientWidth - w) > 4) { w = host.clientWidth; draw(); } }).observe(host); }
+  }
+
+  function bars(host, rows) {
+    const draw = () => {
+      host.innerHTML = "";
+      const W = Math.max(280, host.clientWidth), narrow = W < 520, lw = narrow ? 92 : 190, rh = 30, m = { t: 6, r: 58 };
+      const H = m.t + rows.length * rh + 26, pw = W - lw - m.r;
+      const vmax = 30, sx = v => lw + v / vmax * pw;
+      const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "抖动预算：各噪声源贡献与可辨识范围" }, host);
+      const g = el("g", { class: "grid" }, svg), ax = el("g", { class: "ax" }, svg);
+      (pw < 260 ? [0, 10, 20, 30] : [0, 5, 10, 15, 20, 25, 30]).forEach(t => { el("line", { x1: sx(t), x2: sx(t), y1: m.t, y2: H - 22 }, g);
+        const tx = el("text", { x: sx(t), y: H - 6, "text-anchor": t === 30 ? "end" : "middle" }, ax); tx.textContent = t === 30 ? "30 fs" : t; });
+      const tip = document.createElement("div"); tip.className = "tip"; tip.hidden = true; host.appendChild(tip);
+      rows.forEach((r, i) => {
+        const y = m.t + i * rh + 6, h = 16, x0 = sx(0), x1 = sx(r.v), rr = Math.min(4, x1 - x0);
+        const lb = el("text", { x: lw - 10, y: y + 12, "text-anchor": "end", class: "bar-lbl" }, svg); lb.textContent = narrow ? r.short : r.name;
+        el("path", { d: `M${x0},${y}H${x1 - rr}Q${x1},${y} ${x1},${y + rr}V${y + h - rr}Q${x1},${y + h} ${x1 - rr},${y + h}H${x0}Z`, class: "f-s1" }, svg);
+        if (r.hi - r.lo > 0.3) { el("line", { x1: sx(r.lo), x2: sx(r.hi), y1: y + h / 2, y2: y + h / 2, class: "whisk" }, svg);
+          [r.lo, r.hi].forEach(v => el("line", { x1: sx(v), x2: sx(v), y1: y + 3, y2: y + h - 3, class: "whisk" }, svg)); }
+        const vt = el("text", { x: Math.max(x1, sx(r.hi)) + 6, y: y + 12, class: "bar-val" }, svg); vt.textContent = r.v.toFixed(1);
+        const hit = el("rect", { x: 0, y: y - 6, width: W, height: rh, fill: "transparent" }, svg);
+        hit.addEventListener("pointerenter", () => { tip.innerHTML = `<div><span class="k">${r.name}</span></div><div><b>${r.v.toFixed(1)} fs</b>  ·  范围 ${r.lo.toFixed(1)}–${r.hi.toFixed(1)} fs</div>`;
+          tip.hidden = false; const k = W / svg.getBoundingClientRect().width; tip.style.left = Math.min(lw / k, host.clientWidth - tip.offsetWidth) + "px"; tip.style.top = (y / k - 44) + "px"; });
+        hit.addEventListener("pointerleave", () => { tip.hidden = true; });
+      });
+    };
+    draw();
+    if (window.ResizeObserver) { let w = host.clientWidth; new ResizeObserver(() => { if (Math.abs(host.clientWidth - w) > 4) { w = host.clientWidth; draw(); } }).observe(host); }
+  }
+
+  const z = (a, b) => a.map((v, i) => [v, b[i]]);
+  chart(document.getElementById("c-pn"), {
+    aria: "相位噪声：模型与实测", h: 340,
+    x: { log: true, min: 8e3, max: 1.25e8, ticks: [1e4, 1e5, 1e6, 1e7, 1e8], fmt: fHz, tip: fHz, title: "频偏" },
+    y: { min: -165, max: -105, ticks: [-160, -150, -140, -130, -120, -110], title: "L(f) dBc/Hz @VCO/2", tip: v => (+v).toFixed(1) + " dBc/Hz" },
+    series: [
+      { type: "line", c: "ref", name: "VCO 自由振荡（拟合幻灯片 27）", d: D.pn.vco_free, thin: true },
+      { type: "line", c: "s2", name: "模型：关闭多路径（拟合 C）", d: D.pn.model_m1 },
+      { type: "line", c: "s1", name: "模型：M=4（拟合 C）", d: D.pn.model_m4 },
+      { type: "dots", c: "s2", name: "实测：关闭多路径（数字化）", d: D.pn.meas_m1 },
+      { type: "dots", c: "s1", name: "实测：M=4 标记（幻灯片 29）", d: D.pn.meas_m4 } ],
+    labels: [{ x: 1.2e7, y: -138.1, t: "SDM 隆起", dy: -10 }]
+  });
+  bars(document.getElementById("c-budget"), D.budget);
+  const S = D.spur;
+  chart(document.getElementById("c-spur"), {
+    aria: "小数杂散随偏移频率", h: 300,
+    x: { log: true, min: 8e3, max: 4e6, ticks: [1e4, 1e5, 1e6], fmt: fHz, tip: fHz, title: "杂散偏移（= 小数值 × 160 MHz）" },
+    y: { min: -104, max: -55, ticks: [-100, -90, -80, -70, -60], title: "杂散 dBc @VCO/2", tip: v => (+v).toFixed(1) + " dBc" },
+    series: [
+      { type: "band", c: "s1", lo: z(S.off, S.p10), hi: z(S.off, S.p90) },
+      { type: "line", c: "s1", name: "失配总体中位（3σ=0.5%）", d: z(S.off, S.p50) },
+      { type: "line", c: "s3", name: "C_DN 电荷压缩 40 pF·V（零失配）", d: z(S.off, S.comp) },
+      { type: "dots", c: "s2", name: "实测（幻灯片 30）", d: z(S.off, S.meas) } ]
+  });
+  chart(document.getElementById("c-fold"), {
+    aria: "折叠噪声随偏置", h: 280,
+    x: { min: 0, max: 2.4, ticks: [0, 0.6, 1.2, 1.8, 2.4], fmt: v => v + "T", tip: v => "偏置 T_nl+" + v + "T", title: "(T_off − T_nl) / T_VCO" },
+    y: { min: -175, max: -70, ticks: [-170, -150, -130, -110, -90, -70], title: "带内 L dBc/Hz", tip: v => (+v).toFixed(0) + " dBc/Hz" },
+    series: [ { type: "line", c: "s2", name: "M=1", d: D.fold.m1 }, { type: "line", c: "s1", name: "M=4", d: D.fold.m4 },
+              { type: "dots", c: "s2", name: "M=1", d: D.fold.m1 }, { type: "dots", c: "s1", name: "M=4", d: D.fold.m4 } ]
+  });
+  chart(document.getElementById("c-rt"), {
+    aria: "重定时裕量与抖动", h: 280,
+    x: { min: 3.4, max: 6.1, ticks: [3.5, 4, 4.5, 5, 5.5, 6], fmt: v => v + "σ", tip: v => "裕量 " + v + "σ", title: "重定时建立裕量（σ = 1.5 ps）" },
+    y: { min: 0, max: 210, ticks: [0, 50, 100, 150, 200], title: "抖动 fs", tip: v => (+v).toFixed(1) + " fs" },
+    series: [ { type: "line", c: "s2", name: "共享第一级 DFF 滑周期", d: D.rt.shared }, { type: "line", c: "s1", name: "每片独立 DFF 滑周期", d: D.rt.per },
+              { type: "dots", c: "s2", name: "共享第一级 DFF", d: D.rt.shared }, { type: "dots", c: "s1", name: "每片独立 DFF", d: D.rt.per } ]
+  });
+  chart(document.getElementById("c-jvf"), {
+    aria: "抖动随 VCO 频率", h: 260,
+    x: { min: 7.85, max: 9.6, ticks: [8.0, 8.5, 9.0, 9.5], fmt: v => v.toFixed(1), tip: v => v.toFixed(2) + " GHz", title: "VCO 频率 GHz" },
+    y: { min: 31, max: 39, ticks: [32, 34, 36, 38], title: "抖动 fs", tip: v => (+v).toFixed(1) + " fs" },
+    series: [ { type: "line", c: "s1", name: "模型（K_VCO 不变）", d: D.jvf.model }, { type: "line", c: "ref", name: "模型（K_VCO ∝ f³）", d: D.jvf.model_f3, thin: true },
+              { type: "line", c: "s2", name: "实测（幻灯片 29 左）", d: D.jvf.meas }, { type: "dots", c: "s2", name: "实测", d: D.jvf.meas } ]
+  });
+
+  // check-table filter
+  const btns = document.querySelectorAll(".filters button");
+  btns.forEach(b => b.addEventListener("click", () => {
+    btns.forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+    const k = b.dataset.k;
+    document.querySelectorAll("#checks tbody tr").forEach(tr => { tr.hidden = !(k === "all" || tr.dataset.kind === k); });
+  }));
+})();
+</script>
+
+</body>
+</html>

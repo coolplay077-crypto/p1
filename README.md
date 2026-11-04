@@ -17,6 +17,7 @@ python3 research/verify_invariants.py
 # MediaTek ISSCC 2025 19.3 多路径反馈 PLL：Python 复现与专利 US 11,509,315 核对
 
 - **主报告：** [docs/ISSCC2025_19.3_MTK多路径反馈PLL_复现与专利核对.md](docs/ISSCC2025_19.3_MTK多路径反馈PLL_复现与专利核对.md)，包括复现验证、与专利的逐项核对、非理想因素和设计注意项。
+- **技术分析报告（HTML，交互图表）：** [docs/ISSCC2025_19.3_技术分析报告.html](docs/ISSCC2025_19.3_技术分析报告.html)，由 `mtk_pll/make_html_report.py` 从结果 JSON 生成，浏览器直接打开。
 - **前期报告（专利切片 CP 理论 + ISSCC 2008 ADPLL）：** [docs/MTK_PLL_QNC_Python复现与非理想分析.md](docs/MTK_PLL_QNC_Python复现与非理想分析.md)
 - **模型与脚本：** [mtk_pll/](mtk_pll/)，结果在 `mtk_pll/results/`
 
@@ -26,4 +27,5 @@ cd mtk_pll && pip install -r requirements.txt
 
 ```bash
 python3 run_isscc25_19p3.py
+python3 make_html_report.py   # 重新生成 HTML 技术分析报告
 ```

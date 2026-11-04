@@ -2,6 +2,7 @@
 
 报告：
 - [../docs/ISSCC2025_19.3_MTK多路径反馈PLL_复现与专利核对.md](../docs/ISSCC2025_19.3_MTK多路径反馈PLL_复现与专利核对.md)（主报告）
+- [../docs/ISSCC2025_19.3_技术分析报告.html](../docs/ISSCC2025_19.3_技术分析报告.html)（HTML 技术分析报告，`make_html_report.py` 生成）
 - [../docs/MTK_PLL_QNC_Python复现与非理想分析.md](../docs/MTK_PLL_QNC_Python复现与非理想分析.md)（专利理论、ISSCC 2008）
 
 | 模型 | 来源 | 代码 | 实验脚本 |
@@ -20,6 +21,7 @@ pip install -r requirements.txt
 
 ```bash
 python3 run_isscc25_19p3.py   # 约 20 s，输出 results/isscc25_19p3_results.json + D*.png（检查分 arith/consistency/validation 三类）
+python3 make_html_report.py   # 由结果 JSON 生成 docs/ISSCC2025_19.3_技术分析报告.html
 ```
 
 ```bash

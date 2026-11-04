@@ -1,0 +1,15 @@
+{
+  "name": "cnt-adpll-interactive-book",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Interactive bilingual HTML edition of the CNT-based ADPLL research report",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "check": "node dev/check-widget.mjs --all"
+  },
+  "dependencies": {
+    "katex": "0.16.11",
+    "markdown-it": "14.1.0"
+  }
+}

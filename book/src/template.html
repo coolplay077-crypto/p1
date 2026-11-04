@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="zh-CN" data-lang="zh" data-theme="auto">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CNT-based ADPLL · 交互式技术书</title>
+<meta name="description" content="CNT-based ADPLL：整数相位保留、相干快照与短量程 TDC —— 中英双语交互式技术书（含公式推导、行为级建模与波形动画）">
+<script>
+  // apply persisted language/theme before first paint
+  try {
+    var l = JSON.parse(localStorage.getItem('cntbook:lang') || '"zh"');
+    var t = JSON.parse(localStorage.getItem('cntbook:theme') || '"auto"');
+    var f = JSON.parse(localStorage.getItem('cntbook:fs') || '17');
+    document.documentElement.setAttribute('data-lang', l);
+    document.documentElement.setAttribute('data-theme', t);
+    document.documentElement.style.setProperty('--fs', f + 'px');
+    document.documentElement.lang = l === 'en' ? 'en' : 'zh-CN';
+  } catch (e) {}
+</script>
+<style>/*__KATEX_CSS__*/</style>
+<style>/*__APP_CSS__*/</style>
+</head>
+<body>
+<a class="skip" href="#main">跳到正文 / Skip to content</a>
+<div id="progress" aria-hidden="true"></div>
+<header class="topbar">
+  <button class="icon-btn" id="btn-menu" aria-label="目录 / Contents" title="目录 / Contents">☰</button>
+  <a class="brand" href="#home"><span class="brand-mark" aria-hidden="true">Φ</span><span class="brand-text"><span class="i18n-zh">CNT-ADPLL 交互式技术书</span><span class="i18n-en">CNT-ADPLL Interactive Book</span></span></a>
+  <button class="search-trigger" id="btn-search" aria-label="搜索 / Search">
+    <span aria-hidden="true">⌕</span>
+    <span class="i18n-zh">搜索全文、公式、术语…</span><span class="i18n-en">Search text, equations, terms…</span>
+    <kbd>/</kbd>
+  </button>
+  <div class="top-actions">
+    <div class="seg" id="lang-seg" role="group" aria-label="语言 / Language">
+      <button data-lang-set="zh" title="中文">中</button>
+      <button data-lang-set="en" title="English">EN</button>
+      <button data-lang-set="both" title="中英对照 / Side by side">中|EN</button>
+    </div>
+    <button class="icon-btn" id="btn-theme" title="主题 / Theme" aria-label="主题 / Theme">◐</button>
+    <button class="icon-btn" id="btn-font-dec" title="缩小字号 / Smaller text" aria-label="smaller text">A−</button>
+    <button class="icon-btn" id="btn-font-inc" title="放大字号 / Larger text" aria-label="larger text">A+</button>
+    <button class="icon-btn" id="btn-focus" title="专注阅读 / Focus mode" aria-label="focus mode">⤢</button>
+    <button class="icon-btn" id="btn-help" title="快捷键 / Shortcuts (?)" aria-label="help">?</button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="sidebar" id="sidebar" aria-label="目录 / Contents">
+    <div class="side-progress" id="side-progress"></div>
+    <div id="toc"></div>
+  </nav>
+  <div class="scrim" id="scrim"></div>
+
+  <main id="main" tabindex="-1">
+    <article class="page" data-page="home" hidden></article>
+    <article class="page" data-page="lab" hidden></article>
+<!--__PAGES__-->
+    <nav class="page-nav" id="page-nav"></nav>
+    <footer class="foot">
+      <p><span class="i18n-zh">内容整理自《CNT_ADPLL 调研整合与核心问题报告》（整合复核版 V1.0，2026-10-03）及《工程介绍》。交互模型均为依据文字描述的行为级/理想化建模，不是原文插图的复刻，也不是芯片指标。</span><span class="i18n-en">Content from the "CNT_ADPLL Research Synthesis &amp; Core Problems Report" (consolidated review V1.0, 2026-10-03) and the "Engineering Introduction". Interactive models are behavioural/idealised reconstructions from the text — not reproductions of the original figures and not silicon specifications.</span></p>
+    </footer>
+  </main>
+
+  <aside class="rail" id="rail" aria-label="本页目录 / On this page">
+    <div class="rail-title"><span class="i18n-zh">本页</span><span class="i18n-en">On this page</span></div>
+    <div id="rail-toc"></div>
+  </aside>
+</div>
+
+<div class="modal" id="search-modal" hidden role="dialog" aria-modal="true" aria-label="搜索 / Search">
+  <div class="modal-box search-box">
+    <div class="search-head">
+      <input id="search-input" type="search" autocomplete="off" spellcheck="false" placeholder="搜索 / Search… (例如: epoch、N=MC+q、SAT、Havens)">
+      <label class="search-scope"><input type="checkbox" id="search-all-lang"> <span class="i18n-zh">两种语言</span><span class="i18n-en">Both languages</span></label>
+      <button class="icon-btn" data-close aria-label="close">✕</button>
+    </div>
+    <div class="search-filters" id="search-filters"></div>
+    <div class="search-results" id="search-results"></div>
+    <div class="search-foot"><kbd>↑</kbd><kbd>↓</kbd> <span class="i18n-zh">选择</span><span class="i18n-en">select</span> · <kbd>Enter</kbd> <span class="i18n-zh">打开</span><span class="i18n-en">open</span> · <kbd>Esc</kbd> <span class="i18n-zh">关闭</span><span class="i18n-en">close</span></div>
+  </div>
+</div>
+
+<div class="modal" id="help-modal" hidden role="dialog" aria-modal="true">
+  <div class="modal-box help-box">
+    <button class="icon-btn modal-x" data-close aria-label="close">✕</button>
+    <h3><span class="i18n-zh">快捷键与功能</span><span class="i18n-en">Shortcuts &amp; features</span></h3>
+    <table class="kbd-table">
+      <tr><td><kbd>/</kbd> <kbd>Ctrl</kbd>+<kbd>K</kbd></td><td><span class="i18n-zh">全文搜索（正文、公式、术语、文献、交互演示）</span><span class="i18n-en">Search everything (text, equations, terms, references, demos)</span></td></tr>
+      <tr><td><kbd>L</kbd></td><td><span class="i18n-zh">切换语言：中文 → English → 中英对照</span><span class="i18n-en">Cycle language: 中文 → English → side-by-side</span></td></tr>
+      <tr><td><kbd>T</kbd></td><td><span class="i18n-zh">切换主题（自动/浅色/深色）</span><span class="i18n-en">Cycle theme (auto/light/dark)</span></td></tr>
+      <tr><td><kbd>[</kbd> <kbd>]</kbd></td><td><span class="i18n-zh">上一章 / 下一章</span><span class="i18n-en">Previous / next chapter</span></td></tr>
+      <tr><td><kbd>F</kbd></td><td><span class="i18n-zh">专注阅读模式</span><span class="i18n-en">Focus mode</span></td></tr>
+      <tr><td><kbd>B</kbd></td><td><span class="i18n-zh">收藏当前小节</span><span class="i18n-en">Bookmark current section</span></td></tr>
+      <tr><td><kbd>?</kbd></td><td><span class="i18n-zh">显示本帮助</span><span class="i18n-en">Show this help</span></td></tr>
+    </table>
+    <p class="muted"><span class="i18n-zh">提示：悬停/点按带下划线的术语、文献编号 [Rxx] 与公式编号可查看卡片；公式右侧按钮可复制 LaTeX、查看推导或打开对应的交互演示；小节标题旁的 ☆ / ✎ 可收藏与做笔记（保存在本机浏览器）。</span><span class="i18n-en">Tip: hover/tap underlined terms, citations [Rxx] and equation numbers for cards; equation buttons copy LaTeX, open the derivation card or the matching demo; ☆ / ✎ next to section headings bookmark and annotate (stored locally in this browser).</span></p>
+  </div>
+</div>
+
+<div class="popover" id="popover" hidden role="tooltip"></div>
+<div class="toast" id="toast" hidden></div>
+
+<!--__DATA__-->
+<!--__SCRIPTS__-->
+</body>
+</html>

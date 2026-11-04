@@ -8,7 +8,7 @@
   'use strict';
   const PAGE = 'hub-map';
   const esc = Book.esc, bi = Book.bi;
-  const W = 900, H = 640;               // layout canvas (user units)
+  const W = 1000, H = 760;               // layout canvas (user units)
   const KINDS = [
     { k: 'quantity', zh: '量', en: 'Quantity', c: 'var(--s1)' },
     { k: 'mechanism', zh: '机制', en: 'Mechanism', c: 'var(--s2)' },
@@ -26,7 +26,7 @@
 .hm-chip { font: inherit; font-size: .76rem; border: 1px solid var(--border-strong); background: var(--surface); color: var(--fg-2); border-radius: 999px; padding: 2px 10px; cursor: pointer; line-height: 1.6; }
 .hm-chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
 .hm-chip i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: 0; }
-.hm-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 12px; align-items: start; }
+.hm-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; align-items: start; }
 .hm-stage { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; touch-action: none; }
 .hm-svg { display: block; width: 100%; height: clamp(400px, 68vh, 640px); cursor: grab; user-select: none; -webkit-user-select: none; }
 .hm-svg.drag { cursor: grabbing; }
@@ -37,14 +37,15 @@
 .hm-edge { stroke: var(--border-strong); stroke-width: 1.2; fill: none; transition: opacity .15s; }
 .hm-edge.hot { stroke: var(--accent); stroke-width: 2; }
 .hm-edge.dim, .hm-node.dim { opacity: .16; }
-.hm-elab { font-size: 10.5px; fill: var(--accent-ink); paint-order: stroke; stroke: var(--surface); stroke-width: 3px; pointer-events: none; }
+.hm-elab { font-size: 12.5px; fill: var(--accent-ink); paint-order: stroke; stroke: var(--surface); stroke-width: 3px; pointer-events: none; }
 .hm-node { cursor: pointer; }
+.hm-node .hm-hit { pointer-events: all; }
 .hm-node circle { stroke: var(--surface); stroke-width: 2; transition: r .12s; }
 .hm-node.sel circle { stroke: var(--fg); stroke-width: 2.5; }
 .hm-node.hov circle, .hm-node.nb circle { stroke: var(--accent); stroke-width: 2.5; }
-.hm-node text { font-size: 11.5px; fill: var(--fg); paint-order: stroke; stroke: var(--surface); stroke-width: 3px; pointer-events: none; }
+.hm-node text { font-size: 14px; fill: var(--fg); paint-order: stroke; stroke: var(--surface); stroke-width: 3px; pointer-events: none; }
 .hm-node.sel text { font-weight: 700; }
-.hm-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; font-size: .88rem; line-height: 1.55; position: sticky; top: calc(var(--top) + 8px); overflow-wrap: anywhere; }
+.hm-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; font-size: .88rem; line-height: 1.55; overflow-wrap: anywhere; }
 .hm-card h3 { margin: 0 0 4px; font-size: 1rem; }
 .hm-card .hm-kind { display: inline-block; font-size: .72rem; border: 1px solid currentColor; border-radius: 999px; padding: 0 8px; margin-bottom: 6px; }
 .hm-card ul { margin: 6px 0 0; padding-left: 1.1em; }
@@ -54,10 +55,6 @@
 .hm-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 10px 0 0; font-size: .76rem; color: var(--fg-2); }
 .hm-legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 4px; }
 .hm-note { margin-top: 10px; font-size: .8rem; color: var(--muted); }
-@media (max-width: 900px) {
-  .hm-grid { grid-template-columns: minmax(0, 1fr); }
-  .hm-card { position: static; }
-}
 `;
   function injectCss(id, css) {
     if (document.getElementById(id)) return;
@@ -66,7 +63,7 @@
     document.head.appendChild(s);
   }
   function secRef(id) {
-    const m = String(id).replace(/^r-/, '');
+    const m = String(id).replace(/^r-/, '').replace(/-/g, '.');
     const app = /^[A-Z]$/.test(m);
     return `<a href="#${esc(id)}">${bi(esc(app ? '附录 ' + m : '§' + m), esc(app ? 'App. ' + m : '§' + m))}</a>`;
   }
@@ -112,6 +109,25 @@
     const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
     const sx = (W - 2 * mx) / Math.max(x1 - x0, 1), sy = (H - 2 * my) / Math.max(y1 - y0, 1);
     nodes.forEach((d) => { d.x = mx + (d.x - x0) * sx; d.y = my + (d.y - y0) * sy; });
+    // label-aware de-overlap in canvas units: each node is a box sized for its longest label
+    const box = nodes.map((d) => ({ w: Math.max(String(d.zh || '').length * 14, String(d.en || '').length * 7.6) + 12, h: 34 }));
+    for (let it = 0; it < 1500; it++) {
+      let moved = false;
+      for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+        const a = nodes[i], b = nodes[j];
+        const ox = (box[i].w + box[j].w) / 2 - Math.abs(a.x - b.x);
+        const oy = (box[i].h + box[j].h) / 2 - Math.abs(a.y - b.y);
+        if (ox <= 0 || oy <= 0) continue;
+        moved = true;
+        if (oy / (box[i].h + box[j].h) < ox / (box[i].w + box[j].w)) { const s = (a.y <= b.y ? -1 : 1) * (oy / 2 + 0.5); a.y += s; b.y -= s; }
+        else { const s = (a.x <= b.x ? -1 : 1) * (ox / 2 + 0.5); a.x += s; b.x -= s; }
+      }
+      for (let i = 0; i < n; i++) {
+        nodes[i].x = Math.min(W - box[i].w / 2, Math.max(box[i].w / 2, nodes[i].x));
+        nodes[i].y = Math.min(H - 20, Math.max(20, nodes[i].y));
+      }
+      if (!moved) break;
+    }
   }
 
   Book.registerPage({
@@ -145,14 +161,14 @@
         <div class="hm-hero"><div class="kicker">${bi('知识汇总 · 概念图', 'Knowledge hub · Concept map')}</div>
           <h1>${bi('概念、机制与风险之间的关系', 'How concepts, mechanisms and risks connect')}</h1>
           <p class="lede">${bi('节点是报告中的量、机制、风险、接口与验证；连线上的文字是关系。点击节点可跳转到对应小节和模型。', 'Nodes are quantities, mechanisms, risks, interfaces and verification steps from the report; the text on each line is the relation. Click a node to jump to its section and model.')}</p></div>
-        <div class="hm-bar" role="group" aria-label="${bi('按类别筛选', 'Filter by kind')}" data-role="kinds">${kindChips}</div>
+        <div class="hm-bar" role="group" aria-label="按类别筛选 / Filter by kind" data-role="kinds">${kindChips}</div>
         <div class="hm-grid">
           <div>
             <div class="hm-stage">
-              <svg class="hm-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${bi('概念图', 'Concept map')}" data-role="svg">
+              <svg class="hm-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="概念图 / Concept map" data-role="svg">
                 <g class="hm-view" data-role="view"></g>
               </svg>
-              <div class="hm-zoom"><button type="button" data-zoom="in" aria-label="${bi('放大', 'Zoom in')}">+</button><button type="button" data-zoom="out" aria-label="${bi('缩小', 'Zoom out')}">−</button><button type="button" data-zoom="reset" aria-label="${bi('重置视图', 'Reset view')}" title="${bi('重置视图', 'Reset view')}" style="font-size:.7rem">⟲</button></div>
+              <div class="hm-zoom"><button type="button" data-zoom="in" aria-label="放大 / Zoom in">+</button><button type="button" data-zoom="out" aria-label="缩小 / Zoom out">−</button><button type="button" data-zoom="reset" aria-label="重置视图 / Reset view" title="重置视图 / Reset view" style="font-size:.7rem">⟲</button></div>
               <div class="hm-hint">${bi('拖动平移 · 双指或 Ctrl+滚轮缩放', 'Drag to pan · pinch or Ctrl+wheel to zoom')}</div>
             </div>
             <div class="hm-legend">${KINDS.map((x) => `<span><i style="background:${x.c}"></i>${bi(x.zh, x.en)}</span>`).join('')}</div>
@@ -180,10 +196,11 @@
       const nodeEls = new Map();
       nodes.forEach((d) => {
         const g = mk('g', { class: 'hm-node', 'data-id': d.id, tabindex: '0', role: 'button' });
+        const hit = mk('circle', { r: 16, fill: 'transparent', class: 'hm-hit' });
         const c = mk('circle', { r: 8, style: `fill:${KIND.get(d.kind) ? KIND.get(d.kind).c : 'var(--s8)'}` });
         const t = mk('text', { x: 0, y: 22, 'text-anchor': 'middle' });
         t.dataset.zh = d.zh; t.dataset.en = d.en;
-        g.appendChild(c); g.appendChild(t);
+        g.appendChild(hit); g.appendChild(c); g.appendChild(t);
         g.setAttribute('transform', `translate(${d.x.toFixed(1)} ${d.y.toFixed(1)})`);
         view.appendChild(g);
         nodeEls.set(d.id, { d, g, t });

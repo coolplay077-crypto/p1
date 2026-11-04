@@ -21,7 +21,6 @@
 .hr-side { border-radius: 9px; padding: 8px 10px; font-size: .88rem; line-height: 1.5; }
 .hr-before { background: var(--surface-2); border: 1px dashed var(--border-strong); color: var(--fg-2); }
 .hr-before .hr-lab, .hr-after .hr-lab { display: block; font-size: .7rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; margin-bottom: 3px; color: var(--muted); }
-.hr-before q { quotes: "“" "”"; }
 .hr-after { background: color-mix(in srgb, var(--good) 9%, var(--surface)); border: 1px solid color-mix(in srgb, var(--good) 35%, var(--border)); }
 .hr-arrow { align-self: center; font-size: 1.2rem; color: var(--accent-ink); }
 .hr-why { margin: 10px 0 0; font-size: .86rem; color: var(--fg-2); }
@@ -54,12 +53,12 @@
   }
   function biR(o) { return bi(rich(o.zh), rich(o.en)); }
   function secRef(id) {
-    const m = String(id).replace(/^r-/, '');
+    const m = String(id).replace(/^r-/, '').replace(/-/g, '.');
     const app = /^[A-Z]$/.test(m);
     return `<a href="#${esc(id)}">${bi(esc(app ? '附录 ' + m : '§' + m), esc(app ? 'App. ' + m : '§' + m))}</a>`;
   }
   function refChip(r) {
-    return `<a href="#r-14" title="${bi('参考文献与原始入口', 'References and original sources')}">[${esc(r)}]</a>`;
+    return `<a href="#r-14" title="参考文献与原始入口 / References and original sources">[${esc(r)}]</a>`;
   }
 
   Book.registerPage({
@@ -91,7 +90,7 @@
         <article class="hr-card" id="${PAGE}-${esc(x.id)}">
           <header><span class="hr-id">${esc(x.id)}</span><span class="hr-n">${bi(`第 ${i + 1} 项 / 共 ${revised} 项（§11 表）`, `Item ${i + 1} of ${revised} (§11 table)`)}</span></header>
           <div class="hr-pair">
-            <div class="hr-side hr-before"><span class="hr-lab">${bi('前轮表述或倾向', 'Earlier statement or tendency')}</span><q>${biR(x.before)}</q></div>
+            <div class="hr-side hr-before"><span class="hr-lab">${bi('前轮表述或倾向', 'Earlier statement or tendency')}</span><span>${biR(x.before)}</span></div>
             <div class="hr-arrow" aria-hidden="true">⇄</div>
             <div class="hr-side hr-after"><span class="hr-lab">${bi('本报告处理', 'This report')}</span>${biR(x.handling)}</div>
           </div>

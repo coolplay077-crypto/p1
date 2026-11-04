@@ -63,7 +63,7 @@
     return STATES.some((s) => s.k === v) ? v : 'todo';
   }
   function secRef(id) {
-    const m = String(id).replace(/^r-/, '');
+    const m = String(id).replace(/^r-/, '').replace(/-/g, '.');
     const app = /^[A-Z]$/.test(m);
     return `<a href="#${esc(id)}">${bi(esc(app ? '附录 ' + m : '§' + m), esc(app ? 'App. ' + m : '§' + m))}</a>`;
   }
@@ -75,7 +75,7 @@
     }).join('');
   }
   function seg(key, id, cur) {
-    return `<div class="w-seg" role="group" aria-label="${bi('状态', 'Status')}" data-seg="${esc(key)}">${STATES.map((s) =>
+    return `<div class="w-seg" role="group" aria-label="状态 / Status" data-seg="${esc(key)}">${STATES.map((s) =>
       `<button type="button" data-key="${esc(key)}" data-id="${esc(id)}" data-st="${s.k}" aria-pressed="${String(s.k === cur)}">${bi(s.zh, s.en)}</button>`).join('')}</div>`;
   }
 

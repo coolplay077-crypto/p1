@@ -62,7 +62,7 @@
 
   // "r-3-2" -> §3.2 ; "r-A" -> 附录 A / App. A
   function secRef(id) {
-    const m = String(id).replace(/^r-/, '');
+    const m = String(id).replace(/^r-/, '').replace(/-/g, '.');
     const app = /^[A-Z]$/.test(m);
     return `<a href="#${esc(id)}">${bi(esc(app ? '附录 ' + m : '§' + m), esc(app ? 'App. ' + m : '§' + m))}</a>`;
   }
@@ -76,6 +76,10 @@
     return `<a href="#w-${esc(id)}">${label ? label : ''}▶ ${bi(esc(t.zh), esc(t.en || t.zh))}</a>`;
   }
   const plainTex = (s) => String(s || '').replace(/\s*\\tag\{[^}]*\}\s*$/, '').trim();
+  // inline $...$ math -> KaTeX html; everything else escaped
+  function richTex(s) {
+    return String(s == null ? '' : s).split(/(\$[^$]+\$)/).map((p) => (p.length > 2 && p[0] === '$' && p[p.length - 1] === '$' ? Book.tex(p.slice(1, -1)) : esc(p))).join('');
+  }
   const CK = () => Book.data.data.checklists || { goals: [], invariants: [], questions: [], routes: [], corrections: [] };
 
   const TRAPS = [
@@ -111,7 +115,7 @@
         return `<div class="hc-fx">
           <span class="hc-tag">(${esc(n)})</span>
           <div class="hc-math">${api.tex(plainTex(f.tex), true)}</div>
-          <div class="hc-cap">${bi(esc(f.title.zh), esc(f.title.en))} · ${secRef(f.section)} · <a href="#hub-formulas-eq-${esc(n)}">${bi('推导卡', 'Card')}</a></div>
+          <div class="hc-cap">${bi(richTex(f.title.zh), richTex(f.title.en))} · ${secRef(f.section)} · <a href="#hub-formulas-eq-${esc(n)}">${bi('推导卡', 'Card')}</a></div>
         </div>`;
       }).join('');
 

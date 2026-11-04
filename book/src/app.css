@@ -356,6 +356,9 @@ button.card { text-align: left; cursor: pointer; font: inherit; width: 100%; }
   html[data-lang="both"] .sec > .sec-lang[data-l="en"] { border-left: 0; padding-left: 0; border-top: 1px dashed var(--border-strong); margin-top: 8px; }
   .h-anchor { display: none; }
   .w-grid2 { grid-template-columns: 1fr; }
+  /* wide waveform diagrams (viewBox width 600-999): keep text legible, scroll sideways inside the widget */
+  .w-root { overflow-x: auto; }
+  .w-root svg.w-svg[viewBox^="0 0 6"], .w-root svg.w-svg[viewBox^="0 0 7"], .w-root svg.w-svg[viewBox^="0 0 8"], .w-root svg.w-svg[viewBox^="0 0 9"] { min-width: 560px; }
   main { padding: 18px 16px 40px; }
 }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }

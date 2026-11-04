@@ -17,7 +17,7 @@
           .sort((a, b) => ((notes[b] || bms[b] || {}).t || 0) - ((notes[a] || bms[a] || {}).t || 0));
         let h = `<div class="hero"><div class="kicker">${bi('知识汇总', 'Knowledge hub')}</div><h1 id="hub-notes-top">${bi('我的收藏与笔记', 'My bookmarks & notes')}</h1>
           <p class="lede">${bi('在任意小节标题旁点击 ☆ 收藏、✎ 记笔记（快捷键 B 收藏当前小节）。数据只保存在本机浏览器中。', 'Click ☆ (bookmark) or ✎ (note) next to any section heading (shortcut B bookmarks the current section). Data stays in this browser only.')}</p></div>
-          <div class="w-controls"><button class="w-btn primary" data-act="export">${bi('导出 Markdown', 'Export Markdown')}</button><button class="w-btn" data-act="clear">${bi('全部清除', 'Clear all')}</button></div>`;
+          <div class="w-controls"><button class="w-btn primary" data-act="export">${bi('导出 / 复制 Markdown', 'Export / copy Markdown')}</button><button class="w-btn" data-act="clear">${bi('全部清除', 'Clear all')}</button></div>`;
         if (!ids.length) h += `<div class="w-note">${bi('还没有收藏或笔记。', 'No bookmarks or notes yet.')}</div>`;
         else {
           h += '<div class="cards">' + ids.map((id) => `
@@ -40,6 +40,10 @@
           const bms = Book.store.get('bookmarks', {}), notes = Book.store.get('notes', {});
           const ids = [...new Set([...Object.keys(bms), ...Object.keys(notes)])];
           const md = `# ${api.t('CNT-ADPLL 阅读笔记', 'CNT-ADPLL reading notes')}\n\n` + ids.map((i) => `## ${bms[i] ? '★ ' : ''}${Book.secLabel(i)}\n\n${notes[i] ? notes[i].text : ''}\n`).join('\n');
+          // embedded viewers (iframes) usually block downloads: copy to the clipboard there instead
+          let embedded = true;
+          try { embedded = window.top !== window.self; } catch (err) { embedded = true; }
+          if (embedded) { Book.copy(md); return; }
           const a = document.createElement('a');
           a.href = URL.createObjectURL(new Blob([md], { type: 'text/markdown' }));
           a.download = 'cnt-adpll-notes.md';

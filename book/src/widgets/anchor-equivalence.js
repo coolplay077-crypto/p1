@@ -30,8 +30,8 @@
 .ae-eqs .tx { overflow-x: auto; overflow-y: hidden; max-width: 100%; padding: 2px 0; }
 .ae-eqs .tag { font-size: .72rem; color: var(--muted); }
 .ae-tblw { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
-.ae-tbl { width: 100%; border-collapse: collapse; font-size: .78rem; font-variant-numeric: tabular-nums; margin: 0; }
-.ae-tbl th, .ae-tbl td { padding: 5px 9px; border-bottom: 1px solid var(--border); text-align: center; vertical-align: middle; }
+.ae-tbl { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: .78rem; font-variant-numeric: tabular-nums; margin: 0; }
+.ae-tbl th, .ae-tbl td { padding: 5px 6px; overflow-wrap: anywhere; border-bottom: 1px solid var(--border); text-align: center; vertical-align: middle; }
 .ae-tbl th { background: var(--surface-2); font-weight: 650; position: static; }
 .ae-tbl tr:last-child td { border-bottom: 0; }
 .ae-tbl td.c { border-left: 1px solid var(--border); }
@@ -39,6 +39,7 @@
 .ae-tbl td.bad b { color: var(--critical-ink); }
 .ae-tbl td.cur { background: var(--accent-wash); box-shadow: inset 0 0 0 2px var(--accent); }
 .ae-tbl .sm { display: block; font-size: .7rem; color: var(--muted); }
+.ae-tbl th:first-child { width: 26%; }
 .ae-run { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; padding: 8px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2); font-size: .8rem; }
 .ae-bar { flex: 1 1 120px; height: 6px; border-radius: 4px; background: var(--surface-3); overflow: hidden; min-width: 80px; }
 .ae-bar > i { display: block; height: 100%; width: 0; background: var(--good); }
@@ -82,7 +83,7 @@
     mount(root, api) {
       if (!document.getElementById('ae-css')) { const s = document.createElement('style'); s.id = 'ae-css'; s.textContent = CSS; document.head.appendChild(s); }
       root.classList.add('ae');
-      const P = { mode: 'indep', xc: 0, sj: 0.05, thC: 0.03, thF: -0.03, sn: 0.02, e: 0, speed: 'slow', seed: 7 };
+      const P = { mode: 'indep', xc: 0, sj: 0.08, thC: 0.02, thF: -0.02, sn: 0.015, e: 0, speed: 'slow', seed: 7 };
       let rng = W.rng(P.seed);
       let raf = 0, runTimer = 0, acc = 0;
       const st = { n: 0, ind: { '-1': 0, 0: 0, 1: 0 }, atm: { '-1': 0, 0: 0, 1: 0 }, recent: [], cur: null };
@@ -145,14 +146,15 @@
         { color: 'var(--sig-err)', label: ['两链可能不一致的区域 / ±1 错误', 'zone where the chains can disagree / ±1 error'] },
       ]);
       const tlHost = W.h('div');
+      const statusHost = W.h('div', { style: { fontSize: '.8rem', margin: '2px 0 4px', display: 'flex', flexWrap: 'wrap', gap: '4px 8px', alignItems: 'center' } });
       const tblHost = W.h('div', { class: 'ae-tblw' });
       const nlHost = W.h('div');
       const eqBox = W.h('div', { class: 'ae-eqs' });
       const histHost = W.h('div');
       const read = W.readout([
         { key: 'n', label: ['已模拟 REF 事件', 'REF events simulated'] },
-        { key: 'ind', label: ['独立判决：±1 错误', 'Independent: ±1 errors'] },
-        { key: 'exp', label: ['模型期望错误率（数值积分）', 'Expected error rate (integrated)'] },
+        { key: 'ind', label: ['独立判决 ±1 错误率（模拟）', 'Independent ±1 rate (simulated)'] },
+        { key: 'exp', label: ['同参数期望值（数值积分）', 'Expected rate (integrated)'] },
         { key: 'atm', label: ['原子元组：错误', 'Atomic tuple: errors'] },
       ]);
       const runBtn = W.button(['运行 L05（64 J × 4 μ = 256 例）', 'Run L05 (64 J × 4 μ = 256 cases)'], () => runL05());
@@ -165,7 +167,7 @@
         W.controls(ctl.mode),
         W.controls(ctl.xc, ctl.sj),
         W.controls(ctl.thC, ctl.thF, ctl.sn),
-        legend, tlHost,
+        legend, statusHost, tlHost,
         W.h('div', { class: 'ae-sub' }, W.L('当前事件的四种组合（行 = 粗链锚点，列 = 细链参考边沿）', 'Four combinations for the current event (rows = coarse anchor, columns = fine reference edge)')),
         tblHost, nlHost, eqBox,
         W.h('div', { class: 'ae-sub' }, W.L('误差直方图：同一串 REF 事件与噪声，两种判决方式', 'Error histograms: same REF events and noise, two decision schemes')),
@@ -195,35 +197,44 @@
 
       function drawTimeline() {
         const VW = Math.round(W.clamp(root.clientWidth || 700, 320, 760)), narrow = VW < 540;
-        const PADL = narrow ? 52 : 78, PADR = 12;
-        const t0 = -0.3, t1 = 1.7;
-        const x = W.scale([t0, t1], [PADL, VW - PADR]);
-        const yH = 22, yL = 42, yC = 70, yF = 102, yE = 134, VH = 176;
+        const PADL = narrow ? 50 : 76, PADR = 10;
+        // broken time axis: a narrow window around edge J, a compressed break, a zoomed window around edge J+1
+        const A0 = -0.1, A1 = 0.1, B0 = 0.6, B1 = 1.4;
+        const p0 = PADL, p3 = VW - PADR, span = p3 - p0;
+        const p1 = p0 + 0.17 * span, p2 = p0 + 0.25 * span;
+        const lin = (t, a, b, pa, pb) => pa + ((t - a) / (b - a)) * (pb - pa);
+        const x = (t) => (t <= A1 ? lin(t, A0, A1, p0, p1) : t < B0 ? lin(t, A1, B0, p1, p2) : lin(t, B0, B1, p2, p3));
+        const t0 = A0, t1 = B1;
+        const yH = 22, yL = 42, yTh = 56, yC = 78, yF = 108, yE = 138, VH = 178;
         const svg = W.svg(VW, VH);
         const ev = st.cur, f = curF(ev), tR = 1 + ev.x;
         // disagreement zone (independent: between thresholds, widened by ±2σ_n)
-        if (P.mode === 'indep') {
-          const a = Math.min(P.thC, P.thF) - 2 * P.sn, b = Math.max(P.thC, P.thF) + 2 * P.sn;
-          if (b - a > 1e-6) svg.appendChild(W.s('rect', { x: x(1 + a), y: yL + 6, width: Math.max(1, x(1 + b) - x(1 + a)), height: yE + 10 - yL - 6, fill: 'var(--sig-err)', 'fill-opacity': 0.12 }));
-        } else if (P.sn > 0) {
-          const a = P.thC - 2 * P.sn, b = P.thC + 2 * P.sn;
-          svg.appendChild(W.s('rect', { x: x(1 + a), y: yL + 6, width: x(1 + b) - x(1 + a), height: yE + 10 - yL - 6, fill: 'var(--sig-high)', 'fill-opacity': 0.08 }));
-        }
-        // CK0
+        const zone = (a, b, col, op) => { if (b - a > 1e-6) svg.appendChild(W.s('rect', { x: x(1 + a), y: yL + 18, width: Math.max(1, x(1 + b) - x(1 + a)), height: yE + 10 - yL - 18, fill: col, 'fill-opacity': op })); };
+        if (P.mode === 'indep') zone(Math.min(P.thC, P.thF) - 2 * P.sn, Math.max(P.thC, P.thF) + 2 * P.sn, 'var(--sig-err)', 0.12);
+        else if (P.sn > 0) zone(P.thC - 2 * P.sn, P.thC + 2 * P.sn, 'var(--sig-high)', 0.08);
+        // CK0 (piecewise polyline through the broken axis)
         const edges = W.clockEdges(1, 0, t0, t1);
         svg.appendChild(W.s('path', { d: W.digitalPath(edges, 0, x, yH, yL, t0, t1), fill: 'none', stroke: 'var(--sig-clk)', 'stroke-width': 1.8, 'stroke-linejoin': 'round' }));
         svg.appendChild(W.s('text', { x: 4, y: (yH + yL) / 2 + 4, class: 'lbl' }, 'CK₀'));
+        // break marks
+        const xb = (p1 + p2) / 2;
+        svg.appendChild(W.s('rect', { x: xb - 5, y: yH - 6, width: 10, height: VH - 30 - yH, fill: 'var(--surface)' }));
+        for (const dx of [-3, 3]) svg.appendChild(W.s('line', { x1: xb + dx - 3, x2: xb + dx + 3, y1: yH - 6, y2: yH + 6, stroke: 'var(--fg-2)', 'stroke-width': 1.2 }));
+        for (const dx of [-3, 3]) svg.appendChild(W.s('line', { x1: xb + dx - 3, x2: xb + dx + 3, y1: VH - 36, y2: VH - 24, stroke: 'var(--fg-2)', 'stroke-width': 1.2 }));
         for (const k of [0, 1]) {
           svg.appendChild(W.s('line', { x1: x(k), x2: x(k), y1: yL, y2: yE + 10, stroke: 'var(--sig-clk)', 'stroke-width': 1, 'stroke-dasharray': '2 3' }));
           svg.appendChild(W.s('text', { x: x(k), y: 13, 'text-anchor': 'middle', class: 'mono', style: 'font-size:10.5px;fill:var(--fg);font-weight:650' }, k ? `J+1 = ${J + 1}` : `J = ${J}`));
         }
-        // thresholds
-        const thLine = (th, col, zh, en, yy) => {
-          svg.appendChild(W.s('line', { x1: x(1 + th), x2: x(1 + th), y1: yL + 6, y2: yE + 10, stroke: col, 'stroke-width': 1.6, 'stroke-dasharray': '5 3' }));
-          svg.appendChild(W.sL(zh, en, { x: x(1 + th) + (th >= 0 ? 4 : -4), y: yy, 'text-anchor': th >= 0 ? 'start' : 'end', class: 'ae-halo', style: 'font-size:10px' }));
-        };
-        thLine(P.thC, 'var(--sig-high)', 'θ_c', 'θ_c', yC - 14);
-        if (P.mode === 'indep') thLine(P.thF, 'var(--sig-fine)', 'θ_f', 'θ_f', yF - 14);
+        // thresholds (labels in their own row, ordered left/right so they never overlap)
+        const thr = [{ th: P.thC, col: 'var(--sig-high)', t: 'θ_c' }];
+        if (P.mode === 'indep') thr.push({ th: P.thF, col: 'var(--sig-fine)', t: 'θ_f' });
+        thr.sort((a, b) => a.th - b.th);
+        thr.forEach((o, i) => {
+          const xx = x(1 + o.th);
+          svg.appendChild(W.s('line', { x1: xx, x2: xx, y1: yTh + 4, y2: yE + 10, stroke: o.col, 'stroke-width': 1.6, 'stroke-dasharray': '5 3' }));
+          const left = thr.length === 2 && i === 0;
+          svg.appendChild(W.s('text', { x: xx + (left ? -3 : 3), y: yTh + 2, 'text-anchor': left ? 'end' : 'start', class: 'ae-halo', style: 'font-size:10.5px;fill:var(--fg)' }, o.t));
+        });
         // row labels
         svg.appendChild(W.sL(narrow ? '粗链' : '粗链 J_c', narrow ? 'coarse' : 'coarse J_c', { x: 4, y: yC + 4, class: 'lbl', style: 'font-size:10.5px' }));
         svg.appendChild(W.sL(narrow ? '细链' : '细链 μ', narrow ? 'fine' : 'fine μ', { x: 4, y: yF + 4, class: 'lbl', style: 'font-size:10.5px' }));
@@ -237,30 +248,28 @@
         // current REF
         const xr = x(W.clamp(tR, t0, t1));
         svg.appendChild(W.s('line', { x1: xr, x2: xr, y1: yL + 4, y2: yE + 10, stroke: 'var(--sig-ref)', 'stroke-width': 2 }));
-        // arrows: coarse to anchor edge, fine to its reference edge
+        // arrows: coarse to its anchor edge, fine to its reference edge; values printed at the right end of each row
         const arrow = (yy, xe, col, label) => {
           const d = xe >= xr ? 1 : -1;
           svg.appendChild(W.s('line', { x1: xr, x2: xe, y1: yy, y2: yy, stroke: col, 'stroke-width': 2.2 }));
-          svg.appendChild(W.s('path', { d: `M${xe - d * 7},${yy - 4}L${xe},${yy}L${xe - d * 7},${yy + 4}`, fill: 'none', stroke: col, 'stroke-width': 2 }));
+          if (Math.abs(xe - xr) > 8) svg.appendChild(W.s('path', { d: `M${xe - d * 7},${yy - 4}L${xe},${yy}L${xe - d * 7},${yy + 4}`, fill: 'none', stroke: col, 'stroke-width': 2 }));
           svg.appendChild(W.s('circle', { cx: xe, cy: yy, r: 3, fill: col }));
-          const lx = d > 0 ? Math.max(xr, xe) + 8 : Math.min(xr, xe) - 8;
-          const anchorTxt = d > 0 ? 'start' : 'end';
-          svg.appendChild(W.s('text', { x: lx, y: yy + 4, 'text-anchor': anchorTxt, class: 'ae-halo mono', style: 'font-size:10.5px;fill:var(--fg);font-weight:650' }, label));
+          svg.appendChild(W.s('text', { x: p3, y: yy - 6, 'text-anchor': 'end', class: 'ae-halo mono', style: 'font-size:10.5px;fill:var(--fg);font-weight:650' }, label));
         };
         const muF = (J + f) - (J + tR);
         arrow(yC, x(ev.c), 'var(--sig-high)', `J_c = ${J + ev.c}`);
         arrow(yF, x(f), 'var(--sig-fine)', `μ = ${fm(muF, 3)}`);
-        // status pill-like text
-        const er = curErr(ev);
-        svg.appendChild(W.sL(er ? `误差 ${sgn(er)} 个原周期` : '一致：误差 0', er ? `error ${sgn(er)} raw cycle` : 'consistent: error 0', { x: VW - PADR, y: VH - 22, 'text-anchor': 'end', style: `font-size:11px;font-weight:700;fill:${er ? 'var(--critical-ink)' : 'var(--good-ink)'}` }));
         // axis: x offset relative to J+1
-        for (const v of [-1, -0.5, 0, 0.5]) {
+        for (const v of [-1, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3]) {
           const tt = 1 + v;
-          if (tt < t0 || tt > t1) continue;
+          if (narrow && Math.abs(v * 10) % 2 === 1) continue;
           svg.appendChild(W.s('text', { x: x(tt), y: VH - 22, 'text-anchor': 'middle', class: 'mono', style: 'font-size:10px' }, (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v)));
         }
-        svg.appendChild(W.sL('REF 相对 J+1 的偏移 x（原周期）', 'REF offset x relative to J+1 (raw cycles)', { x: (PADL + VW - PADR) / 2, y: VH - 6, 'text-anchor': 'middle', style: 'font-size:10.5px' }));
+        svg.appendChild(W.sL('REF 相对 J+1 的偏移 x（原周期；坐标轴在 J 与 J+1 之间折断）', 'REF offset x relative to J+1 (raw cycles; axis broken between J and J+1)', { x: (PADL + VW - PADR) / 2, y: VH - 6, 'text-anchor': 'middle', style: 'font-size:10px' }));
         W.clear(tlHost).appendChild(svg);
+        const er = curErr(ev);
+        W.clear(statusHost).append(W.L('当前事件：', 'Current event: '), W.status(er ? 'bad' : 'good', er ? [`误差 ${sgn(er)} 个原周期`, `error ${sgn(er)} raw cycle`] : ['一致：误差 0', 'consistent: error 0']),
+          ' ', W.h('span', { class: 'ae-mono', style: { color: 'var(--fg-2)' } }, `x = ${fm(ev.x, 3)}, c = ${ev.c}, f = ${f}`));
       }
 
       function drawTable() {
@@ -276,8 +285,8 @@
             W.h('span', { class: 'sm' }, err ? W.L(`误差 ${sgn(err)} 周期`, `error ${sgn(err)} cycle`) : W.L('= Φ₀(t_R) ✓', '= Φ₀(t_R) ✓')));
         };
         const tbl = W.h('table', { class: 'ae-tbl' },
-          W.h('thead', null, W.h('tr', null, W.h('th', null, W.L('粗链锚点 ＼ 细链参考', 'coarse anchor ＼ fine ref.')),
-            W.h('th', null, W.L(`μ 相对 J（${J}）`, `μ vs. J (${J})`)), W.h('th', null, W.L(`μ 相对 J+1（${J + 1}）`, `μ vs. J+1 (${J + 1})`)))),
+          W.h('thead', null, W.h('tr', null, W.h('th', null, W.L('J_c ＼ μ 参考', 'J_c ＼ μ ref.')),
+            W.h('th', null, W.L(`μ 相对 J`, `μ vs. J`), W.h('span', { class: 'sm' }, `(${J})`)), W.h('th', null, W.L(`μ 相对 J+1`, `μ vs. J+1`), W.h('span', { class: 'sm' }, `(${J + 1})`)))),
           W.h('tbody', null,
             W.h('tr', null, W.h('th', null, `J = ${J}`), cell(0, 0), cell(0, 1)),
             W.h('tr', null, W.h('th', null, `J+1 = ${J + 1}`), cell(1, 0), cell(1, 1))));
@@ -331,6 +340,7 @@
         for (const l of lines) eqBox.appendChild(W.h('div', { class: 'ln' }, W.h('span', { class: 'tx' }, W.tex(l.tex)), W.h('span', { class: 'tag' }, W.lbl(l.tag))));
       }
 
+      let expKey = '', expVal = null;
       function drawHist() {
         const VW = Math.round(W.clamp(root.clientWidth || 700, 320, 760)), narrow = VW < 540;
         const VH = 168, gap = narrow ? 16 : 30, pw = (VW - gap) / 2, top = 34, H = 92;
@@ -357,9 +367,9 @@
         W.clear(histHost).append(svg, W.h('div', { style: { fontSize: '.72rem', color: 'var(--muted)', marginTop: '2px' } }, W.L('纵轴为对数计数 log₁₀(1 + n)；横轴为重建误差 Φ̂ − Φ₀（原周期）。', 'Vertical axis: log count log₁₀(1 + n); horizontal: reconstruction error Φ̂ − Φ₀ (raw cycles).')));
         const bad = st.ind[-1] + st.ind[1];
         read.set('n', String(st.n));
-        read.set('ind', `${bad} (${W.fmt((100 * bad) / N, 2)}%) · −1: ${st.ind[-1]}, +1: ${st.ind[1]}`);
-        const ex = expected(P);
-        read.set('exp', `${W.fmt(100 * (ex.pp + ex.pm), 2)}% · −1: ${W.fmt(100 * ex.pm, 2)}%, +1: ${W.fmt(100 * ex.pp, 2)}%`);
+        read.set('ind', W.h('span', null, `${W.fmt((100 * bad) / N, 2)}% `, W.h('span', { style: { fontSize: '.72rem', fontWeight: 400, color: 'var(--fg-2)' } }, `(${bad}/${st.n})`)));
+        if (expKey !== [P.xc, P.sj, P.thC, P.thF, P.sn].join()) { expKey = [P.xc, P.sj, P.thC, P.thF, P.sn].join(); expVal = expected(P); }
+        read.set('exp', W.h('span', null, `${W.fmt(100 * (expVal.pp + expVal.pm), 2)}% `, W.h('span', { style: { fontSize: '.72rem', fontWeight: 400, color: 'var(--fg-2)' } }, `(−1: ${W.fmt(100 * expVal.pm, 2)}%, +1: ${W.fmt(100 * expVal.pp, 2)}%)`)));
         read.set('atm', W.h('span', { style: { color: 'var(--good-ink)' } }, `${st.atm[-1] + st.atm[1]} ✓`));
       }
 

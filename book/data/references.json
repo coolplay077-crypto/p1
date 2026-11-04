@@ -1,0 +1,607 @@
+{
+  "_note": "Reference / evidence data for the CNT-ADPLL book. All content is taken from the report (Ch.2.3, Ch.4, Ch.5, Ch.14, Appendix A/B). Links are only the URLs given in Ch.14.",
+  "levels": [
+    {
+      "id": "A-P", "css": "lvl-AP",
+      "name": { "zh": "A-P · 专利原文已核对", "en": "A-P · patent text checked" },
+      "meaning": { "zh": "本次核对了专利原文及相关结构/说明", "en": "The patent's original text and the relevant structures/descriptions were checked in this round" },
+      "rule": { "zh": "证明披露了某种方法；不等于硅片实测", "en": "Proves that a method was disclosed; not equivalent to silicon measurement" }
+    },
+    {
+      "id": "A-J", "css": "lvl-AJ",
+      "name": { "zh": "A-J · 论文原文与关键图已核对", "en": "A-J · paper text and key figures checked" },
+      "meaning": { "zh": "本次核对了论文原文和关键图", "en": "The paper's original text and key figures were checked in this round" },
+      "rule": { "zh": "论文内明确给出的结构可作为直接证据；不外推到本项目 PVT", "en": "Structures explicitly given in the paper count as direct evidence; not extrapolated to this project's PVT" }
+    },
+    {
+      "id": "B", "css": "lvl-B",
+      "name": { "zh": "B · 仅元数据/摘要可核对", "en": "B · metadata/abstract only" },
+      "meaning": { "zh": "官方元数据/摘要可核对，内部电路未充分核实", "en": "Official metadata/abstract can be verified; internal circuits not sufficiently verified" },
+      "rule": { "zh": "只保留为相关线索，不补写不可见连接", "en": "Kept only as a related lead; invisible connections are not filled in" }
+    },
+    {
+      "id": "H", "css": "lvl-H",
+      "name": { "zh": "H · 前轮历史结论", "en": "H · historical (earlier rounds)" },
+      "meaning": { "zh": "前轮报告保存了结论，本次未重新取得完整原始证据", "en": "Earlier reports kept the conclusion; complete original evidence was not re-obtained this round" },
+      "rule": { "zh": "保留历史贡献，明确不能与本次直接复核混称", "en": "Historical contribution is kept, explicitly not to be mixed up with this round's direct review" }
+    },
+    {
+      "id": "D", "css": "lvl-D",
+      "name": { "zh": "D · 本报告推导/示例/候选规范", "en": "D · this report's derivation / example / candidate spec" },
+      "meaning": { "zh": "本报告推导、示例或候选工程规范", "en": "Derivation, example or candidate engineering specification of this report" },
+      "rule": { "zh": "不是原文公式、不是已完成的电路验证", "en": "Not a formula from a source, not completed circuit verification" }
+    }
+  ],
+  "levelRule": {
+    "zh": "证据等级评价的是支撑力度与读取范围，不是论文或专利本身的质量排序。H 也不表示内容必然错误，只表示本次的可复核链条尚不完整。",
+    "en": "Evidence levels rate the strength of support and the scope of reading — not a quality ranking of the paper or patent itself. H does not mean the content is wrong, only that this round's verifiable chain is incomplete."
+  },
+  "classes": [
+    {
+      "id": "state", "color": "var(--s1)",
+      "name": { "zh": "保存周期状态", "en": "Preserving cycle state" },
+      "short": { "zh": "周期状态", "en": "Cycle state" },
+      "desc": { "zh": "TI / Xu / ETRI 解释如何保存周期状态。", "en": "TI / Xu / ETRI explain how cycle state is preserved." },
+      "members": ["R01", "R02", "R04"]
+    },
+    {
+      "id": "consistency", "color": "var(--s3)",
+      "name": { "zh": "保持或恢复一致性", "en": "Keeping or restoring consistency" },
+      "short": { "zh": "一致性", "en": "Consistency" },
+      "desc": { "zh": "CN / Zong / Havens / Sony / Marvell 解释如何保持或恢复一致性。", "en": "CN / Zong / Havens / Sony / Marvell explain how consistency is kept or restored." },
+      "members": ["R05", "R11", "R08", "R07", "R10"]
+    },
+    {
+      "id": "selection", "color": "var(--s7)",
+      "name": { "zh": "物理选相与局部 fine 测量", "en": "Physical phase selection & local fine measurement" },
+      "short": { "zh": "选相与 fine", "en": "Selection & fine" },
+      "desc": { "zh": "Kuo / MediaTek 解释物理选相和局部 fine 测量。", "en": "Kuo / MediaTek explain physical phase selection and local fine measurement." },
+      "members": ["R06", "R09"]
+    }
+  ],
+  "classNote": {
+    "zh": "这些来源支持三类相互补充的方法；表中的空白不是格式遗漏，而是仍需完成的接口论证。",
+    "en": "These sources support three complementary kinds of method; the blanks in the table are not formatting omissions but interface arguments still to be completed."
+  },
+  "matrixColumns": {
+    "split": { "zh": "高位降速/低位状态", "en": "High-bit rate reduction / low-bit state" },
+    "consistency": { "zh": "粗细一致性机制", "en": "Coarse/fine consistency mechanism" },
+    "selection": { "zh": "物理选沿/细测量", "en": "Physical edge selection / fine measurement" },
+    "missing": { "zh": "对本目标仍缺少什么", "en": "Still missing for this target" }
+  },
+  "matrixOrder": ["R01", "R02", "R04", "R05", "R06", "R08", "R07", "R09", "R10", "R11"],
+  "questions": [
+    {
+      "id": "split",
+      "q": { "zh": "关注 /8 split？", "en": "Interested in the /8 split?" },
+      "a": { "zh": "TI 最直接 —— 核对 Fig.4 的 mod-8、RV<2:0>/RV<8:3>、CKVD8 与 SEL_EDGE。", "en": "TI is the most direct — check Fig. 4: mod-8, RV<2:0>/RV<8:3>, CKVD8 and SEL_EDGE." },
+      "refs": ["R01"]
+    },
+    {
+      "id": "shared",
+      "q": { "zh": "关注共享状态与修正？", "en": "Interested in shared state and correction?" },
+      "a": { "zh": "Havens / Sony 更直接 —— Havens Fig.2–4 的 even/odd 与 sub-fractional；Sony Fig.6、11–12 的 CNTO 双路径与两个 XOR。", "en": "Havens / Sony are more direct — Havens Fig. 2–4 (even/odd, sub-fractional); Sony Fig. 6, 11–12 (CNTO's two paths and the two XORs)." },
+      "refs": ["R08", "R07"]
+    },
+    {
+      "id": "select",
+      "q": { "zh": "关注 short TDC 物理选相？", "en": "Interested in short-TDC physical phase selection?" },
+      "a": { "zh": "Kuo / MediaTek 更直接 —— Kuo Fig.2、5–6 的八相与预测选相；MediaTek 的 phase shifter、PHF2 与单脉冲实施例。", "en": "Kuo / MediaTek are more direct — Kuo Fig. 2, 5–6 (eight phases, predictive selection); MediaTek's phase shifter, PHF2 and single-pulse embodiment." },
+      "refs": ["R06", "R09"]
+    },
+    {
+      "id": "wave",
+      "q": { "zh": "关注 split counter 的采样波形？", "en": "Interested in split-counter sampling waveforms?" },
+      "a": { "zh": "Zong Fig.9 最适合作为当前核对入口 —— CKS_0/1/2 与 c[0]/c[1]/c[2:7] 的逐级波形。", "en": "Zong Fig. 9 is the best current entry point — the stage-by-stage CKS_0/1/2 and c[0]/c[1]/c[2:7] waveforms." },
+      "refs": ["R11"]
+    }
+  ],
+  "questionNote": {
+    "zh": "这是按问题分工，不是把某篇说成完整目标的替代品。",
+    "en": "This is a division of labour by question, not a claim that any one source substitutes for the complete target."
+  },
+  "gap": {
+    "zh": "尚未核实到一篇与以下完整组合严格同构的公开实现：raw CKV 的 /8 高位计数 + 3-bit 原周期 residue + 该状态直接控制物理选沿 + short TDC + 完整 epoch/validity 接口。“未核实到”只描述当前证据集，不能推导为“没有先前技术”。",
+    "en": "No public implementation strictly isomorphic to the complete combination has been verified: /8 high-bit counting of raw CKV + 3-bit raw-cycle residue + that state directly controlling physical edge selection + short TDC + complete epoch/validity interface. 'Not verified' only describes the current evidence set and cannot be read as 'no prior art'."
+  },
+  "items": [
+    {
+      "id": "R01", "tag": "TI",
+      "short": { "zh": "TI · /8 高低位与 SEL_EDGE", "en": "TI · /8 split & SEL_EDGE" },
+      "title": "Method and apparatus for crystal drift compensation",
+      "authors": "Staszewski, Leipold (TI)",
+      "venue": "US20050195917A1; family WO2005086759A2",
+      "year": "2005",
+      "kind": { "zh": "专利", "en": "patent" },
+      "level": "A-P",
+      "focus": { "zh": "Fig.4：mod-8、RV 高低位、CKVD8 与 SEL_EDGE（核心在 Fig.4，而非仅看标题）。", "en": "Fig. 4: mod-8, RV high/low bits, CKVD8 and SEL_EDGE (the core is Fig. 4, not the title)." },
+      "role": { "zh": "CKV 驱动 mod-8 低位 RV<2:0>、CKVD8 驱动高位 RV<8:3>，CKV 上升/下降沿各采一套 FREF 候选，SEL_EDGE 参与选择。直接证明少量高速低位状态与降频高位可以组成 VPA，且 fine-side 边沿判定可参与 coarse 路径选择。", "en": "CKV clocks the mod-8 low bits RV<2:0>, CKVD8 clocks the high bits RV<8:3>; FREF is sampled into two candidate sets on CKV rising and falling edges and SEL_EDGE takes part in selection. Directly proves that a few fast low-bit states plus slower high bits can form a VPA, and that a fine-side edge decision can steer coarse path selection." },
+      "limits": { "zh": "不能解释为“先把 fine TDC 输入统一变为 8T0，再由 snapshot 自动压缩成 T0”，也不直接披露本项目的 P/S 绝对边沿执行器；高位极性与流水原点应以 Fig.4 逐路径核对，不能机械拼接。", "en": "Cannot be read as 'first make every fine TDC input 8T0, then let the snapshot compress it back to T0', and it does not directly disclose this project's P/S absolute-edge executor; high-bit polarity and pipeline origin must be checked path by path in Fig. 4, not stitched mechanically." },
+      "matrix": {
+        "split": { "zh": "/8 明确", "en": "/8 explicit" },
+        "consistency": { "zh": "双候选与 SEL_EDGE", "en": "Dual candidates and SEL_EDGE" },
+        "selection": { "zh": "TDC-side 判定协作", "en": "Cooperates with TDC-side decision" },
+        "missing": { "zh": "本项目 P/S 执行与完整事件接口", "en": "This project's P/S execution and complete event interface" }
+      },
+      "class": "state",
+      "links": [
+        { "label": "US20050195917A1", "url": "https://patents.google.com/patent/US20050195917A1/en" },
+        { "label": "WO2005086759A2", "url": "https://patents.google.com/patent/WO2005086759A2/en" }
+      ],
+      "sections": ["r-4-1", "r-1-2", "r-5", "r-7-1", "r-11"],
+      "figures": [
+        { "where": "Fig.4 · US PDF p.9, Sheet 8", "check": { "zh": "mod-8、RV<2:0>、RV<8:3>、CKVD8、双候选与 SEL_EDGE", "en": "mod-8, RV<2:0>, RV<8:3>, CKVD8, dual candidates and SEL_EDGE" } }
+      ]
+    },
+    {
+      "id": "R02", "tag": "Xu",
+      "short": { "zh": "Xu/Lindfors · /4 相位累加器专利", "en": "Xu/Lindfors · /4 phase-accumulator patent" },
+      "title": "Phase accumulator for digital phase locked loop",
+      "authors": "L. Xu, S. Lindfors",
+      "venue": "WO2009053531A1",
+      "year": "",
+      "kind": { "zh": "专利", "en": "patent" },
+      "level": "A-P",
+      "focus": { "zh": "Fig.6–7：高六位 /4、shift state、采样后 encoder。", "en": "Fig. 6–7: six high bits at /4, shift state, encoder after sampling." },
+      "role": { "zh": "低速高六位 modulo incrementer 加高速移位状态；低位信息在 CKR 采样后由 4-to-2 encoder 恢复，某些实施方式还用高计数器最低位参与解码。说明“原周期 residue 必须保留”不等于“一定用高速二进制低位加法器”：高速侧可保存易实现的状态，慢速侧再解码。", "en": "A slow six-bit modulo incrementer plus a fast shift state; the low-bit information is recovered after CKR sampling by a 4-to-2 encoder, and some embodiments also use the LSB of the high counter in decoding. Shows that 'the raw-cycle residue must be kept' does not mean 'a fast binary low-bit adder is required': the fast side can store an easy state that the slow side decodes." },
+      "limits": { "zh": "状态编码并不免除 epoch 一致性；不能单独证明同一低位状态已经控制 short-TDC 的物理选沿，也不能把所有 encoder 输入假定为独立同步的普通总线。", "en": "State encoding does not waive epoch consistency; it cannot alone prove that the same low-bit state already controls short-TDC physical edge selection, nor can all encoder inputs be assumed to be an ordinary independently synchronised bus." },
+      "matrix": {
+        "split": { "zh": "/4，shift-state decode", "en": "/4, shift-state decode" },
+        "consistency": { "zh": "解码与高位状态耦合", "en": "Decode coupled with high-bit state" },
+        "selection": { "zh": "未证明目标 short TDC 连接", "en": "Connection to the target short TDC not shown" },
+        "missing": { "zh": "低位到物理选沿的直接映射", "en": "Direct mapping from low bits to physical edge selection" }
+      },
+      "class": "state",
+      "links": [
+        { "label": "WO2009053531A1", "url": "https://patents.google.com/patent/WO2009053531A1/en" }
+      ],
+      "sections": ["r-4-2", "r-1-2", "r-5"],
+      "figures": [
+        { "where": "Fig.6–7", "check": { "zh": "shift taps、采样前后边界、高位 LSB 到 encoder 的依赖", "en": "Shift taps, boundaries before/after sampling, dependence of the encoder on the high-bit LSB" } }
+      ]
+    },
+    {
+      "id": "R03", "tag": "Xu",
+      "short": { "zh": "Xu/Lindfors · ISCAS 2008 论文", "en": "Xu/Lindfors · ISCAS 2008 paper" },
+      "title": "A High-Speed Variable Phase Accumulator for an ADPLL Architecture",
+      "authors": "L. Xu, S. Lindfors",
+      "venue": "IEEE ISCAS 2008, pp. 1736–1739; DOI 10.1109/ISCAS.2008.4541773",
+      "year": "2008",
+      "kind": { "zh": "会议论文", "en": "conference paper" },
+      "level": "B",
+      "levelNote": { "zh": "论文元数据；内部细节以 R02 的已核原文支撑", "en": "Paper metadata; internal details are supported by the checked text of R02" },
+      "focus": { "zh": "与 R02 同一 /4 相位累加器思路的论文版本。", "en": "Paper version of the same /4 phase-accumulator idea as R02." },
+      "role": { "zh": "与 R02 一起支持“/4 快速状态，先采样再编码”的结构依据（宽位计数器可拆分降速）。", "en": "Together with R02, supports the '/4 fast state, sample first then encode' structure (a wide counter can be split and slowed down)." },
+      "limits": { "zh": "B 级：只核对了官方元数据，内部电路细节不在本次直接复核范围内，以 R02 原文为准。", "en": "Level B: only official metadata checked; internal circuit details are outside this round's direct review and rely on the R02 text." },
+      "matrix": null,
+      "class": "state",
+      "links": [
+        { "label": "DOI 10.1109/ISCAS.2008.4541773", "url": "https://doi.org/10.1109/ISCAS.2008.4541773" },
+        { "label": "Aalto research record", "url": "https://research.aalto.fi/en/publications/a-high-speed-variable-phase-accumulator-for-an-adpll-architecture/" }
+      ],
+      "sections": ["r-4-2", "r-1-2"],
+      "figures": []
+    },
+    {
+      "id": "R04", "tag": "ETRI",
+      "short": { "zh": "ETRI · 高速计数器（/4 carry）", "en": "ETRI · high-speed counter (/4 carry)" },
+      "title": "High speed counter apparatus",
+      "authors": "ETRI",
+      "venue": "US20130156147A1",
+      "year": "",
+      "kind": { "zh": "专利", "en": "patent" },
+      "level": "A-P",
+      "focus": { "zh": "低两位、CKVD4、11→00 carry 与组合计数。", "en": "Two low bits, CKVD4, the 11→00 carry and the combined count." },
+      "role": { "zh": "低两位状态形成与 carry 相关的 CKVD4 并由其驱动高位，组合得到连续的 8-bit 计数。可用于核对式 (1)–(2) 要求的 count lineage：慢计数不能只是任意同频 /4 时钟驱动，必须与低位 wrap 在逻辑上关联。", "en": "The two low bits form the carry-related CKVD4 that drives the high bits, giving a continuous 8-bit count. Useful for checking the count lineage required by Eqs. (1)–(2): the slow count cannot be driven by just any /4 clock of the same frequency; it must be logically tied to the low-bit wrap." },
+      "limits": { "zh": "连续计数成立，不等于参考相关 snapshot 已经安全；也不是共享 short-TDC、selected-edge 和完整相位重建的证明。", "en": "A continuous count does not mean the reference-related snapshot is safe; nor is it proof of a shared short TDC, selected edge or complete phase reconstruction." },
+      "matrix": {
+        "split": { "zh": "/4，carry 同源", "en": "/4, carry from the same source" },
+        "consistency": { "zh": "计数连续性", "en": "Count continuity" },
+        "selection": { "zh": "无对应完整 fine 链", "en": "No corresponding complete fine chain" },
+        "missing": { "zh": "REF snapshot 与 fine stitching", "en": "REF snapshot and fine stitching" }
+      },
+      "class": "state",
+      "links": [
+        { "label": "US20130156147A1", "url": "https://patents.google.com/patent/US20130156147A1/en" }
+      ],
+      "sections": ["r-4-3", "r-1-2", "r-5"],
+      "figures": [
+        { "where": "Low-two-bit & CKVD4 embodiment", "check": { "zh": "11→00、CKVD4 有效沿、高位 carry 的对应", "en": "Correspondence of 11→00, the CKVD4 active edge and the high-bit carry" } }
+      ]
+    },
+    {
+      "id": "R05", "tag": "CN",
+      "short": { "zh": "CN105071798 · 延迟匹配相位累加器", "en": "CN105071798 · delay-matched phase accumulator" },
+      "title": "应用于全数字PLL的低功耗相位累加器 (Low-power phase accumulator for an all-digital PLL)",
+      "authors": "",
+      "venue": "CN105071798A",
+      "year": "",
+      "kind": { "zh": "专利", "en": "patent" },
+      "level": "A-P",
+      "focus": { "zh": "Fig.4–6：CKR 分级延迟、各组采样与最终重采样。", "en": "Fig. 4–6: staged CKR delays, per-group sampling and final resampling." },
+      "role": { "zh": "以异步低位和同步高位降低计数功耗，把 CKR 采样时刻按各级传播延迟展开，再统一重采样输出；针对“各位并非同时稳定”。说明相干快照的本质是同一逻辑 epoch，而不是所有寄存器使用零偏差时钟。", "en": "Asynchronous low bits and synchronous high bits reduce counting power; the CKR sampling instants are spread according to each stage's propagation delay and then resampled together — addressing 'bits do not settle at the same time'. Shows that a coherent snapshot means one logical epoch, not zero-skew clocks on every register." },
+      "limits": { "zh": "最终统一输出并不自动证明中间每一级的 setup/hold 满足；必须同时校验数据和采样路径的 min/max 延迟、同源误差与 PVT 差异，延迟链不能被当作理想常数。", "en": "The final common output does not automatically prove that setup/hold is met at every intermediate stage; min/max delays of data and sampling paths, common-source errors and PVT differences must be checked together — the delay chain is not an ideal constant." },
+      "matrix": {
+        "split": { "zh": "异步/同步分组", "en": "Asynchronous/synchronous grouping" },
+        "consistency": { "zh": "延迟匹配、最终重采样", "en": "Delay matching, final resampling" },
+        "selection": { "zh": "非核心披露", "en": "Not a core disclosure" },
+        "missing": { "zh": "选沿、残差与有效性联动", "en": "Linking edge selection, residual and validity" }
+      },
+      "class": "consistency",
+      "links": [
+        { "label": "CN105071798A", "url": "https://patents.google.com/patent/CN105071798A/zh" }
+      ],
+      "sections": ["r-4-4", "r-1-2", "r-5", "r-7-2", "r-11"],
+      "figures": [
+        { "where": "Fig.4–6", "check": { "zh": "数据传播、CKR 各级延迟、最终统一输出", "en": "Data propagation, per-stage CKR delays, final common output" } }
+      ]
+    },
+    {
+      "id": "R06", "tag": "Kuo",
+      "short": { "zh": "Kuo 2018 · 八相选相 + 短 TDC", "en": "Kuo 2018 · eight-phase selection + short TDC" },
+      "title": "An All-Digital PLL for Cellular Mobile Phones in 28-nm CMOS With −55 dBc Fractional and −91 dBc Reference Spurs",
+      "authors": "F.-W. Kuo et al.",
+      "venue": "IEEE Transactions on Circuits and Systems I, 65(11), pp. 3756–3768; DOI 10.1109/TCSI.2018.2855972",
+      "year": "2018",
+      "kind": { "zh": "期刊论文", "en": "journal paper" },
+      "level": "A-J",
+      "focus": { "zh": "Fig.2、5–6：DCO/CKV 节点、八相与短 TDC，及实验部分的调谐范围。", "en": "Fig. 2, 5–6: DCO/CKV nodes, eight phases and short TDC, plus the tuning range in the experimental section." },
+      "role": { "zh": "DCO 的 /4 输出构成八相 CKV，配合预测选相、短 TDC 和多候选参考重定时；Octal 信息与 fine TDC 配合，variable phase 另有整数采样路径。是“物理选相 + 局部 fine 测量”的直接实现。", "en": "The DCO's /4 output forms an eight-phase CKV, combined with predictive phase selection, a short TDC and multi-candidate reference retiming; octal information works with the fine TDC while the variable phase has its own integer sampling path. A direct implementation of 'physical phase selection + local fine measurement'." },
+      "limits": { "zh": "DCO 调谐范围 5.7–8.4 GHz，/4 后为 1.425–2.1 GHz，“约 2 GHz”不能误写成“原始 DCO 约 2 GHz 再 /4”；T_V/8 换算到 T0 是 T0/2 而非 T0/8。它是周期内多相选择，不能未经映射等同 raw-CKV 的 3-bit /8 integer residue 或 whole-cycle slot executor；其 time-predictive 选相属于先验规划，不是参考到来后任意慢速算完再选过去的相位。", "en": "DCO tuning range 5.7–8.4 GHz, i.e. 1.425–2.1 GHz after /4 — '≈2 GHz' must not be misread as 'a raw ≈2 GHz DCO then /4'; T_V/8 converted to T0 is T0/2, not T0/8. It is intra-period multiphase selection and cannot, without mapping, be equated with a 3-bit /8 raw-CKV integer residue or a whole-cycle slot executor; its time-predictive selection is a priori planning, not 'compute slowly after the reference and pick a phase that already passed'." },
+      "matrix": {
+        "split": { "zh": "/4 后八相", "en": "Eight phases after /4" },
+        "consistency": { "zh": "多候选重定时、区域处理", "en": "Multi-candidate retiming, region handling" },
+        "selection": { "zh": "预测选相与 short TDC", "en": "Predictive phase selection and short TDC" },
+        "missing": { "zh": "raw integer residue 的直接复用", "en": "Direct reuse of a raw integer residue" }
+      },
+      "class": "selection",
+      "links": [
+        { "label": "DOI 10.1109/TCSI.2018.2855972", "url": "https://doi.org/10.1109/TCSI.2018.2855972" },
+        { "label": "TU Delft repository", "url": "https://repository.tudelft.nl/record/uuid:bd6e56fd-2ea1-4a7f-8dbe-0154ce63742d" },
+        { "label": "Institutional PDF", "url": "https://pure.tudelft.nl/ws/portalfiles/portal/47074026/46622583_08438325.pdf" }
+      ],
+      "sections": ["r-4-5", "r-1-2", "r-5", "r-7-1", "r-8-3", "r-9-1", "r-11"],
+      "figures": [
+        { "where": "Fig.2 · institutional PDF p.3", "check": { "zh": "多速率结构、variable phase、CKR 候选与预测选择", "en": "Multirate structure, variable phase, CKR candidates and predictive selection" } },
+        { "where": "Fig.5–6 · institutional PDF p.5", "check": { "zh": "/4 八相、并行短 TDC 到共享短 TDC 的关系", "en": "/4 eight phases; relation from parallel short TDCs to a shared short TDC" } }
+      ]
+    },
+    {
+      "id": "R07", "tag": "Sony",
+      "short": { "zh": "Sony · 共享状态与两个 XOR 修正", "en": "Sony · shared state & two XOR corrections" },
+      "title": "Phase locked loop, electronic device, and method for controlling phase locked loop",
+      "authors": "T. Kurihara, T. Fujiwara (Sony Semiconductor Solutions)",
+      "venue": "US11936392B2 (granted 2024-03-19); US20220231694A1 (2022-07-21); WO2020246092A1 (2020-12-10); priority 2019-06-06",
+      "year": "2024",
+      "kind": { "zh": "专利", "en": "patent" },
+      "level": "A-P",
+      "note": { "zh": "“2022 年公开”只适用于所列美国公布文本，不是整个家族最早公开时间。", "en": "'Published 2022' applies only to the listed US publication, not to the earliest publication of the whole family." },
+      "focus": { "zh": "Fig.6、8、11、12：CNTO、VINT、VFRAC、CRRCT/SIGN。", "en": "Fig. 6, 8, 11, 12: CNTO, VINT, VFRAC, CRRCT/SIGN." },
+      "role": { "zh": "CNTO[0] 与慢 accumulator 高位形成整数码，CNTO[3:0] 又由 REFCLK 直接采为 VFRAC；据两条路径的状态差异生成 CRRCT 与 SIGN（式 9）并给出 0/−1/+1 修正。应定位为另一条明确、紧凑的共享状态与修正实现，而不是最早先例（Havens 更早）。", "en": "CNTO[0] with the slow accumulator's high bits forms the integer code, while CNTO[3:0] is sampled directly by REFCLK as VFRAC; the state difference of the two paths yields CRRCT and SIGN (Eq. 9) and a 0/−1/+1 correction. To be positioned as another explicit, compact shared-state-and-correction implementation — not the earliest precedent (Havens is earlier)." },
+      "limits": { "zh": "用多相 latch/correction 替代传统 TDC，不能说已接上本项目 short TDC；VFRAC 是带周期冗余的状态码（Fig.12 值跨至 1.75），修正量的“1”须按原相位单位解释；不能从式 (9) 推出对任意异步错误都保证唯一复原，个别 retiming 节点/位序需结合 Fig.6、8、11、12 交叉确认。", "en": "It replaces a conventional TDC with multiphase latch/correction, so it is not connected to this project's short TDC; VFRAC is a state code with cycle redundancy (Fig. 12 values reach 1.75), and the '1' of the correction must be read in its original phase unit; Eq. (9) does not guarantee unique recovery from arbitrary asynchronous errors, and some retiming nodes/bit orders must be cross-checked in Fig. 6, 8, 11, 12." },
+      "matrix": {
+        "split": { "zh": "CNTO 兼 integer/fractional", "en": "CNTO serves both integer and fractional" },
+        "consistency": { "zh": "两个 XOR、0/±1 修正", "en": "Two XORs, 0/±1 correction" },
+        "selection": { "zh": "多相 latch；非目标短 TDC", "en": "Multiphase latch; not the target short TDC" },
+        "missing": { "zh": "/8 residue、short TDC、执行回执", "en": "/8 residue, short TDC, execution receipt" }
+      },
+      "class": "consistency",
+      "links": [
+        { "label": "US11936392B2", "url": "https://patents.google.com/patent/US11936392B2" },
+        { "label": "WO2020246092A1", "url": "https://patents.google.com/patent/WO2020246092A1/en" }
+      ],
+      "sections": ["r-4-7", "r-1-3", "r-1-2", "r-5", "r-7-3"],
+      "figures": [
+        { "where": "Fig.6 · US PDF p.8", "check": { "zh": "同一 CNTO 到 integer 与 fractional 的两条路径", "en": "The two paths from one CNTO to integer and fractional" } },
+        { "where": "Fig.11–12 · US PDF pp.11–12", "check": { "zh": "XOR、位序、扩展 VFRAC 状态、修正方向", "en": "XORs, bit order, extended VFRAC states, correction direction" } }
+      ]
+    },
+    {
+      "id": "R08", "tag": "Havens",
+      "short": { "zh": "Havens · 共享状态与 sub-fractional TDC", "en": "Havens · shared state & sub-fractional TDC" },
+      "title": "Digital phase locked loop",
+      "authors": "J. H. Havens (LSI)",
+      "venue": "US8692598B2",
+      "year": "",
+      "kind": { "zh": "专利", "en": "patent" },
+      "level": "A-P",
+      "focus": { "zh": "Fig.2–4：integer / fractional / sub-fractional、half-rate state、even/odd 与 one-count uncertainty。", "en": "Fig. 2–4: integer / fractional / sub-fractional, half-rate state, even/odd and one-count uncertainty." },
+      "role": { "zh": "反馈计数器同时包含 integer、fractional 和 sub-fractional TDC；整数值由 cnt[7:1] 与分频状态 ckh[0] 组成，多相半速状态被采样用于 fractional detector 并保留 even/odd 信息，以处理同步器的 one-count uncertainty。说明共享状态、整数边界校验和更细的 TDC 测量并非直到 Sony 才出现，也说明冗余状态的覆盖范围必须与可能的 epoch 错误匹配。", "en": "The feedback counter contains integer, fractional and sub-fractional TDC parts; the integer value is cnt[7:1] plus the divider state ckh[0], and multiphase half-rate state is sampled for the fractional detector, keeping even/odd information to handle the synchroniser's one-count uncertainty. Shows that shared state, integer-boundary checking and finer TDC measurement existed before Sony, and that the coverage of redundant state must match the possible epoch errors." },
+      "limits": { "zh": "half-rate / parity 结构不能直接替代 /8 block-epoch 检查；其 sub-fractional 实现也不是未经修改就等同 Kuo 的预测选相后单个 short TDC。", "en": "The half-rate / parity structure cannot directly replace a /8 block-epoch check; its sub-fractional implementation is not, unmodified, the same as Kuo's single short TDC after predictive selection." },
+      "matrix": {
+        "split": { "zh": "半速状态兼 integer LSB", "en": "Half-rate state doubles as integer LSB" },
+        "consistency": { "zh": "fractional parity 校验", "en": "Fractional parity check" },
+        "selection": { "zh": "fractional + sub-fractional TDC", "en": "Fractional + sub-fractional TDC" },
+        "missing": { "zh": "/8 block epoch 与目标执行器", "en": "/8 block epoch and the target executor" }
+      },
+      "class": "consistency",
+      "links": [
+        { "label": "US8692598B2", "url": "https://patents.google.com/patent/US8692598B2/en" }
+      ],
+      "sections": ["r-4-6", "r-1-3", "r-1-2", "r-5", "r-7-1", "r-7-3", "r-11"],
+      "figures": [
+        { "where": "Fig.2–4", "check": { "zh": "ckh、cnt 高位、raw state、even/odd 与 sub-fractional 处理", "en": "ckh, cnt high bits, raw state, even/odd and sub-fractional handling" } }
+      ]
+    },
+    {
+      "id": "R09", "tag": "MediaTek",
+      "short": { "zh": "MediaTek · PHF2 选相坐标补偿", "en": "MediaTek · PHF2 selected-edge offset" },
+      "title": "Frequency synthesizer and associated method",
+      "authors": "A.-S. Lin, R. B. Staszewski, Y.-H. Cho (MediaTek)",
+      "venue": "US8593182B2",
+      "year": "",
+      "kind": { "zh": "专利", "en": "patent" },
+      "level": "A-P",
+      "focus": { "zh": "PHV / PHF1 / PHF2、phase shifter、phase selector 及单脉冲实施例。", "en": "PHV / PHF1 / PHF2, phase shifter, phase selector and the single-pulse embodiment." },
+      "role": { "zh": "raw-CKV VPA 与 shifted CKV′ 的 TDC 路径共存，用附加的 PHF2 补偿选相坐标，原文给出 PHE = PHR + PHF1 + PHF2 − PHV。支持“保留原 CNT，同时显式补偿 selected edge offset”。", "en": "A raw-CKV VPA coexists with the TDC path of a shifted CKV′, and an extra PHF2 compensates the selected-phase coordinate; the patent gives PHE = PHR + PHF1 + PHF2 − PHV. Supports 'keep the original CNT while explicitly compensating the selected-edge offset'." },
+      "limits": { "zh": "whole-cycle absolute-edge executor 是本项目的进一步综合，不是该公式自动完成的功能。", "en": "A whole-cycle absolute-edge executor is this project's further synthesis, not something the formula accomplishes automatically." },
+      "matrix": {
+        "split": { "zh": "持续 VPA", "en": "Persistent VPA" },
+        "consistency": { "zh": "显式 PHF2 坐标项", "en": "Explicit PHF2 coordinate term" },
+        "selection": { "zh": "shifted edge、TDC、单脉冲", "en": "Shifted edge, TDC, single pulse" },
+        "missing": { "zh": "whole-cycle slot 的完整协议", "en": "Complete protocol for whole-cycle slots" }
+      },
+      "class": "selection",
+      "links": [
+        { "label": "US8593182B2", "url": "https://patents.google.com/patent/US8593182B2/en" }
+      ],
+      "sections": ["r-4-8", "r-1-2", "r-5", "r-9-1"],
+      "figures": [
+        { "where": "Phase shifter & single-pulse embodiment", "check": { "zh": "selected CKV′、PHF2 与 TDC 的坐标", "en": "Coordinates of the selected CKV′, PHF2 and the TDC" } }
+      ]
+    },
+    {
+      "id": "R10", "tag": "Marvell",
+      "short": { "zh": "Marvell · 独立边界估计与整周期修正", "en": "Marvell · independent boundary estimate" },
+      "title": "Methods and devices for implementing all-digital phase locked loop",
+      "authors": "",
+      "venue": "US9306586B2",
+      "year": "",
+      "kind": { "zh": "专利", "en": "patent" },
+      "level": "A-P",
+      "focus": { "zh": "RF-counter/TDC skew、独立 estimator E、Fig.20–25 附近实施例。", "en": "RF-counter/TDC skew, independent estimator E, embodiments around Fig. 20–25." },
+      "role": { "zh": "使用 RF counter/TDC skew correction 及独立的边界估计信息，判断 fractional code 应接近 0 还是 1，从而修正整周期错配。提示不能让 fine code 同时承担全部的范围、边界和自我可信性判断。", "en": "Uses RF counter/TDC skew correction plus independent boundary-estimate information to decide whether the fractional code should be near 0 or 1, thereby correcting whole-cycle mismatch. A reminder not to let the fine code carry all range, boundary and self-trust decisions by itself." },
+      "limits": { "zh": "估计器自身的模糊区域同样要约束；对本目标仍缺少 /4–/8 高低位执行集成。", "en": "The estimator's own ambiguous region must also be bounded; /4–/8 high/low-bit execution integration is still missing for this target." },
+      "matrix": {
+        "split": { "zh": "RF counter", "en": "RF counter" },
+        "consistency": { "zh": "独立 skew/boundary 判断", "en": "Independent skew/boundary judgement" },
+        "selection": { "zh": "TDC 与整数边界校正", "en": "TDC and integer-boundary correction" },
+        "missing": { "zh": "/4-/8 高低位执行集成", "en": "/4–/8 high/low-bit execution integration" }
+      },
+      "class": "consistency",
+      "links": [
+        { "label": "US9306586B2", "url": "https://patents.google.com/patent/US9306586B2/en" }
+      ],
+      "sections": ["r-4-8", "r-1-2", "r-5", "r-7-1"],
+      "figures": [
+        { "where": "Around Fig.20–25", "check": { "zh": "RF count / fractional skew 与独立边界估计", "en": "RF count / fractional skew and the independent boundary estimate" } }
+      ]
+    },
+    {
+      "id": "R11", "tag": "Zong",
+      "short": { "zh": "Zong 2019 · 2+6 split 与 DTC/TDC", "en": "Zong 2019 · 2+6 split & DTC/TDC" },
+      "title": "A Low-Noise Fractional-N Digital Frequency Synthesizer With Implicit Frequency Tripling for mm-Wave Applications",
+      "authors": "Z. Zong, P. Chen, R. B. Staszewski",
+      "venue": "IEEE JSSC, 54(3), pp. 755–767; DOI 10.1109/JSSC.2018.2883397",
+      "year": "2019",
+      "kind": { "zh": "期刊论文", "en": "journal paper" },
+      "level": "A-J",
+      "focus": { "zh": "Fig.1、9–10：CKV 节点、2+6 counter、CKS sampling、DTC/TDC。", "en": "Fig. 1, 9–10: CKV node, 2+6 counter, CKS sampling, DTC/TDC." },
+      "role": { "zh": "8-bit PHV_I 使用两位异步低位和六位同步高位；Fig.9 的 CKS_0/1/2 沿采样链匹配计数传播，匹配条件下采样位于计数位稳定后约半个 CKV 周期；系统采用 DTC-assisted TDC，检测溢出/下溢并在瞬态采用限幅输出。这是 split counter、明确采样时序和有限 TDC 在同一 ADPLL 内共存的直接论文证据。", "en": "The 8-bit PHV_I uses two asynchronous low bits and six synchronous high bits; in Fig. 9 the CKS_0/1/2 sampling chain matches count propagation, placing the sample about half a CKV period after the count bits settle; the system uses a DTC-assisted TDC that detects overflow/underflow and clamps its output during transients. Direct paper evidence of a split counter, explicit sampling timing and a finite TDC coexisting in one ADPLL." },
+      "limits": { "zh": "Fig.1 的 CKV 已是约 20 GHz 基波经 /8（/4 与 /2）后的节点，不能把 Fig.9 的低两位等同于“20 GHz 基波全部周期的低两位”；其饱和限幅策略也不能等同于“饱和仍是精确 fine”或本项目已经验证的 coarse-only fallback。", "en": "The CKV of Fig. 1 is already the ≈20 GHz fundamental after /8 (/4 then /2), so Fig. 9's two low bits are not 'the low bits of every 20 GHz fundamental cycle'; its saturation-clamp strategy is neither 'saturation is still exact fine' nor this project's verified coarse-only fallback." },
+      "matrix": {
+        "split": { "zh": "CKV 节点上的 2+6 split", "en": "2+6 split at the CKV node" },
+        "consistency": { "zh": "CKS 匹配采样", "en": "CKS matched sampling" },
+        "selection": { "zh": "DTC + 有限 TDC", "en": "DTC + finite-range TDC" },
+        "missing": { "zh": "上游原周期身份及目标 P/S 链", "en": "Upstream raw-cycle identity and the target P/S chain" }
+      },
+      "class": "consistency",
+      "links": [
+        { "label": "DOI 10.1109/JSSC.2018.2883397", "url": "https://doi.org/10.1109/JSSC.2018.2883397" },
+        { "label": "TU Delft repository", "url": "https://repository.tudelft.nl/record/uuid:556432e9-11a7-47f2-9019-18e7ccc9f1fd" }
+      ],
+      "sections": ["r-4-9", "r-3-1", "r-1-2", "r-5", "r-7-2", "r-9-1", "r-9-3", "r-11"],
+      "figures": [
+        { "where": "Fig.1 · institutional PDF p.3", "check": { "zh": "基波→/4→/2→CKV，避免时钟节点误认", "en": "Fundamental → /4 → /2 → CKV; avoid misidentifying the clock node" } },
+        { "where": "Fig.9–10 · institutional PDF p.9", "check": { "zh": "CKS_0/1/2 与 c[0]/c[1]/c[2:7] 逐级波形", "en": "Stage-by-stage CKS_0/1/2 and c[0]/c[1]/c[2:7] waveforms" } }
+      ]
+    },
+    {
+      "id": "R12", "tag": "Jiang",
+      "short": { "zh": "Jiang 2011 · MSc 论文", "en": "Jiang 2011 · MSc thesis" },
+      "title": "ADPLL Design for WiMAX",
+      "authors": "W. Jiang",
+      "venue": "MSc thesis, Delft University of Technology",
+      "year": "2011",
+      "kind": { "zh": "学位论文", "en": "thesis" },
+      "level": "H",
+      "focus": { "zh": "前轮定位 Chapter 2：TDC / Retimer / Incrementor cooperation，Fig.2-12 至 2-20。", "en": "Earlier rounds located Chapter 2: TDC / Retimer / Incrementor cooperation, Fig. 2-12 to 2-20." },
+      "role": { "zh": "前轮贡献：mod-8、retimer 与 incrementor 协作、整数修正。", "en": "Contribution in earlier rounds: mod-8, retimer–incrementor cooperation, integer correction." },
+      "limits": { "zh": "既有报告有记录，原 PDF 链接本次读取不稳定，不作为“本次已逐图复核”的证据；仍是值得补齐原始页的历史线索。", "en": "Recorded in the earlier reports, but the original PDF link was unstable this round, so it is not evidence 'reviewed figure by figure this round'; still a historical lead worth completing." },
+      "matrix": null,
+      "class": null,
+      "links": [
+        { "label": "Historical PDF (author's advisor site)", "url": "https://bogdanst.com/dissertation/2011-09-18_Wenlong_Jiang_MSc_ADPLL.pdf" }
+      ],
+      "sections": ["r-4-10", "r-13-3"],
+      "figures": []
+    },
+    {
+      "id": "R13", "tag": "Bogdan",
+      "short": { "zh": "Staszewski/Balsara 2006 · 原书", "en": "Staszewski/Balsara 2006 · book" },
+      "title": "All-Digital Frequency Synthesizer in Deep-Submicron CMOS",
+      "authors": "R. B. Staszewski, P. T. Balsara",
+      "venue": "Wiley",
+      "year": "2006",
+      "kind": { "zh": "专著", "en": "book" },
+      "level": "H",
+      "focus": { "zh": "前轮使用用户原书 PDF：Ch.4 §4.5、§4.7.4，Fig.4.14、4.17、4.26、4.27。", "en": "Earlier rounds used the user's PDF of the book: Ch. 4 §4.5, §4.7.4, Fig. 4.14, 4.17, 4.26, 4.27." },
+      "role": { "zh": "前轮贡献：raw CKV TDC、PHF_I、SEL_EDGE、CKVD8 time-deferred PHV；也是 Bogdan 基线 CKV 的出处。", "en": "Contribution in earlier rounds: raw-CKV TDC, PHF_I, SEL_EDGE, CKVD8 time-deferred PHV; also the source of the Bogdan baseline CKV." },
+      "limits": { "zh": "本次读取了旧报告，未重新取得原书对应页；不编造可访问的全文下载地址。", "en": "The old report was read this round but the corresponding book pages were not re-obtained; no accessible full-text URL is invented." },
+      "matrix": null,
+      "class": null,
+      "links": [],
+      "sections": ["r-4-10", "r-3-1", "r-13-3"],
+      "figures": []
+    },
+    {
+      "id": "R14", "tag": "Yin",
+      "short": { "zh": "Yin 2013 · PhD 论文", "en": "Yin 2013 · PhD thesis" },
+      "title": "A DC–48 GHz CMOS All-Digital Frequency Synthesizer for Software-Defined Radios",
+      "authors": "J. Yin",
+      "venue": "PhD thesis, HKUST",
+      "year": "2013",
+      "kind": { "zh": "学位论文", "en": "thesis" },
+      "level": "H",
+      "focus": { "zh": "前轮定位 Ch.4 §4.3.5 “Counter and PTDC Interface”、Fig.4.6–4.11。", "en": "Earlier rounds located Ch. 4 §4.3.5 'Counter and PTDC Interface', Fig. 4.6–4.11." },
+      "role": { "zh": "前轮贡献：Counter/PTDC interface、边界 alternative-edge 一致性。", "en": "Contribution in earlier rounds: counter/PTDC interface, alternative-edge consistency at boundaries." },
+      "limits": { "zh": "保留 Ch.4 §4.3.5 的定位，未重新逐图核对；不新增未经核验的直接下载 URL。", "en": "The Ch. 4 §4.3.5 location is kept but not re-checked figure by figure; no unverified download URL is added." },
+      "matrix": null,
+      "class": null,
+      "links": [],
+      "sections": ["r-4-10", "r-13-3"],
+      "figures": []
+    },
+    {
+      "id": "R15", "tag": "Staszewski 2011",
+      "short": { "zh": "Staszewski JSSC 2011 · 多速率 ADPLL", "en": "Staszewski JSSC 2011 · multirate ADPLL" },
+      "title": "Spur-Free Multirate All-Digital PLL for Mobile Phones in 65 nm CMOS",
+      "authors": "R. B. Staszewski et al.",
+      "venue": "IEEE JSSC, 46(12), pp. 2904–2919; DOI 10.1109/JSSC.2011.2162769",
+      "year": "2011",
+      "kind": { "zh": "期刊论文", "en": "journal paper" },
+      "level": "H",
+      "focus": { "zh": "前轮关注 Fig.20–22 的 quadrature phase switching 与 integer boundary。", "en": "Earlier rounds focused on Fig. 20–22: quadrature phase switching and the integer boundary." },
+      "role": { "zh": "前轮贡献：选相跨整周期边界与 integer-count 处理。", "en": "Contribution in earlier rounds: phase selection crossing whole-cycle boundaries and integer-count handling." },
+      "limits": { "zh": "不把选相 270°→0° 直接等同 raw /4 计数组进位。", "en": "Phase selection 270° → 0° is not equated directly with a raw /4 count-group carry." },
+      "matrix": null,
+      "class": null,
+      "links": [
+        { "label": "DOI 10.1109/JSSC.2011.2162769", "url": "https://doi.org/10.1109/JSSC.2011.2162769" }
+      ],
+      "sections": ["r-4-10"],
+      "figures": []
+    },
+    {
+      "id": "R16", "tag": "S. Liu",
+      "short": { "zh": "S. Liu JSSC 2016 · 计数器辅助 DPLL", "en": "S. Liu JSSC 2016 · counter-assisted DPLL" },
+      "title": "A Fractional-N Counter-Assisted DPLL With Parallel Sampling ILFD",
+      "authors": "S. Liu",
+      "venue": "IEEE JSSC, 51(6); DOI 10.1109/JSSC.2016.2557810",
+      "year": "2016",
+      "kind": { "zh": "期刊论文", "en": "journal paper" },
+      "level": "H",
+      "focus": { "zh": "混合（hybrid）高速计数器相关实现。", "en": "Implementation related to a hybrid high-speed counter." },
+      "role": { "zh": "保留前轮 hybrid high-speed counter 线索。", "en": "Keeps the earlier hybrid high-speed counter lead." },
+      "limits": { "zh": "不是本次完整 executor 先例，不作为本项目完整架构先例。", "en": "Not a precedent for the complete executor, nor for this project's complete architecture." },
+      "matrix": null,
+      "class": null,
+      "links": [
+        { "label": "DOI 10.1109/JSSC.2016.2557810", "url": "https://doi.org/10.1109/JSSC.2016.2557810" }
+      ],
+      "sections": ["r-4-10"],
+      "figures": []
+    },
+    {
+      "id": "R17", "tag": "H. Liu",
+      "short": { "zh": "H. Liu JSSC 2025 · LC DTC PLL", "en": "H. Liu JSSC 2025 · LC-DTC PLL" },
+      "title": "An Ultra-Low-Jitter Fast-Hopping Fractional-N PLL With LC DTC and Hybrid-Proportional Paths",
+      "authors": "H. Liu et al.",
+      "venue": "IEEE JSSC, 60(3), pp. 785–798; DOI 10.1109/JSSC.2024.3514870",
+      "year": "2025",
+      "kind": { "zh": "期刊论文", "en": "journal paper" },
+      "level": "B",
+      "focus": { "zh": "counter / feedback-clock generator / timing-margin 方向；其内部图是优先补证项。", "en": "Counter / feedback-clock generator / timing-margin direction; its internal figures are a priority item to obtain." },
+      "role": { "zh": "保留 counter、反馈时钟生成和 timing-margin 相关方向的线索；官方来源可定位。", "en": "Kept as a lead on counters, feedback-clock generation and timing margin; the official source can be located." },
+      "limits": { "zh": "具体 /4 连线不作已核实结论，未升级为 A。", "en": "The specific /4 wiring is not treated as verified; not upgraded to A." },
+      "matrix": null,
+      "class": null,
+      "links": [
+        { "label": "DOI 10.1109/JSSC.2024.3514870", "url": "https://doi.org/10.1109/JSSC.2024.3514870" },
+        { "label": "IEEE SSCS article", "url": "https://sscs.ieee.org/an-ultra-low-jitter-fast-hopping-fractional-n-pll-with-lc-dtc-and-hybrid-proportional-paths/" }
+      ],
+      "sections": ["r-4-10", "r-13-3"],
+      "figures": []
+    },
+    {
+      "id": "R18", "tag": "US8653862",
+      "short": { "zh": "US8653862B2 · 重定时控制分频器", "en": "US8653862B2 · retimed-control divider" },
+      "title": "Frequency divider with retimed control signal and related frequency dividing method",
+      "authors": "",
+      "venue": "US8653862B2",
+      "year": "",
+      "kind": { "zh": "专利", "en": "patent" },
+      "level": "H",
+      "levelNote": { "zh": "H / 外围实现参考", "en": "H / peripheral implementation reference" },
+      "focus": { "zh": "phase-local retiming / glitch-free switching。", "en": "Phase-local retiming / glitch-free switching." },
+      "role": { "zh": "可作为门控、重定时或无毛刺选相的电路参考。", "en": "Usable as a circuit reference for gating, retiming or glitch-free phase selection." },
+      "limits": { "zh": "不是 CNT + reference snapshot + fine TDC 的直接先例；不能仅因其有“/4”“多相”或“P/S”就认定与目标同构，只能证明执行器原语。", "en": "Not a direct precedent for CNT + reference snapshot + fine TDC; having '/4', 'multiphase' or 'P/S' does not make it isomorphic to the target — it only proves executor primitives." },
+      "matrix": null,
+      "class": null,
+      "links": [
+        { "label": "US8653862B2", "url": "https://patents.google.com/patent/US8653862B2/en" }
+      ],
+      "sections": ["r-2-2", "r-11"],
+      "figures": []
+    },
+    {
+      "id": "R19", "tag": "US8050375",
+      "short": { "zh": "US8050375B2 · 整数信道缓解 DPLL", "en": "US8050375B2 · integer-channel mitigation DPLL" },
+      "title": "Digital phase locked loop with integer channel mitigation",
+      "authors": "",
+      "venue": "US8050375B2",
+      "year": "",
+      "kind": { "zh": "专利", "en": "patent" },
+      "level": "H",
+      "levelNote": { "zh": "H / 历史补充线索", "en": "H / supplementary historical lead" },
+      "focus": { "zh": "相位旋转及 integer-part 处理。", "en": "Phase rotation and integer-part handling." },
+      "role": { "zh": "前轮关联相位旋转及 integer-part 处理。", "en": "Earlier rounds associated it with phase rotation and integer-part handling." },
+      "limits": { "zh": "不作为本次新增硬结论。", "en": "Not used as a new hard conclusion in this round." },
+      "matrix": null,
+      "class": null,
+      "links": [
+        { "label": "US8050375B2", "url": "https://patents.google.com/patent/US8050375B2/en" }
+      ],
+      "sections": ["r-14"],
+      "figures": []
+    },
+    {
+      "id": "H01", "tag": "H01",
+      "short": { "zh": "历史报告 2026-09-27", "en": "Historical report 2026-09-27" },
+      "title": "CNT_based_ADPLL_CKV4_P_S_文献调研与架构收敛报告_2026-09-27",
+      "authors": "",
+      "venue": "Word report (22 pages) + summary Markdown",
+      "year": "2026",
+      "kind": { "zh": "历史报告", "en": "historical report" },
+      "level": "H",
+      "levelNote": { "zh": "项目历史报告：进展来源，不是独立的电路真实性证据", "en": "Project history report: a source of progress, not independent evidence of circuit truth" },
+      "focus": { "zh": "本次完整读取 22 页 Word 正文；同名 Markdown 为简要摘要。", "en": "The 22-page Word text was fully read this round; the Markdown of the same name is a brief summary." },
+      "role": { "zh": "继承 persistent CNT、selected-edge offset、J_plan/J_exec 区分、fine SAT 与原始计数的关系，以及通用 PISO 降级结论。", "en": "Inherited: persistent CNT, selected-edge offset, the J_plan/J_exec distinction, the relation between fine SAT and the raw count, and the demotion of generic PISO." },
+      "limits": { "zh": "历史报告是本项目进展来源，不是独立的电路真实性证据；关键硬结论优先回到 R01–R11 中已复核的原始专利/论文。", "en": "Historical reports are sources of project progress, not independent evidence of circuit truth; key hard conclusions go back to the reviewed originals R01–R11." },
+      "matrix": null,
+      "class": null,
+      "links": [],
+      "sections": ["r-B", "r-2-1"],
+      "figures": []
+    },
+    {
+      "id": "H02", "tag": "H02",
+      "short": { "zh": "历史报告 2026-09-28", "en": "Historical report 2026-09-28" },
+      "title": "CNT_ADPLL_CKD4_Snapshot_Literature_Research_Report_2026-09-28",
+      "authors": "",
+      "venue": "Research Log v0.4 (Markdown)",
+      "year": "2026",
+      "kind": { "zh": "历史报告", "en": "historical report" },
+      "level": "H",
+      "levelNote": { "zh": "项目历史报告：进展来源，不是独立的电路真实性证据", "en": "Project history report: a source of progress, not independent evidence of circuit truth" },
+      "focus": { "zh": "Research Log v0.4，本次完整读取 Markdown。", "en": "Research Log v0.4; the Markdown was fully read this round." },
+      "role": { "zh": "继承 Xu /4、Zong delay-matched sampling、Jiang cooperation 与 coarse/fine stitching 的调研线索。", "en": "Inherited research leads: Xu /4, Zong delay-matched sampling, Jiang cooperation and coarse/fine stitching." },
+      "limits": { "zh": "历史报告是本项目进展来源，不是独立的电路真实性证据；关键硬结论优先回到 R01–R11 中已复核的原始专利/论文。", "en": "Historical reports are sources of project progress, not independent evidence of circuit truth; key hard conclusions go back to the reviewed originals R01–R11." },
+      "matrix": null,
+      "class": null,
+      "links": [],
+      "sections": ["r-B", "r-2-1"],
+      "figures": []
+    }
+  ]
+}

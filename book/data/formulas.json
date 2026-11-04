@@ -1,0 +1,1539 @@
+{
+  "_note": "All 22 numbered equations of the report. \"tex\" is copied verbatim from the report ($$…\\tag{n}$$ body, trimmed); \"context\" is the untagged display equation right before it, if any. Text fields may contain inline $…$ math.",
+  "chapters": {
+    "3": {
+      "zh": "第 3 章 · 统一坐标",
+      "en": "Ch. 3 · Unified coordinates"
+    },
+    "4": {
+      "zh": "第 4 章 · 文献证据",
+      "en": "Ch. 4 · Literature evidence"
+    },
+    "6": {
+      "zh": "第 6 章 · epoch 错误",
+      "en": "Ch. 6 · Epoch errors"
+    },
+    "7": {
+      "zh": "第 7 章 · snapshot 时序",
+      "en": "Ch. 7 · Snapshot timing"
+    },
+    "8": {
+      "zh": "第 8 章 · 执行因果性",
+      "en": "Ch. 8 · Execution causality"
+    },
+    "9": {
+      "zh": "第 9 章 · fine 量程与接管",
+      "en": "Ch. 9 · Fine range & takeover"
+    }
+  },
+  "items": [
+    {
+      "n": "1",
+      "tex": "N=MC+q,\\qquad C=\\operatorname{floor}(N/M),\\quad q=N\\bmod M. \\tag{1}",
+      "chapter": "3",
+      "title": {
+        "zh": "整数分解：N = MC + q（定义）",
+        "en": "Integer decomposition N = MC + q (definition)"
+      },
+      "meaning": {
+        "zh": "对已对齐、逻辑一致的计数状态，原周期编号 $N$ 唯一分解为高位组计数 $C$ 与组内 residue $q$。",
+        "en": "For an aligned, logically coherent count state, the raw-cycle index $N$ splits uniquely into the high group count $C$ and the in-group residue $q$."
+      },
+      "vars": [
+        {
+          "sym": "N",
+          "zh": "原周期整数编号（单位：原周期）",
+          "en": "raw-cycle integer index (raw cycles)"
+        },
+        {
+          "sym": "M",
+          "zh": "分组倍率，本报告主要取 4 或 8",
+          "en": "group ratio, mainly 4 or 8"
+        },
+        {
+          "sym": "C",
+          "zh": "高位组计数；一个计数 = M 个 $CK_0$ 周期",
+          "en": "high group count; one count = M $CK_0$ cycles"
+        },
+        {
+          "sym": "q",
+          "zh": "组内原周期 residue，$0,\\ldots,M-1$；不是 TDC 小数码",
+          "en": "in-group raw-cycle residue, $0,\\ldots,M-1$; not a TDC fraction"
+        }
+      ],
+      "assumptions": {
+        "zh": "只对“已对齐的、逻辑一致的状态”成立：$C$ 与 $q$ 属于同一逻辑 epoch，且已完成原点/延迟对齐。",
+        "en": "Holds only for aligned, logically coherent states: $C$ and $q$ belong to the same logical epoch and are origin/delay aligned."
+      },
+      "derivation": [
+        {
+          "zh": "带余除法：对任意整数 $N$ 与正整数 $M$，存在唯一的一对 $(C,q)$ 使 $N=MC+q$ 且 $0\\le q\\le M-1$。",
+          "en": "Division with remainder: for any integer $N$ and positive $M$ there is a unique pair $(C,q)$ with $N=MC+q$ and $0\\le q\\le M-1$.",
+          "tex": "N=M\\left\\lfloor N/M\\right\\rfloor+(N\\bmod M),\\qquad 0\\le N\\bmod M\\le M-1"
+        },
+        {
+          "zh": "因此 $C=\\operatorname{floor}(N/M)$、$q=N\\bmod M$ 是由 $N$ 唯一决定的定义——不是从电路推出的结论。",
+          "en": "Hence $C=\\operatorname{floor}(N/M)$ and $q=N\\bmod M$ are definitions uniquely fixed by $N$ — not something derived from a circuit."
+        },
+        {
+          "zh": "坐标含义：一个 $C$ 计数代表 $M$ 个 $CK_0$ 周期；$q$ 在 $0\\ldots M-1$ 循环，记录组内第几个原周期。",
+          "en": "Coordinate meaning: one count of $C$ stands for $M$ cycles of $CK_0$; $q$ cycles through $0\\ldots M-1$, recording the raw cycle within the group."
+        },
+        {
+          "zh": "为什么这不是 CDC 正确性的证明：式 (1) 只描述“正确状态”；独立采样 $C$ 和 $q$ 后再拼接是否正确，是电路的同步、延迟匹配、编码和边界校正问题（见式 (10) 与 §6.1）。L01 的 8192 个案例只验证了算术，并且假设 $C$ 与 $q$ 相干。",
+          "en": "Why this is not a proof of CDC correctness: Eq. (1) only describes correct states; whether independently sampled $C$ and $q$ can be concatenated correctly is a matter of synchronisation, delay matching, encoding and boundary correction (see Eq. (10) and §6.1). The 8192 cases of L01 only check arithmetic and assume coherent $C$ and $q$."
+        }
+      ],
+      "pitfalls": {
+        "zh": "不能由式 (1) 推出“任意时刻独立采样 $C$ 和 $q$ 后拼接都正确”；$q$ 不是 TDC 小数码；改变 $CK_0$ 后 CNT 权重、FCW、fine 归一化与 edge ID 必须一起换算。",
+        "en": "Eq. (1) does not imply that $C$ and $q$ sampled independently at any time concatenate correctly; $q$ is not a TDC fraction; changing $CK_0$ requires rescaling CNT weights, FCW, fine normalisation and edge IDs together."
+      },
+      "section": "r-3-2",
+      "widgets": [
+        "split-counter",
+        "verify-runner"
+      ],
+      "checks": [
+        "L01"
+      ],
+      "origin": {
+        "zh": "定义（本报告，D）",
+        "en": "Definition (this report, D)"
+      }
+    },
+    {
+      "n": "2",
+      "tex": "(C,M-1)\\longrightarrow(C+1,0). \\tag{2}",
+      "chapter": "3",
+      "title": {
+        "zh": "合法进位：(C, M−1) → (C+1, 0)",
+        "en": "Legal carry (C, M−1) → (C+1, 0)"
+      },
+      "meaning": {
+        "zh": "合法连续计数中，低位从 $M-1$ 回到 0 的同一拍，高位恰好加 1；这是计数谱系（count lineage）的必要条件。",
+        "en": "In a legal continuous count, the high count increments exactly on the step where the low residue wraps from $M-1$ to 0 — a necessary condition of the count lineage."
+      },
+      "vars": [
+        {
+          "sym": "C",
+          "zh": "高位组计数",
+          "en": "high group count"
+        },
+        {
+          "sym": "M-1",
+          "zh": "低位 residue 的最大值",
+          "en": "largest value of the low residue"
+        }
+      ],
+      "assumptions": {
+        "zh": "计数器每个 $CK_0$ 上升沿 $N\\to N+1$；状态按式 (1) 已对齐。",
+        "en": "The counter steps $N\\to N+1$ on every $CK_0$ rising edge; states are aligned per Eq. (1)."
+      },
+      "derivation": [
+        {
+          "zh": "由式 (1)，$N$ 与 $N+1$ 各自有唯一分解。若 $q<M-1$，则 $N+1=MC+(q+1)$，高位不变。",
+          "en": "By Eq. (1), $N$ and $N+1$ each decompose uniquely. If $q<M-1$, then $N+1=MC+(q+1)$ and the high count is unchanged."
+        },
+        {
+          "zh": "若 $q=M-1$：",
+          "en": "If $q=M-1$:",
+          "tex": "N+1=MC+(M-1)+1=M(C+1)+0\\;\\Rightarrow\\;(C,M-1)\\to(C+1,0)"
+        },
+        {
+          "zh": "因此高位必须恰好在低位 wrap 的那一拍进位：慢计数不能只是任意同频 /M 时钟驱动，必须与低位 wrap 在逻辑上同源（ETRI 的 11→00 与 CKVD4 即为一例）。",
+          "en": "So the high count must carry exactly on the low wrap: the slow count cannot be driven by just any /M clock of the same rate; it must be logically derived from the low-bit wrap (ETRI's 11→00 with CKVD4 is an instance)."
+        },
+        {
+          "zh": "实现检查：普通二进制 $q[2]$ 的上升沿对应低三位 3→4，下降沿才对应 7→0；把 $q$ 的最高位当 /8 时钟时，必须核对高位触发极性、复位原点与流水延迟。",
+          "en": "Implementation check: for plain binary, the rising edge of $q[2]$ marks 3→4 and only its falling edge marks 7→0; when the MSB of $q$ is used as the /8 clock, check the high-bit trigger polarity, reset origin and pipeline delay."
+        }
+      ],
+      "pitfalls": {
+        "zh": "不能只看信号名 CKVD8 就默认其某个有效沿等于式 (2) 的 carry；连续计数成立也不等于参考相关 snapshot 已经安全。",
+        "en": "Never assume from the name CKVD8 that one of its active edges equals the carry of Eq. (2); a continuous count also does not make the reference-related snapshot safe."
+      },
+      "section": "r-3-2",
+      "widgets": [
+        "split-counter"
+      ],
+      "checks": [],
+      "origin": {
+        "zh": "定义（本报告，D）",
+        "en": "Definition (this report, D)"
+      }
+    },
+    {
+      "n": "3",
+      "tex": "A_k=J_k+\\alpha_k. \\tag{3}",
+      "chapter": "3",
+      "title": {
+        "zh": "被选物理边沿的锚点坐标 A = J + α",
+        "en": "Anchor coordinate of the selected edge A = J + α"
+      },
+      "meaning": {
+        "zh": "在连续展开的原时钟相位 $\\Phi_0$ 上，第 $k$ 次事件实际被选的物理边沿坐标等于其原始上升沿的绝对编号 $J_k$ 加周期内偏移 $\\alpha_k$。",
+        "en": "On the unwrapped raw-clock phase $\\Phi_0$, the coordinate of the physical edge actually selected at event $k$ equals the absolute index $J_k$ of its raw rising edge plus the intra-cycle offset $\\alpha_k$."
+      },
+      "vars": [
+        {
+          "sym": "A_k",
+          "zh": "第 k 次事件被选边沿的坐标（原周期）",
+          "en": "coordinate of the selected edge at event k (raw cycles)"
+        },
+        {
+          "sym": "J_k",
+          "zh": "实际原始上升沿的绝对编号",
+          "en": "absolute index of the actual raw rising edge"
+        },
+        {
+          "sym": "\\alpha_k",
+          "zh": "选中边沿相对该上升沿的周期内偏移；仅在独立存在该自由度时加入",
+          "en": "intra-cycle offset of the selected edge from that rising edge; only when that freedom exists"
+        }
+      ],
+      "assumptions": {
+        "zh": "相位以 $\\Phi_0(t)$（原周期）为坐标，并约定第 $J$ 个原始上升沿处 $\\Phi_0=J$；只选上升沿时 $\\alpha=0$。",
+        "en": "Phase is measured on $\\Phi_0(t)$ in raw cycles, with the convention $\\Phi_0=J$ at raw rising edge $J$; $\\alpha=0$ when only rising edges are selected."
+      },
+      "derivation": [
+        {
+          "zh": "以连续展开的原时钟相位 $\\Phi_0(t)$ 为定义：原始上升沿位于整数相位处，第 $J$ 条上升沿对应 $\\Phi_0=J$。",
+          "en": "Use the unwrapped raw-clock phase $\\Phi_0(t)$ as the definition: raw rising edges sit at integer phases, rising edge $J$ at $\\Phi_0=J$."
+        },
+        {
+          "zh": "被选边沿可能不是上升沿本身（下降沿、多相中的某一相），它与第 $J$ 条上升沿相差周期内偏移 $\\alpha$（原周期）。",
+          "en": "The selected edge may not be the rising edge itself (a falling edge, one tap of a multiphase set); it lies an intra-cycle offset $\\alpha$ (raw cycles) after rising edge $J$."
+        },
+        {
+          "zh": "于是该物理边沿的坐标为整数部分与偏移之和：",
+          "en": "So the coordinate of that physical edge is the sum of the integer part and the offset:",
+          "tex": "A_k=\\Phi_0(t_{E,k})=J_k+\\alpha_k"
+        }
+      ],
+      "pitfalls": {
+        "zh": "$J$ 必须是真实执行的边沿编号（$J_{\\mathrm{observed}}$），不能用计划值自证；$\\alpha$ 必须以原周期为单位，不能混入分频后周期。",
+        "en": "$J$ must be the index of the edge actually executed ($J_{\\mathrm{observed}}$), not self-certified by the plan; $\\alpha$ must be in raw cycles, not divided-clock periods."
+      },
+      "section": "r-3-3",
+      "widgets": [
+        "phase-anchor"
+      ],
+      "checks": [],
+      "origin": {
+        "zh": "定义（本报告，D）",
+        "en": "Definition (this report, D)"
+      }
+    },
+    {
+      "n": "4",
+      "tex": "\\mu_k=\\int_{t_{R,k}}^{t_{E,k}} f_0(t)\\,dt. \\tag{4}",
+      "chapter": "3",
+      "title": {
+        "zh": "参考到被选边沿的精确相位间隔 μ",
+        "en": "Exact reference-to-edge phase interval μ"
+      },
+      "meaning": {
+        "zh": "从参考事件 $t_{R,k}$ 到被选边沿 $t_{E,k}$，原时钟实际走过的相位（原周期）等于瞬时频率的积分；其符号由积分上下限决定。",
+        "en": "The phase the raw clock actually traverses from the reference event $t_{R,k}$ to the selected edge $t_{E,k}$ (in raw cycles) is the integral of the instantaneous frequency; its sign follows the integration limits."
+      },
+      "vars": [
+        {
+          "sym": "\\mu_k",
+          "zh": "有符号相位间隔（原周期）",
+          "en": "signed phase interval (raw cycles)"
+        },
+        {
+          "sym": "t_{R,k},\\,t_{E,k}",
+          "zh": "参考事件时刻与被选边沿时刻",
+          "en": "reference-event time and selected-edge time"
+        },
+        {
+          "sym": "f_0(t)",
+          "zh": "$CK_0$ 瞬时频率",
+          "en": "instantaneous frequency of $CK_0$"
+        }
+      ],
+      "assumptions": {
+        "zh": "精确定义，不需要频率恒定；只需 $\\Phi_0$ 连续展开。",
+        "en": "Exact definition; no constant-frequency assumption, only an unwrapped $\\Phi_0$."
+      },
+      "derivation": [
+        {
+          "zh": "以原周期计的相位，其时间导数就是瞬时频率：",
+          "en": "Phase measured in raw cycles has the instantaneous frequency as its time derivative:",
+          "tex": "\\frac{d\\Phi_0}{dt}=f_0(t)"
+        },
+        {
+          "zh": "在 $[t_{R,k},t_{E,k}]$ 上积分：",
+          "en": "Integrate over $[t_{R,k},t_{E,k}]$:",
+          "tex": "\\Phi_0(t_{E,k})-\\Phi_0(t_{R,k})=\\int_{t_{R,k}}^{t_{E,k}} f_0(t)\\,dt\\equiv\\mu_k"
+        },
+        {
+          "zh": "选 following edge 时 $t_E>t_R$，$\\mu>0$；选 preceding edge 时积分上下限颠倒，$\\mu<0$。同一公式覆盖两种情形，不再需要未定义的“±TDC”约定。",
+          "en": "For a following edge $t_E>t_R$ and $\\mu>0$; for a preceding edge the limits swap and $\\mu<0$. One formula covers both cases — no undefined \"±TDC\" convention is needed."
+        }
+      ],
+      "pitfalls": {
+        "zh": "$\\mu$ 的单位是原周期，不是秒；把时间差换成相位需要式 (6) 的近似或更精确的积分。",
+        "en": "$\\mu$ is in raw cycles, not seconds; turning a time difference into phase needs the approximation of Eq. (6) or a more exact integral."
+      },
+      "section": "r-3-3",
+      "widgets": [
+        "phase-anchor"
+      ],
+      "checks": [],
+      "origin": {
+        "zh": "定义（本报告，D）",
+        "en": "Definition (this report, D)"
+      }
+    },
+    {
+      "n": "5",
+      "tex": "\\Phi_0(t_{R,k})=A_k-\\mu_k. \\tag{5}",
+      "chapter": "3",
+      "title": {
+        "zh": "锚点减残差：Φ0(t_R) = A − μ",
+        "en": "Anchor minus residual: Φ0(t_R) = A − μ"
+      },
+      "meaning": {
+        "zh": "参考时刻的完整相位 = 被选边沿的锚点坐标 − 参考到该边沿的相位间隔。整数信息只来自锚点，fine 只提供残差。",
+        "en": "Full phase at the reference instant = anchor coordinate of the selected edge − phase interval from the reference to that edge. Integer information comes only from the anchor; fine only supplies the residual."
+      },
+      "vars": [
+        {
+          "sym": "\\Phi_0(t_{R,k})",
+          "zh": "参考时刻的原时钟相位（原周期）",
+          "en": "raw-clock phase at the reference instant (raw cycles)"
+        },
+        {
+          "sym": "A_k",
+          "zh": "锚点，式 (3)",
+          "en": "anchor, Eq. (3)"
+        },
+        {
+          "sym": "\\mu_k",
+          "zh": "残差，式 (4)",
+          "en": "residual, Eq. (4)"
+        }
+      ],
+      "assumptions": {
+        "zh": "$A_k$ 与 $\\mu_k$ 必须指向同一个物理边沿（同锚点，不变量 I2）。",
+        "en": "$A_k$ and $\\mu_k$ must refer to the same physical edge (common anchor, invariant I2)."
+      },
+      "derivation": [
+        {
+          "zh": "由式 (3)：$\\Phi_0(t_{E,k})=A_k$。",
+          "en": "From Eq. (3): $\\Phi_0(t_{E,k})=A_k$."
+        },
+        {
+          "zh": "由式 (4)：$\\Phi_0(t_{E,k})-\\Phi_0(t_{R,k})=\\mu_k$。",
+          "en": "From Eq. (4): $\\Phi_0(t_{E,k})-\\Phi_0(t_{R,k})=\\mu_k$."
+        },
+        {
+          "zh": "两式相减消去 $\\Phi_0(t_{E,k})$：",
+          "en": "Eliminate $\\Phi_0(t_{E,k})$:",
+          "tex": "\\Phi_0(t_{R,k})=\\Phi_0(t_{E,k})-\\mu_k=A_k-\\mu_k"
+        },
+        {
+          "zh": "它取代被撤回的通用写法 $8C+q+e/8+\\epsilon$：后者可能让 $q$ 与多相码重复表示同一区间，并混用分频后周期与原周期。",
+          "en": "It replaces the withdrawn generic form $8C+q+e/8+\\epsilon$, in which $q$ and the multiphase code may encode the same interval twice and divided-clock and raw-cycle units get mixed."
+        }
+      ],
+      "pitfalls": {
+        "zh": "coarse 与 fine 必须针对同一锚点；整数取 $J+1$ 而 fine 仍相对 $J$ 会产生一整周期错误（式 12）。",
+        "en": "Coarse and fine must refer to one anchor; taking $J+1$ for the integer while fine still refers to $J$ yields a whole-cycle error (Eq. 12)."
+      },
+      "section": "r-3-3",
+      "widgets": [
+        "phase-anchor",
+        "golden-model"
+      ],
+      "checks": [],
+      "origin": {
+        "zh": "本报告推导（D）",
+        "en": "Report derivation (D)"
+      }
+    },
+    {
+      "n": "6",
+      "tex": "\\widehat{\\mu}_k\\approx\\frac{\\widehat{\\Delta t}_k}{\\widehat T_0[k]}. \\tag{6}",
+      "chapter": "3",
+      "title": {
+        "zh": "固定周期归一化（局部近似）",
+        "en": "Fixed-period normalisation (local approximation)"
+      },
+      "meaning": {
+        "zh": "当局部间隔内频率近似恒定时，可用测得的时间差除以周期估计得到相位间隔的估计。",
+        "en": "When the frequency is roughly constant over the local interval, the phase interval can be estimated as the measured time difference divided by a period estimate."
+      },
+      "vars": [
+        {
+          "sym": "\\widehat{\\mu}_k",
+          "zh": "相位间隔估计（原周期）",
+          "en": "phase-interval estimate (raw cycles)"
+        },
+        {
+          "sym": "\\widehat{\\Delta t}_k",
+          "zh": "测得的参考到边沿时间差（s）",
+          "en": "measured reference-to-edge time difference (s)"
+        },
+        {
+          "sym": "\\widehat T_0[k]",
+          "zh": "第 k 次事件附近的原周期估计（s）",
+          "en": "raw-period estimate near event k (s)"
+        }
+      ],
+      "assumptions": {
+        "zh": "仅在局部间隔内近似频率恒定时成立；快速调频、强瞬态或跨多个周期时应评估相对式 (4) 的误差。",
+        "en": "Only valid when the frequency is roughly constant over the local interval; for fast modulation, strong transients or multi-cycle spans, evaluate the error against Eq. (4)."
+      },
+      "derivation": [
+        {
+          "zh": "若在 $[t_R,t_E]$ 内 $f_0(t)\\approx f_0=1/T_0$ 为常数，则式 (4) 的积分化为乘积：",
+          "en": "If $f_0(t)\\approx f_0=1/T_0$ is constant on $[t_R,t_E]$, the integral of Eq. (4) becomes a product:",
+          "tex": "\\mu=\\int_{t_R}^{t_E} f_0\\,dt=f_0\\,\\Delta t=\\frac{\\Delta t}{T_0}"
+        },
+        {
+          "zh": "用测量值 $\\widehat{\\Delta t}_k$ 与周期估计 $\\widehat T_0[k]$ 代入即得式 (6)。",
+          "en": "Substituting the measured $\\widehat{\\Delta t}_k$ and the period estimate $\\widehat T_0[k]$ gives Eq. (6)."
+        },
+        {
+          "zh": "误差上界：若间隔内频率估计误差有界为 $\\delta f_{max}$，则",
+          "en": "Error bound: if the frequency-estimate error over the interval is bounded by $\\delta f_{max}$, then",
+          "tex": "|\\delta\\mu|\\le\\delta f_{max}\\,|\\Delta t|"
+        },
+        {
+          "zh": "上界随 $|\\Delta t|$ 线性增长——这正是过长的 selected-edge 间隔不宜仅靠固定周期归一化的原因。",
+          "en": "The bound grows linearly with $|\\Delta t|$ — which is why an overly long selected-edge interval should not rely on fixed-period normalisation alone."
+        }
+      ],
+      "pitfalls": {
+        "zh": "不能把式 (6) 当作式 (4) 的精确替代；归一化用的周期估计必须与 TDC 校准版本相容。",
+        "en": "Eq. (6) is not an exact replacement for Eq. (4); the period estimate used for normalisation must match the TDC calibration version."
+      },
+      "section": "r-3-3",
+      "widgets": [
+        "phase-anchor"
+      ],
+      "checks": [],
+      "origin": {
+        "zh": "本报告近似（D）",
+        "en": "Report approximation (D)"
+      }
+    },
+    {
+      "n": "7",
+      "tex": "\\Phi_0=4\\Phi_d=4C_d+\\frac{a}{2}+4\\epsilon_d. \\tag{7}",
+      "context": "\\Phi_d=C_d+\\frac{a}{8}+\\epsilon_d.",
+      "chapter": "3",
+      "title": {
+        "zh": "分频相位换算到原周期：Φ0 = 4Φd",
+        "en": "Divided-clock phase to raw cycles: Φ0 = 4Φd"
+      },
+      "meaning": {
+        "zh": "理想 /4 八相示例中，分频后周期内的区域码 $a$ 换算到原周期是 $a/2$，而不是 $a/8$。",
+        "en": "In the ideal /4 eight-phase example, the region code $a$ inside a divided period converts to $a/2$ raw cycles, not $a/8$."
+      },
+      "vars": [
+        {
+          "sym": "\\Phi_d",
+          "zh": "分频后时钟相位（分频后周期）",
+          "en": "divided-clock phase (divided periods)"
+        },
+        {
+          "sym": "C_d",
+          "zh": "分频后周期计数",
+          "en": "divided-period count"
+        },
+        {
+          "sym": "a",
+          "zh": "八相区域标签 $0\\ldots7$",
+          "en": "eight-phase region label $0\\ldots7$"
+        },
+        {
+          "sym": "\\epsilon_d",
+          "zh": "分频后周期单位下的剩余小数",
+          "en": "remaining fraction in divided periods"
+        },
+        {
+          "sym": "\\Phi_0",
+          "zh": "原时钟相位（原周期）",
+          "en": "raw-clock phase (raw cycles)"
+        }
+      ],
+      "assumptions": {
+        "zh": "理想 /4、八相均匀分布且相位原点对齐。真实电路还要处理相位排列、边沿极性、DCC 和原点偏置。",
+        "en": "Ideal /4, uniformly spaced eight phases, aligned phase origins. Real circuits must also handle phase ordering, edge polarity, DCC and origin offsets."
+      },
+      "derivation": [
+        {
+          "zh": "在分频后周期内用八相区域表示相位（单位：分频后周期）：",
+          "en": "Express the phase with the eight-phase region inside a divided period (unit: divided period):",
+          "tex": "\\Phi_d=C_d+\\frac{a}{8}+\\epsilon_d"
+        },
+        {
+          "zh": "一个分频后周期 = 4 个原周期，故换到原周期要乘 4：$\\Phi_0=4\\Phi_d$。",
+          "en": "One divided period = 4 raw cycles, so converting to raw cycles multiplies by 4: $\\Phi_0=4\\Phi_d$."
+        },
+        {
+          "zh": "展开：",
+          "en": "Expand:",
+          "tex": "4\\Phi_d=4C_d+\\frac{4a}{8}+4\\epsilon_d=4C_d+\\frac{a}{2}+4\\epsilon_d"
+        },
+        {
+          "zh": "因此八相间距在原周期单位下是 $1/2$ 原周期（$T_0/2$），不是 $T_0/8$——这正是 Kuo 2018 的单位修正。",
+          "en": "So the eight-phase spacing is $1/2$ raw cycle ($T_0/2$), not $T_0/8$ — exactly the unit correction for Kuo 2018."
+        }
+      ],
+      "pitfalls": {
+        "zh": "$a/8$ 的单位是分频后周期；不能把它直接加到以原周期计的 $8C+q$ 上。",
+        "en": "$a/8$ is in divided periods; it cannot be added directly to $8C+q$, which is in raw cycles."
+      },
+      "section": "r-3-4",
+      "widgets": [
+        "multiphase-units"
+      ],
+      "checks": [
+        "L04"
+      ],
+      "origin": {
+        "zh": "量纲推导（D）· 非原文真值表",
+        "en": "Dimensional derivation (D) · not a source truth table"
+      }
+    },
+    {
+      "n": "8",
+      "tex": "\\Phi_0=4C_d+q+\\frac{p}{2}+\\epsilon_0,\\qquad\\epsilon_0=4\\epsilon_d. \\tag{8}",
+      "chapter": "3",
+      "title": {
+        "zh": "区域码拆分：a 已包含 q",
+        "en": "Splitting the region code: a already contains q"
+      },
+      "meaning": {
+        "zh": "把区域码 $a$ 拆成整原周期 $q$ 与半周期位 $p$，可见 $a$ 已经包含 $q$ 的信息；再相加 $q+a/8$ 就是混合单位并重复计数。",
+        "en": "Splitting the region code $a$ into whole raw cycles $q$ and a half-cycle bit $p$ shows that $a$ already contains $q$; adding $q+a/8$ mixes units and double-counts."
+      },
+      "vars": [
+        {
+          "sym": "q=\\operatorname{floor}(a/2)",
+          "zh": "区域码对应的整原周期（$0\\ldots3$）",
+          "en": "whole raw cycles encoded by the region ($0\\ldots3$)"
+        },
+        {
+          "sym": "p=a\\bmod2",
+          "zh": "半原周期位",
+          "en": "half-raw-cycle bit"
+        },
+        {
+          "sym": "\\epsilon_0=4\\epsilon_d",
+          "zh": "原周期单位下的剩余小数",
+          "en": "remaining fraction in raw cycles"
+        }
+      ],
+      "assumptions": {
+        "zh": "与式 (7) 相同：理想 /4、八相均匀、原点对齐。是量纲推导，不是对某篇原文 decoder truth table 的逐码复刻。",
+        "en": "Same as Eq. (7): ideal /4, uniform eight phases, aligned origins. A dimensional derivation, not a code-by-code copy of any source decoder truth table."
+      },
+      "derivation": [
+        {
+          "zh": "令 $q=\\operatorname{floor}(a/2)$、$p=a\\bmod 2$，则 $a=2q+p$。",
+          "en": "Let $q=\\operatorname{floor}(a/2)$ and $p=a\\bmod 2$, so $a=2q+p$."
+        },
+        {
+          "zh": "于是 $a/2=q+p/2$，代入式 (7)：",
+          "en": "Then $a/2=q+p/2$; substitute into Eq. (7):",
+          "tex": "\\Phi_0=4C_d+q+\\frac{p}{2}+4\\epsilon_d"
+        },
+        {
+          "zh": "记 $\\epsilon_0=4\\epsilon_d$ 即得式 (8)。",
+          "en": "Writing $\\epsilon_0=4\\epsilon_d$ gives Eq. (8)."
+        },
+        {
+          "zh": "结论：$q$ 已从 $a$ 中出现一次；若再写 $q+a/8$，同一相位区间被计数两次且单位混合。这就是不能通用地写 $8C+q+e/8+\\epsilon$ 的原因。",
+          "en": "Conclusion: $q$ already appears from $a$; writing $q+a/8$ counts the same interval twice and mixes units. That is why $8C+q+e/8+\\epsilon$ cannot be used generically."
+        }
+      ],
+      "pitfalls": {
+        "zh": "真实电路的相位排列、边沿极性、DCC 与原点偏置都会改变映射；不要把这里的 $q$ 与 /8 split counter 的 3-bit residue 混为一谈。",
+        "en": "Real phase ordering, edge polarity, DCC and origin offsets change the mapping; do not confuse this $q$ with the 3-bit residue of a /8 split counter."
+      },
+      "section": "r-3-4",
+      "widgets": [
+        "multiphase-units"
+      ],
+      "checks": [
+        "L04"
+      ],
+      "origin": {
+        "zh": "量纲推导（D）· 非原文真值表",
+        "en": "Dimensional derivation (D) · not a source truth table"
+      }
+    },
+    {
+      "n": "9",
+      "tex": "CRRCT=VINT[0]\\oplus VFRAC[0],\\qquad SIGN=VFRAC[0]\\oplus VFRAC[3]. \\tag{9}",
+      "chapter": "4",
+      "title": {
+        "zh": "Sony 的两个 XOR：CRRCT 与 SIGN",
+        "en": "Sony's two XORs: CRRCT and SIGN"
+      },
+      "meaning": {
+        "zh": "比较经参考重定时采样的整数路径 VINT 与直接采样的 VFRAC：最低位不一致则需修正（CRRCT=1），SIGN 决定 −1 还是 +1。",
+        "en": "Compare the integer path VINT (sampled after reference retiming) with the directly sampled VFRAC: if their LSBs differ a correction is needed (CRRCT=1), and SIGN picks −1 or +1."
+      },
+      "vars": [
+        {
+          "sym": "VINT",
+          "zh": "CNTO[0] 与慢 accumulator 高位形成、经参考重定时后采样的整数码",
+          "en": "integer code formed by CNTO[0] and the slow accumulator high bits, sampled after reference retiming"
+        },
+        {
+          "sym": "VFRAC",
+          "zh": "REFCLK 直接采样的 CNTO[3:0]，带周期冗余的状态码",
+          "en": "CNTO[3:0] sampled directly by REFCLK; a state code with cycle redundancy"
+        },
+        {
+          "sym": "CRRCT",
+          "zh": "是否需要修正",
+          "en": "whether a correction is needed"
+        },
+        {
+          "sym": "SIGN",
+          "zh": "修正方向",
+          "en": "correction direction"
+        }
+      ],
+      "assumptions": {
+        "zh": "原实施例用多相 latch/correction 替代传统 TDC；修正量“1”按原相位单位解释。个别 retiming 节点/位序需结合原文 Fig.6、8、11、12 交叉确认。",
+        "en": "The embodiment replaces a conventional TDC with multiphase latch/correction; the \"1\" of the correction is in its original phase unit. Some retiming nodes/bit orders must be cross-checked with Fig. 6, 8, 11, 12 of the original."
+      },
+      "derivation": [
+        {
+          "zh": "同一个 CNTO 走两条路径：CNTO[0] 与慢 accumulator 高位组成整数码，经参考重定时后采样为 VINT；CNTO[3:0] 由 REFCLK 直接采为 VFRAC。",
+          "en": "One CNTO feeds two paths: CNTO[0] with the slow accumulator high bits forms the integer code, sampled after reference retiming as VINT; CNTO[3:0] is sampled directly by REFCLK as VFRAC."
+        },
+        {
+          "zh": "若两条路径看到同一状态，则 VINT[0] = VFRAC[0]，CRRCT = 0，修正为 0。",
+          "en": "If both paths see the same state, VINT[0] = VFRAC[0], CRRCT = 0 and the correction is 0."
+        },
+        {
+          "zh": "若两条路径的状态差异使最低位不一致，CRRCT = 1；SIGN = VFRAC[0] ⊕ VFRAC[3] 区分方向：SIGN = 0 → −1，SIGN = 1 → +1（原实施例送往 phase comparator 的修正）。",
+          "en": "If the state difference between the paths makes the LSBs disagree, CRRCT = 1; SIGN = VFRAC[0] ⊕ VFRAC[3] gives the direction: SIGN = 0 → −1, SIGN = 1 → +1 (the correction sent to the phase comparator in the embodiment)."
+        },
+        {
+          "zh": "本书立场：这是原文披露的修正规则（A-P），不是对任意异步错误都保证唯一复原的证明；VFRAC 的值跨至 1.75，并非普通纯小数二进制。",
+          "en": "The book's position: this is the correction rule disclosed in the source (A-P), not a proof of unique recovery from arbitrary asynchronous errors; VFRAC values reach 1.75 and are not a plain binary fraction."
+        }
+      ],
+      "table": {
+        "head": [
+          {
+            "zh": "CRRCT",
+            "en": "CRRCT"
+          },
+          {
+            "zh": "SIGN",
+            "en": "SIGN"
+          },
+          {
+            "zh": "原实施例送往 phase comparator 的修正",
+            "en": "Correction sent to the phase comparator (embodiment)"
+          }
+        ],
+        "rows": [
+          [
+            "0",
+            {
+              "zh": "任意",
+              "en": "any"
+            },
+            "0"
+          ],
+          [
+            "1",
+            "0",
+            "−1"
+          ],
+          [
+            "1",
+            "1",
+            "+1"
+          ]
+        ]
+      },
+      "pitfalls": {
+        "zh": "不能从式 (9) 推出对任意异步错误都保证唯一复原；直接把这种 low-bit XOR 搬到 /8 模型未必能检测高位错组（式 11 的低位盲区）；不能说它已接上本项目 short TDC。",
+        "en": "Eq. (9) does not guarantee unique recovery from any asynchronous error; transplanting such a low-bit XOR into the /8 model may miss high-bit group errors (the low-bit blind spot of Eq. 11); it is not connected to this project's short TDC."
+      },
+      "section": "r-4-7",
+      "widgets": [
+        "sony-xor-correction"
+      ],
+      "checks": [],
+      "origin": {
+        "zh": "引自 Sony 专利 [R07]（A-P）",
+        "en": "Quoted from Sony patent [R07] (A-P)"
+      }
+    },
+    {
+      "n": "10",
+      "tex": "N_{\\mathrm{corr}}=M(C_{\\mathrm{cap}}+\\kappa_C)+q_{\\mathrm{corr}}+\\kappa_N. \\tag{10}",
+      "chapter": "6",
+      "title": {
+        "zh": "分单位的修正接口 N_corr",
+        "en": "Unit-separated correction interface N_corr"
+      },
+      "meaning": {
+        "zh": "把组级修正 $\\kappa_C$（单位：一组）与原周期修正 $\\kappa_N$（单位：一个原周期）分开，再与重构后的 residue $q_{\\mathrm{corr}}$ 组合成修正后的原周期编号。",
+        "en": "Keep the group-level correction $\\kappa_C$ (unit: one group) separate from the raw-cycle correction $\\kappa_N$ (unit: one raw cycle), then combine them with the reconstructed residue $q_{\\mathrm{corr}}$ into the corrected raw-cycle index."
+      },
+      "vars": [
+        {
+          "sym": "C_{\\mathrm{cap}}",
+          "zh": "捕获到的高位组计数",
+          "en": "captured high group count"
+        },
+        {
+          "sym": "q_{\\mathrm{corr}}",
+          "zh": "经合法码/状态重构后的 residue",
+          "en": "residue after legal-code/state reconstruction"
+        },
+        {
+          "sym": "\\kappa_C",
+          "zh": "组单位修正",
+          "en": "correction in groups"
+        },
+        {
+          "sym": "\\kappa_N",
+          "zh": "原周期单位修正",
+          "en": "correction in raw cycles"
+        }
+      ],
+      "assumptions": {
+        "zh": "$\\kappa_C\\in\\{-1,0,+1\\}$ 只有在采样延迟及同步延迟已证明最多跨一组时才合理；否则必须扩展修正集合或判为无效。",
+        "en": "$\\kappa_C\\in\\{-1,0,+1\\}$ is justified only if sampling and synchroniser delay are proven to span at most one group; otherwise the set must grow or the observation be declared invalid."
+      },
+      "derivation": [
+        {
+          "zh": "捕获的 $(C_{\\mathrm{cap}},q_{\\mathrm{cap}})$ 可能来自不同 epoch。故障按层级分类：高位错一组（误差 $\\pm M$）与原周期错一拍（误差 $\\pm1$）是不同故障。",
+          "en": "The captured $(C_{\\mathrm{cap}},q_{\\mathrm{cap}})$ may come from different epochs. Faults are layered: a high count one group off (error $\\pm M$) and a raw cycle off by one (error $\\pm1$) are different faults."
+        },
+        {
+          "zh": "组级误差在 $C$ 上修正，贡献 $M\\kappa_C$；原周期级误差贡献 $\\kappa_N$；residue 本身用重构值 $q_{\\mathrm{corr}}$。按式 (1) 组合即得式 (10)。",
+          "en": "Group errors are fixed on $C$, contributing $M\\kappa_C$; raw-cycle errors contribute $\\kappa_N$; the residue uses its reconstructed value $q_{\\mathrm{corr}}$. Combining per Eq. (1) gives Eq. (10)."
+        },
+        {
+          "zh": "例（$M=8$，§6.1）：旧高位 + 新低位 $(10,0)$ 给出 80，相对新合法状态 88 错 −8，需 $\\kappa_C=+1$；新高位 + 旧低位 $(11,7)$ 给出 95，相对旧合法状态 87 错 +8，需 $\\kappa_C=-1$。",
+          "en": "Example ($M=8$, §6.1): old high + new low $(10,0)$ gives 80, −8 off the new legal 88, needing $\\kappa_C=+1$; new high + old low $(11,7)$ gives 95, +8 off the old legal 87, needing $\\kappa_C=-1$.",
+          "tex": "8(10+1)+0=88,\\qquad 8(11-1)+7=87"
+        },
+        {
+          "zh": "校正范围是由时序上界导出的规范，不是预先任意选的编码宽度。",
+          "en": "The correction range is a specification derived from timing bounds, not an arbitrarily pre-chosen code width."
+        }
+      ],
+      "pitfalls": {
+        "zh": "不要用同一个无单位 kappa 混合三种职责；“统一采用 κ = −1/0/+1”已被修订；相对另一侧合法锚点比较时差值也可能表现为 ±7，必须先指定应关联的旧/新 epoch。",
+        "en": "Never mix three roles in one unit-less kappa; \"always use κ = −1/0/+1\" has been revised; compared with the other legal anchor the difference may look like ±7, so the intended old/new epoch must be specified first."
+      },
+      "section": "r-6-2",
+      "widgets": [
+        "torn-capture"
+      ],
+      "checks": [],
+      "origin": {
+        "zh": "候选接口规范（D）",
+        "en": "Candidate interface spec (D)"
+      }
+    },
+    {
+      "n": "11",
+      "tex": "(N+M)\\bmod2=N\\bmod2. \\tag{11}",
+      "context": "(N+M)\\bmod M=N\\bmod M,",
+      "chapter": "6",
+      "title": {
+        "zh": "低位盲区：整组误差不改变 q 与奇偶",
+        "en": "Low-bit blind spot: a whole-group error keeps q and parity"
+      },
+      "meaning": {
+        "zh": "误差恰为一整组 $M$ 时，既不改变 $q=N\\bmod M$，也不改变原周期奇偶 $N\\bmod 2$；只看低位或 raw parity 的检查看不出高位错组。",
+        "en": "An error of exactly one group $M$ changes neither $q=N\\bmod M$ nor the raw-cycle parity $N\\bmod 2$; checks that only look at the low bits or raw parity cannot see a high-bit group error."
+      },
+      "vars": [
+        {
+          "sym": "N",
+          "zh": "原周期编号",
+          "en": "raw-cycle index"
+        },
+        {
+          "sym": "M",
+          "zh": "分组倍率（4 或 8，均为偶数）",
+          "en": "group ratio (4 or 8, both even)"
+        }
+      ],
+      "assumptions": {
+        "zh": "$M=4$ 或 8（偶数）。",
+        "en": "$M=4$ or 8 (even)."
+      },
+      "derivation": [
+        {
+          "zh": "整组误差即 $N\\to N+M$。加上 $M$ 的整数倍不改变模 $M$ 余数：",
+          "en": "A whole-group error is $N\\to N+M$. Adding a multiple of $M$ leaves the residue mod $M$ unchanged:",
+          "tex": "(N+M)\\bmod M=N\\bmod M"
+        },
+        {
+          "zh": "$M=4$ 或 8 是偶数，$M=2\\cdot(M/2)$，所以加 $M$ 也不改变模 2 余数，即式 (11)。",
+          "en": "$M=4$ or 8 is even, $M=2\\cdot(M/2)$, so adding $M$ also leaves the residue mod 2 unchanged — Eq. (11)."
+        },
+        {
+          "zh": "因此只用 $q$ 或 raw parity 的 XOR（如直接搬用 Havens/Sony 的某个 low-bit XOR）可能完全看不出高位错组。",
+          "en": "Hence an XOR using only $q$ or raw parity (e.g. a low-bit XOR transplanted from Havens/Sony) may miss a high-bit group error entirely."
+        },
+        {
+          "zh": "需要能跨组翻转的冗余状态：高位最低位的独立观测、wrap toggle/sequence，或保证高位取自确定候选 epoch 的捕获协议。即便使用高位 parity，也只能在错误已被限定到相邻组时区分——相差两组会再次别名：",
+          "en": "Redundant state that toggles across groups is needed: an independent observation of the high LSB, a wrap toggle/sequence, or a capture protocol that takes the high count from a definite candidate epoch. Even high-bit parity only works once errors are limited to adjacent groups — two groups alias again:",
+          "tex": "(C+2)\\bmod 2=C\\bmod 2"
+        }
+      ],
+      "pitfalls": {
+        "zh": "这是冗余码覆盖范围问题：先列出错误集合，再选冗余信息；L03 的 512 个案例确认 $+M$ 不改变 residue 和 raw parity。",
+        "en": "This is a question of redundant-code coverage: list the error set first, then choose the redundant information; the 512 cases of L03 confirm that $+M$ changes neither residue nor raw parity."
+      },
+      "section": "r-6-3",
+      "widgets": [
+        "blind-spot",
+        "verify-runner"
+      ],
+      "checks": [
+        "L03"
+      ],
+      "origin": {
+        "zh": "本报告推导（D）",
+        "en": "Report derivation (D)"
+      }
+    },
+    {
+      "n": "12",
+      "tex": "J-\\mu=(J+1)-(\\mu+1). \\tag{12}",
+      "chapter": "6",
+      "title": {
+        "zh": "锚点等价：J − μ = (J+1) − (μ+1)",
+        "en": "Anchor equivalence: J − μ = (J+1) − (μ+1)"
+      },
+      "meaning": {
+        "zh": "参考靠近相邻边沿 $J$ 与 $J+1$ 时，两种锚点表示同一相位；合格的交接只要求整数锚点与 fine 间隔共同变换。",
+        "en": "When the reference is near adjacent edges $J$ and $J+1$, both anchors represent the same phase; a correct hand-off only requires the integer anchor and the fine interval to transform together."
+      },
+      "vars": [
+        {
+          "sym": "J",
+          "zh": "相邻两条边沿中较早的一条的编号",
+          "en": "index of the earlier of two adjacent edges"
+        },
+        {
+          "sym": "\\mu",
+          "zh": "相对边沿 $J$ 的相位间隔",
+          "en": "phase interval relative to edge $J$"
+        }
+      ],
+      "assumptions": {
+        "zh": "精确相位域等式；用单个平均周期把长时间间隔归一化时，还要满足 §3.3 / 式 (6) 的近似条件。",
+        "en": "An exact phase-domain identity; normalising a long interval with one average period additionally needs the approximation conditions of §3.3 / Eq. (6)."
+      },
+      "derivation": [
+        {
+          "zh": "代数恒等式：",
+          "en": "Algebraic identity:",
+          "tex": "(J+1)-(\\mu+1)=J+1-\\mu-1=J-\\mu"
+        },
+        {
+          "zh": "物理含义：若改选 $J+1$ 作锚点，则到该边沿的间隔也必须多 1 个原周期（$\\mu+1$），即 fine 必须相对 $J+1$ 而非 $J$。",
+          "en": "Physical meaning: if $J+1$ is chosen as anchor, the interval to that edge must also be one raw cycle longer ($\\mu+1$), i.e. fine must refer to $J+1$, not $J$."
+        },
+        {
+          "zh": "因此合格的 coarse/fine 交接不一定需要每次都选择预先认定的唯一边沿；只要求锚点与 fine 间隔共同变换（不变量 I6）。",
+          "en": "So a correct coarse/fine hand-off need not always pick one predetermined edge; it requires anchor and fine interval to transform together (invariant I6)."
+        },
+        {
+          "zh": "失败模式：整数取 $J+1$、fine 却仍相对 $J$，结果为 $(J+1)-\\mu$，比正确值多出一整周期。",
+          "en": "Failure mode: integer takes $J+1$ while fine still refers to $J$, giving $(J+1)-\\mu$ — one whole cycle off.",
+          "tex": "(J+1)-\\mu=(J-\\mu)+1"
+        }
+      ],
+      "pitfalls": {
+        "zh": "不能把代数一致性误当作任意时域模型都精确；L05 的 256 个案例只验证相位域恒等式，时间归一化必须匹配。",
+        "en": "Algebraic consistency is not exactness in every time-domain model; the 256 cases of L05 only verify the phase-domain identity — time normalisation must match."
+      },
+      "section": "r-6-4",
+      "widgets": [
+        "anchor-equivalence",
+        "verify-runner"
+      ],
+      "checks": [
+        "L05"
+      ],
+      "origin": {
+        "zh": "本报告推导（D）",
+        "en": "Report derivation (D)"
+      }
+    },
+    {
+      "n": "13",
+      "tex": "t_{S,i}^{min}\\geq t_E+d_i^{max}+t_{su,i}, \\tag{13}",
+      "chapter": "7",
+      "title": {
+        "zh": "匹配采样的建立约束",
+        "en": "Setup constraint of matched sampling"
+      },
+      "meaning": {
+        "zh": "第 $i$ 组的最早采样时刻必须不早于“目标逻辑边沿 + 该组最大传播延迟 + 建立时间”。",
+        "en": "The earliest sampling instant of group $i$ must not precede \"target logical edge + that group's maximum propagation delay + setup time\"."
+      },
+      "vars": [
+        {
+          "sym": "t_{S,i}^{min}",
+          "zh": "第 i 组最早采样时刻",
+          "en": "earliest sampling time of group i"
+        },
+        {
+          "sym": "t_E",
+          "zh": "目标逻辑边沿时刻",
+          "en": "time of the target logical edge"
+        },
+        {
+          "sym": "d_i^{max}",
+          "zh": "第 i 组最大传播延迟",
+          "en": "maximum propagation delay of group i"
+        },
+        {
+          "sym": "t_{su,i}",
+          "zh": "第 i 组采样器建立时间",
+          "en": "setup time of group i sampler"
+        }
+      ],
+      "assumptions": {
+        "zh": "第 $i$ 组数据对应目标逻辑边沿 $t_E$，传播延迟落在 $[d_i^{min},d_i^{max}]$；所有组须针对同一个目标逻辑 epoch。",
+        "en": "Group $i$ data follow the target logical edge $t_E$ with propagation delay in $[d_i^{min},d_i^{max}]$; all groups must target the same logical epoch."
+      },
+      "derivation": [
+        {
+          "zh": "第 $i$ 组数据最晚在 $t_E+d_i^{max}$ 才稳定为新值。",
+          "en": "Group $i$ data settle to the new value at the latest at $t_E+d_i^{max}$."
+        },
+        {
+          "zh": "触发器要求数据在采样前至少保持稳定 $t_{su,i}$，故采样时刻 $\\ge t_E+d_i^{max}+t_{su,i}$。",
+          "en": "The flip-flop needs the data stable for $t_{su,i}$ before sampling, so the sampling instant must be $\\ge t_E+d_i^{max}+t_{su,i}$."
+        },
+        {
+          "zh": "取最坏组合（采样最早 $t_{S,i}^{min}$、传播最慢 $d_i^{max}$）即得式 (13)。",
+          "en": "Taking the worst combination (earliest sample $t_{S,i}^{min}$, slowest propagation $d_i^{max}$) gives Eq. (13)."
+        }
+      ],
+      "pitfalls": {
+        "zh": "把任意组都“等到稳定再采”并不能保证采到同一拍；延迟链不能当作理想常数，min/max 必须覆盖 PVT。",
+        "en": "Simply \"waiting until stable\" for each group does not guarantee they capture the same step; delay chains are not ideal constants and min/max must cover PVT."
+      },
+      "section": "r-7-2",
+      "widgets": [
+        "matched-delay-sampling"
+      ],
+      "checks": [],
+      "origin": {
+        "zh": "时序约束（D）· 依据 [R05][R11]",
+        "en": "Timing constraint (D) · after [R05][R11]"
+      }
+    },
+    {
+      "n": "14",
+      "tex": "t_{S,i}^{max}+t_{h,i}\\leq t_{next,i}+d_{next,i}^{min}. \\tag{14}",
+      "chapter": "7",
+      "title": {
+        "zh": "匹配采样的保持约束",
+        "en": "Hold constraint of matched sampling"
+      },
+      "meaning": {
+        "zh": "第 $i$ 组的最晚采样时刻加保持时间，必须不晚于该组下一次可能改写的最早时刻。",
+        "en": "The latest sampling instant of group $i$ plus hold time must not be later than the earliest moment that group can next be overwritten."
+      },
+      "vars": [
+        {
+          "sym": "t_{S,i}^{max}",
+          "zh": "第 i 组最晚采样时刻",
+          "en": "latest sampling time of group i"
+        },
+        {
+          "sym": "t_{h,i}",
+          "zh": "保持时间",
+          "en": "hold time"
+        },
+        {
+          "sym": "t_{next,i}",
+          "zh": "该组下一次可能改写的逻辑事件",
+          "en": "next logical event that may overwrite the group"
+        },
+        {
+          "sym": "d_{next,i}^{min}",
+          "zh": "该事件的最小传播延迟",
+          "en": "minimum propagation delay of that event"
+        }
+      ],
+      "assumptions": {
+        "zh": "$t_{next,i}$ 未必每组都等于 $t_E+T_0$（例如高位组只在组边界改写）。",
+        "en": "$t_{next,i}$ is not necessarily $t_E+T_0$ for every group (e.g. the high group only changes at group boundaries)."
+      },
+      "derivation": [
+        {
+          "zh": "该组下一次改写最早在 $t_{next,i}+d_{next,i}^{min}$ 到达采样器。",
+          "en": "The next overwrite of the group reaches the sampler at the earliest at $t_{next,i}+d_{next,i}^{min}$."
+        },
+        {
+          "zh": "采样后数据还需保持 $t_{h,i}$，因此最晚采样时刻 + 保持时间不得超过该时刻。",
+          "en": "After sampling the data must still hold for $t_{h,i}$, so latest sample + hold must not exceed that moment."
+        },
+        {
+          "zh": "取最坏组合（采样最晚、下一变化最早）即得式 (14)。",
+          "en": "Taking the worst combination (latest sample, earliest next change) gives Eq. (14)."
+        }
+      ],
+      "pitfalls": {
+        "zh": "只检查建立约束而忽略保持约束，可能采到下一拍；更重要的是所有组都要针对同一个目标逻辑 epoch。",
+        "en": "Checking only setup and ignoring hold may capture the next step; above all, every group must target the same logical epoch."
+      },
+      "section": "r-7-2",
+      "widgets": [
+        "matched-delay-sampling"
+      ],
+      "checks": [],
+      "origin": {
+        "zh": "时序约束（D）· 依据 [R05][R11]",
+        "en": "Timing constraint (D) · after [R05][R11]"
+      }
+    },
+    {
+      "n": "15",
+      "tex": "m_i=t_{S,i}^{min}-t_E-d_i^{max}-t_{su,i},\\quad\n h_i=t_{next,i}+d_{next,i}^{min}-t_{S,i}^{max}-t_{h,i}. \\tag{15}",
+      "chapter": "7",
+      "title": {
+        "zh": "每组建立/保持余量 m_i、h_i",
+        "en": "Per-group setup/hold margins m_i, h_i"
+      },
+      "meaning": {
+        "zh": "把式 (13)–(14) 写成余量形式：$m_i>0$ 且 $h_i>0$ 对每组成立，且所有组属于同一 epoch，才算通过验收。",
+        "en": "Eqs. (13)–(14) written as margins: acceptance requires $m_i>0$ and $h_i>0$ for every group, with all groups in the same epoch."
+      },
+      "vars": [
+        {
+          "sym": "m_i",
+          "zh": "第 i 组建立余量",
+          "en": "setup margin of group i"
+        },
+        {
+          "sym": "h_i",
+          "zh": "第 i 组保持余量",
+          "en": "hold margin of group i"
+        }
+      ],
+      "assumptions": {
+        "zh": "应根据实际电路的 min/max 表计算，而不是在未选工艺/负载前填写一个貌似确定的 ps 数值。",
+        "en": "To be computed from the real circuit's min/max tables, not filled with a seemingly definite ps number before process/load are chosen."
+      },
+      "derivation": [
+        {
+          "zh": "式 (13) 移项：$t_{S,i}^{min}-t_E-d_i^{max}-t_{su,i}\\ge0$，定义左边为 $m_i$。",
+          "en": "Rearrange Eq. (13): $t_{S,i}^{min}-t_E-d_i^{max}-t_{su,i}\\ge0$; call the left side $m_i$."
+        },
+        {
+          "zh": "式 (14) 移项：$t_{next,i}+d_{next,i}^{min}-t_{S,i}^{max}-t_{h,i}\\ge0$，定义左边为 $h_i$。",
+          "en": "Rearrange Eq. (14): $t_{next,i}+d_{next,i}^{min}-t_{S,i}^{max}-t_{h,i}\\ge0$; call the left side $h_i$."
+        },
+        {
+          "zh": "验收：每组 $m_i>0,h_i>0$，且所有组属于同一 epoch。Zong Fig.9 的理想匹配提供约半个 CKV 周期的相对读出位置；移植时应按实际电路计算余量。",
+          "en": "Acceptance: $m_i>0,h_i>0$ for every group and one common epoch. The ideal matching of Zong Fig. 9 gives a relative read-out position of about half a CKV period; when porting, compute the margins for the real circuit."
+        }
+      ],
+      "pitfalls": {
+        "zh": "最终统一输出不自动证明中间每一级的 setup/hold 满足；本报告没有给出虚构的最差 PVT margin。",
+        "en": "A final common output does not by itself prove setup/hold at every stage; the report gives no invented worst-case PVT margin."
+      },
+      "section": "r-7-2",
+      "widgets": [
+        "matched-delay-sampling"
+      ],
+      "checks": [],
+      "origin": {
+        "zh": "时序约束（D）· 依据 [R05][R11]",
+        "en": "Timing constraint (D) · after [R05][R11]"
+      }
+    },
+    {
+      "n": "16",
+      "tex": "J_{\\mathrm{plan}}=MH_J+s_J,\\qquad s_J\\in\\{0,\\ldots,M-1\\}. \\tag{16}",
+      "chapter": "8",
+      "title": {
+        "zh": "目标边沿编号分解 J_plan = M·H_J + s_J",
+        "en": "Target edge index J_plan = M·H_J + s_J"
+      },
+      "meaning": {
+        "zh": "执行链把计划的目标边沿编号按式 (1) 同样的方式分解：高位 $H_J$ 交给慢速域匹配与计划，slot $s_J$ 交给高速少量状态执行。",
+        "en": "The execution chain decomposes the planned edge index the same way as Eq. (1): the high part $H_J$ goes to the slow domain for matching and planning, the slot $s_J$ to a small fast state for execution."
+      },
+      "vars": [
+        {
+          "sym": "J_{\\mathrm{plan}}",
+          "zh": "计划的目标边沿编号（原周期）",
+          "en": "planned target edge index (raw cycles)"
+        },
+        {
+          "sym": "H_J",
+          "zh": "高位部分（组）",
+          "en": "high part (groups)"
+        },
+        {
+          "sym": "s_J",
+          "zh": "组内 slot，$0\\ldots M-1$",
+          "en": "in-group slot, $0\\ldots M-1$"
+        }
+      ],
+      "assumptions": {
+        "zh": "P/S 的系统语义是“执行指定边沿”；持续 CNT 仍独立记录实际经过的 $CK_0$ 周期。",
+        "en": "The system meaning of P/S is \"execute a designated edge\"; the persistent CNT still independently records the $CK_0$ cycles that actually pass."
+      },
+      "derivation": [
+        {
+          "zh": "与式 (1) 相同的带余除法：",
+          "en": "Same division with remainder as Eq. (1):",
+          "tex": "H_J=\\left\\lfloor J_{\\mathrm{plan}}/M\\right\\rfloor,\\qquad s_J=J_{\\mathrm{plan}}\\bmod M"
+        },
+        {
+          "zh": "慢速域处理高位匹配（当高位计数到达 $H_J$）、未来计划和并行控制。",
+          "en": "The slow domain handles high-part matching (when the high count reaches $H_J$), future planning and parallel control."
+        },
+        {
+          "zh": "高速少量状态负责 slot / phase-local enable、脉冲形成及根时钟重定时，在第 $s_J$ 个原周期放出边沿。",
+          "en": "A small fast state handles slot / phase-local enable, pulse forming and root-clock retiming, releasing the edge in raw cycle $s_J$."
+        },
+        {
+          "zh": "实际执行了哪条边沿要由独立的执行回执给出 $J_{\\mathrm{observed}}$，不能由 $J_{\\mathrm{plan}}$ 自证（不变量 I4）。",
+          "en": "Which edge was actually executed must come from an independent execution receipt, $J_{\\mathrm{observed}}$, not self-certified by $J_{\\mathrm{plan}}$ (invariant I4)."
+        }
+      ],
+      "pitfalls": {
+        "zh": "不能把计划字延迟若干拍后改名为 $J_{\\mathrm{exec}}$；错沿、丢沿、重复沿和 gate control 晚到可能完全不改变数字计划。",
+        "en": "Do not rename the plan word delayed by a few clocks as $J_{\\mathrm{exec}}$; wrong, lost or duplicate edges and late gate control may leave the digital plan completely unchanged."
+      },
+      "section": "r-8-1",
+      "widgets": [
+        "ps-executor"
+      ],
+      "checks": [],
+      "origin": {
+        "zh": "执行链规范（D）",
+        "en": "Execution-chain spec (D)"
+      }
+    },
+    {
+      "n": "17",
+      "tex": "t_{\\mathrm{arrive}}+t_{\\mathrm{setup,exec}}+t_{\\mathrm{guard}}\\leq t_{\\mathrm{target}}. \\tag{17}",
+      "chapter": "8",
+      "title": {
+        "zh": "选沿 deadline",
+        "en": "Edge-selection deadline"
+      },
+      "meaning": {
+        "zh": "选择命令到达执行器的时刻，加上执行建立时间和保护时间，必须不晚于目标边沿。",
+        "en": "The arrival time of the selection command at the executor, plus execution setup and guard time, must not be later than the target edge."
+      },
+      "vars": [
+        {
+          "sym": "t_{\\mathrm{arrive}}",
+          "zh": "命令到达执行器的时刻",
+          "en": "time the command reaches the executor"
+        },
+        {
+          "sym": "t_{\\mathrm{setup,exec}}",
+          "zh": "选择控制需在目标边沿前建立的时间",
+          "en": "time the selection control must be set up before the target edge"
+        },
+        {
+          "sym": "t_{\\mathrm{guard}}",
+          "zh": "保护时间",
+          "en": "guard time"
+        },
+        {
+          "sym": "t_{\\mathrm{target}}",
+          "zh": "目标边沿时刻",
+          "en": "target edge time"
+        }
+      ],
+      "assumptions": {
+        "zh": "目标边沿是未来可执行的边沿；REF 之后的 snapshot、CDC、decode 与低速计算都会消耗时间。",
+        "en": "The target edge is a future, executable edge; snapshot, CDC, decode and slow computation after REF all consume time."
+      },
+      "derivation": [
+        {
+          "zh": "选择控制必须在目标边沿前 $t_{\\mathrm{setup,exec}}$ 建立，再留出 $t_{\\mathrm{guard}}$ 余量。",
+          "en": "Selection control must be established $t_{\\mathrm{setup,exec}}$ before the target edge, plus a guard $t_{\\mathrm{guard}}$."
+        },
+        {
+          "zh": "命令在 $t_{\\mathrm{arrive}}$ 到达，故需 $t_{\\mathrm{arrive}}+t_{\\mathrm{setup,exec}}+t_{\\mathrm{guard}}\\le t_{\\mathrm{target}}$。",
+          "en": "The command arrives at $t_{\\mathrm{arrive}}$, so $t_{\\mathrm{arrive}}+t_{\\mathrm{setup,exec}}+t_{\\mathrm{guard}}\\le t_{\\mathrm{target}}$ is required."
+        },
+        {
+          "zh": "因果性推论（§8.3）：若 $t_{\\mathrm{target}}$ 已经过去，再正确的 $q$ 也无法倒退时间把那条边沿送入 TDC。可闭合的路径只有：事先预测并在目标前提交；高速前端并行捕获后慢速解码；或选用未来可执行边沿并接受其量程代价。",
+          "en": "Causality corollary (§8.3): if $t_{\\mathrm{target}}$ has already passed, even a correct $q$ cannot send that edge to the TDC back in time. The only closures: predict and commit before the target; capture candidates in parallel at the fast front-end and decode slowly; or select a future executable edge and accept the range cost."
+        },
+        {
+          "zh": "不满足时：显式 LATE/MISS、重新规划一个不同的 $J$，或切换测量策略；任何补发都应改变执行回执及相位坐标（不变量 I7）。",
+          "en": "If violated: explicit LATE/MISS, re-plan a different $J$, or switch the measurement strategy; any re-issue must change the execution receipt and phase coordinate (invariant I7)."
+        }
+      ],
+      "pitfalls": {
+        "zh": "不能悄悄在下一 slot 补发并仍返回原 edge ID；相邻事件还要保证连续两个合法 pulse 不合并、不丢失、不重复——通用 PISO 输出连续“1”的电平行为不一定等于两个独立采样边沿。",
+        "en": "Never silently re-issue in the next slot and still return the old edge ID; for adjacent events two legal pulses must not merge, vanish or duplicate — a generic PISO outputting consecutive \"1\"s is not necessarily two independent sampling edges."
+      },
+      "section": "r-8-4",
+      "widgets": [
+        "ps-executor"
+      ],
+      "checks": [],
+      "origin": {
+        "zh": "执行链规范（D）",
+        "en": "Execution-chain spec (D)"
+      }
+    },
+    {
+      "n": "18",
+      "tex": "\\widehat{\\Delta t}=\\widehat d_{\\mathrm{pin}}-(\\widehat\\tau_E-\\widehat\\tau_R). \\tag{18}",
+      "context": "d_{\\mathrm{pin}}=(t_E+\\tau_E)-(t_R+\\tau_R).",
+      "chapter": "9",
+      "title": {
+        "zh": "扣除路径延迟恢复原事件间隔",
+        "en": "Removing path delays to recover the event interval"
+      },
+      "meaning": {
+        "zh": "原事件间隔 = TDC 引脚时间差 − （边沿路径延迟 − 参考路径延迟）。DTC 按所在路径计入 $\\tau_R$ 或 $\\tau_E$。",
+        "en": "Original event interval = TDC pin time difference − (edge-path delay − reference-path delay). A DTC counts in $\\tau_R$ or $\\tau_E$ according to the path it sits in."
+      },
+      "vars": [
+        {
+          "sym": "\\widehat d_{\\mathrm{pin}}",
+          "zh": "TDC 引脚处测得的时间差",
+          "en": "time difference measured at the TDC pins"
+        },
+        {
+          "sym": "\\widehat\\tau_E,\\,\\widehat\\tau_R",
+          "zh": "边沿/参考路径延迟估计",
+          "en": "edge/reference path-delay estimates"
+        },
+        {
+          "sym": "\\widehat{\\Delta t}",
+          "zh": "恢复出的原事件间隔 $t_E-t_R$",
+          "en": "recovered event interval $t_E-t_R$"
+        }
+      ],
+      "assumptions": {
+        "zh": "路径延迟需估计并携带校准版本（path_epoch）；同一 DTC 只能在一处计入。",
+        "en": "Path delays must be estimated with a calibration version (path_epoch); a DTC is counted in exactly one place."
+      },
+      "derivation": [
+        {
+          "zh": "TDC 引脚实际时间差：",
+          "en": "Actual time difference at the TDC pins:",
+          "tex": "d_{\\mathrm{pin}}=(t_E+\\tau_E)-(t_R+\\tau_R)"
+        },
+        {
+          "zh": "整理为事件间隔加延迟差：",
+          "en": "Rewrite as event interval plus delay difference:",
+          "tex": "d_{\\mathrm{pin}}=(t_E-t_R)+(\\tau_E-\\tau_R)=\\Delta t+(\\tau_E-\\tau_R)"
+        },
+        {
+          "zh": "解出 $\\Delta t$ 并用估计值代入，即得式 (18)。",
+          "en": "Solve for $\\Delta t$ and substitute estimates to obtain Eq. (18)."
+        },
+        {
+          "zh": "DTC 插在参考路径时其延迟计入 $\\tau_R$；插在反馈路径时计入 $\\tau_E$。全书统一使用这一路径定义。",
+          "en": "A DTC in the reference path adds to $\\tau_R$; in the feedback path it adds to $\\tau_E$. The whole design uses this one path definition."
+        }
+      ],
+      "pitfalls": {
+        "zh": "不能一处把 DTC 当已补偿、另一处再次添加；符号写反会把 DTC 延迟加倍而不是抵消。",
+        "en": "Never treat the DTC as compensated in one place and add it again in another; a sign slip doubles the DTC delay instead of cancelling it."
+      },
+      "section": "r-9-2",
+      "widgets": [
+        "path-delay-dtc"
+      ],
+      "checks": [],
+      "origin": {
+        "zh": "路径/校准定义（D）",
+        "en": "Path / calibration definition (D)"
+      }
+    },
+    {
+      "n": "19",
+      "tex": "\\widehat\\mu=(\\mathrm{code}-\\mathrm{code}_0)\\frac{\\mathrm{LSB}_t}{\\widehat T_0}+o_{\\mathrm{phase}}. \\tag{19}",
+      "chapter": "9",
+      "title": {
+        "zh": "TDC 码归一化到原周期",
+        "en": "Normalising the TDC code to raw cycles"
+      },
+      "meaning": {
+        "zh": "把 TDC 码减零点、乘时间 LSB、除以周期估计，再加剩余校准相位偏置，得到以原周期计的 $\\widehat\\mu$。",
+        "en": "Subtract the zero code, multiply by the time LSB, divide by the period estimate and add the residual calibration offset to get $\\widehat\\mu$ in raw cycles."
+      },
+      "vars": [
+        {
+          "sym": "\\mathrm{code},\\,\\mathrm{code}_0",
+          "zh": "TDC 输出码与零点码",
+          "en": "TDC output code and zero code"
+        },
+        {
+          "sym": "\\mathrm{LSB}_t",
+          "zh": "时间 LSB（s/码）",
+          "en": "time LSB (s per code)"
+        },
+        {
+          "sym": "\\widehat T_0",
+          "zh": "原周期估计（s）",
+          "en": "raw-period estimate (s)"
+        },
+        {
+          "sym": "o_{\\mathrm{phase}}",
+          "zh": "剩余的校准相位偏置（原周期）",
+          "en": "remaining calibration phase offset (raw cycles)"
+        }
+      ],
+      "assumptions": {
+        "zh": "局部频率近似恒定（同式 6）；`LSB_t`、`code_0`、选相/DCC 偏差、差分路径延迟和周期估计携带相容的校准版本。",
+        "en": "Locally constant frequency (as in Eq. 6); `LSB_t`, `code_0`, phase-selection/DCC offsets, differential path delays and the period estimate carry compatible calibration versions."
+      },
+      "derivation": [
+        {
+          "zh": "去零点：$\\mathrm{code}-\\mathrm{code}_0$ 是相对零时间差的码差。",
+          "en": "Remove the zero point: $\\mathrm{code}-\\mathrm{code}_0$ is the code difference relative to zero time difference."
+        },
+        {
+          "zh": "乘时间 LSB 得时间：$(\\mathrm{code}-\\mathrm{code}_0)\\,\\mathrm{LSB}_t\\approx\\widehat{\\Delta t}$（路径延迟已按式 18 处理）。",
+          "en": "Multiply by the time LSB to get time: $(\\mathrm{code}-\\mathrm{code}_0)\\,\\mathrm{LSB}_t\\approx\\widehat{\\Delta t}$ (path delays handled per Eq. 18)."
+        },
+        {
+          "zh": "除以周期估计换到原周期（式 6），再加剩余偏置：",
+          "en": "Divide by the period estimate to convert to raw cycles (Eq. 6), then add the residual offset:",
+          "tex": "\\widehat\\mu=\\frac{\\widehat{\\Delta t}}{\\widehat T_0}+o_{\\mathrm{phase}}=(\\mathrm{code}-\\mathrm{code}_0)\\frac{\\mathrm{LSB}_t}{\\widehat T_0}+o_{\\mathrm{phase}}"
+        }
+      ],
+      "pitfalls": {
+        "zh": "将 raw code 直接当作原周期小数，可能把增益或时钟节点差错隐藏在相位环路中；fine 与 coarse 权重必须使用相容的校准（tdc_gain_epoch、period_epoch、path_epoch）。",
+        "en": "Using the raw code directly as a raw-cycle fraction can hide gain or clock-node errors inside the phase loop; fine and coarse weights must use compatible calibration (tdc_gain_epoch, period_epoch, path_epoch)."
+      },
+      "section": "r-9-2",
+      "widgets": [
+        "path-delay-dtc"
+      ],
+      "checks": [],
+      "origin": {
+        "zh": "路径/校准定义（D）",
+        "en": "Path / calibration definition (D)"
+      }
+    },
+    {
+      "n": "20",
+      "tex": "F_{\\mathrm{usable}}=V_{\\mathrm{code}}\\land V_{\\mathrm{range}}\\land V_{\\mathrm{anchor}}\n\\land V_{\\mathrm{epoch}}\\land V_{\\mathrm{cal}}. \\tag{20}",
+      "chapter": "9",
+      "title": {
+        "zh": "Fine 采用条件 F_usable",
+        "en": "Fine-usable condition F_usable"
+      },
+      "meaning": {
+        "zh": "只有码合法、量程内、锚点一致、epoch 一致且校准相容五项同时成立，fine 才可用于精确相位。",
+        "en": "Fine may be used for an exact phase only when the code is legal, in range, anchor-consistent, epoch-consistent and calibration-compatible — all five at once."
+      },
+      "vars": [
+        {
+          "sym": "V_{\\mathrm{code}}",
+          "zh": "码合法",
+          "en": "legal code"
+        },
+        {
+          "sym": "V_{\\mathrm{range}}",
+          "zh": "量程内（来自可实现的 saturate/overflow/窗口检查）",
+          "en": "in range (from realisable saturate/overflow/window checks)"
+        },
+        {
+          "sym": "V_{\\mathrm{anchor}}",
+          "zh": "实际所选物理边沿与其编号一致",
+          "en": "actually selected edge matches its index"
+        },
+        {
+          "sym": "V_{\\mathrm{epoch}}",
+          "zh": "与 coarse 属于同一 epoch",
+          "en": "same epoch as coarse"
+        },
+        {
+          "sym": "V_{\\mathrm{cal}}",
+          "zh": "校准版本相容",
+          "en": "compatible calibration version"
+        }
+      ],
+      "assumptions": {
+        "zh": "每个 V 都必须由电路可获得的信息给出，而不是由仿真器中不可见的理想相位给出。",
+        "en": "Every V must come from information the circuit can actually obtain, not from an ideal phase only visible in a simulator."
+      },
+      "derivation": [
+        {
+          "zh": "这是一条规范（逻辑与），不是推导结果：任一判据失败都意味着 fine 码不能当作精确残差。",
+          "en": "This is a specification (logical AND), not a derived result: any failed predicate means the fine code is not an exact residual."
+        },
+        {
+          "zh": "$V_{\\mathrm{range}}$ 必须来自电路可实现的 saturate/overflow/窗口检查；$V_{\\mathrm{anchor}}$ 要求实际所选物理边沿与其编号一致（回执，I4）。",
+          "en": "$V_{\\mathrm{range}}$ must come from circuit-realisable saturate/overflow/window checks; $V_{\\mathrm{anchor}}$ requires the actually selected physical edge to match its index (receipt, I4)."
+        },
+        {
+          "zh": "$F_{\\mathrm{usable}}=1$ → 输出 FINE（anchor − μ）；否则降级为 COARSE（带误差上界）或 INVALID（不变量 I5、§10.3 伪代码）。",
+          "en": "$F_{\\mathrm{usable}}=1$ → output FINE (anchor − μ); otherwise degrade to COARSE (with an error bound) or INVALID (invariant I5, §10.3 pseudo-code)."
+        },
+        {
+          "zh": "一侧饱和可能仍保留“误差方向”信息，可参与单独定义的限幅控制策略（如 Zong 的瞬态处理），但不能标记为精确的 fine residual。",
+          "en": "One-sided saturation may keep \"error direction\" information usable by a separately defined clamp strategy (like Zong's transient handling), but must not be labelled an exact fine residual."
+        }
+      ],
+      "pitfalls": {
+        "zh": "饱和码不能作为精确 fine：$Q(1.5R)=Q(3R)=R$，事后减整周期也无法恢复（L06）。",
+        "en": "A saturated code is never exact fine: $Q(1.5R)=Q(3R)=R$, and subtracting whole cycles afterwards cannot recover it (L06)."
+      },
+      "section": "r-9-3",
+      "widgets": [
+        "phase-integration",
+        "golden-model"
+      ],
+      "checks": [],
+      "origin": {
+        "zh": "有效性规范（D）",
+        "en": "Validity spec (D)"
+      }
+    },
+    {
+      "n": "21",
+      "tex": "e_c[k]=R[k]-N_R[k]. \\tag{21}",
+      "chapter": "9",
+      "title": {
+        "zh": "粗相位误差 e_c = R − N_R",
+        "en": "Coarse phase error e_c = R − N_R"
+      },
+      "meaning": {
+        "zh": "参考累加相位与 coarse 整数观测之差，是量化较粗的相位误差；fine 无效而 coarse 可靠时可据此接管。",
+        "en": "The difference between the accumulated reference phase and the coarse integer observation — a coarsely quantised phase error that can take over when fine is invalid but coarse is reliable."
+      },
+      "vars": [
+        {
+          "sym": "R[k]",
+          "zh": "第 k 个参考事件的参考累加相位",
+          "en": "accumulated reference phase at reference event k"
+        },
+        {
+          "sym": "N_R[k]",
+          "zh": "同一事件的 coarse 整数相位观测",
+          "en": "coarse integer phase observation of the same event"
+        },
+        {
+          "sym": "e_c[k]",
+          "zh": "粗相位误差（原周期）",
+          "en": "coarse phase error (raw cycles)"
+        }
+      ],
+      "assumptions": {
+        "zh": "coarse 观测可靠（快照相干、epoch 正确）；量化误差需给出上界。",
+        "en": "The coarse observation is reliable (coherent snapshot, correct epoch); the quantisation error needs a stated bound."
+      },
+      "derivation": [
+        {
+          "zh": "参考侧期望的相位为 $R[k]$；振荡器侧实际计到的整数相位为 $N_R[k]$。二者之差定义为粗相位误差：",
+          "en": "The reference side expects phase $R[k]$; the oscillator side has actually counted integer phase $N_R[k]$. Their difference defines the coarse phase error:",
+          "tex": "e_c[k]=R[k]-N_R[k]"
+        },
+        {
+          "zh": "它是相位误差，只是缺少 fine 残差而量化较粗；使用时应携带量化误差上界，或只把符号/区间信息送入受控策略。",
+          "en": "It is a phase error, just coarsely quantised for lack of the fine residual; use it with a quantisation bound, or feed only sign/interval information to a controlled strategy."
+        },
+        {
+          "zh": "若 coarse 也无法判定，本次观测必须 INVALID，而不是强行拼接。",
+          "en": "If coarse cannot decide either, the observation must be INVALID rather than force-stitched."
+        }
+      ],
+      "pitfalls": {
+        "zh": "coarse 接管不等于删除 fine，更不等于凭空加一个 FLL；fine 恢复时还要检查坐标偏置一致与控制状态连续，避免 phase_source 切换引入整周期跳变。",
+        "en": "Coarse takeover neither deletes fine nor magically adds an FLL; when fine recovers, check coordinate-offset consistency and control-state continuity so switching phase_source does not cause a whole-cycle jump."
+      },
+      "section": "r-9-4",
+      "widgets": [
+        "coarse-loop"
+      ],
+      "checks": [],
+      "origin": {
+        "zh": "粗相位定义与推导（D）",
+        "en": "Coarse-phase definition & derivation (D)"
+      }
+    },
+    {
+      "n": "22",
+      "tex": "e_c[k]-e_c[k-1]=FCW[k]-(N_R[k]-N_R[k-1]). \\tag{22}",
+      "chapter": "9",
+      "title": {
+        "zh": "e_c 的差分 = 频率误差的量化观测",
+        "en": "Difference of e_c = quantised frequency-error observation"
+      },
+      "meaning": {
+        "zh": "粗相位误差的一阶差分等于本参考周期期望的原周期数 FCW 与实测周期数之差，才对应频率误差。",
+        "en": "The first difference of the coarse phase error equals the expected raw cycles per reference period (FCW) minus the counted cycles — only this corresponds to a frequency error."
+      },
+      "vars": [
+        {
+          "sym": "FCW[k]",
+          "zh": "第 k 个参考周期的频率控制字（期望原周期数）",
+          "en": "frequency control word of reference period k (expected raw cycles)"
+        },
+        {
+          "sym": "N_R[k]-N_R[k-1]",
+          "zh": "该参考周期内实测的原周期数",
+          "en": "raw cycles counted during that reference period"
+        }
+      ],
+      "assumptions": {
+        "zh": "参考累加相位逐参考周期累加 FCW：$R[k]-R[k-1]=FCW[k]$。",
+        "en": "The reference phase accumulates FCW once per reference period: $R[k]-R[k-1]=FCW[k]$."
+      },
+      "derivation": [
+        {
+          "zh": "对式 (21) 取相邻两次之差：",
+          "en": "Take the difference of Eq. (21) at two consecutive events:",
+          "tex": "e_c[k]-e_c[k-1]=\\bigl(R[k]-R[k-1]\\bigr)-\\bigl(N_R[k]-N_R[k-1]\\bigr)"
+        },
+        {
+          "zh": "参考累加相位每个参考周期增加 FCW，即 $R[k]-R[k-1]=FCW[k]$，代入即得式 (22)。",
+          "en": "The reference accumulator adds FCW per period, $R[k]-R[k-1]=FCW[k]$; substituting gives Eq. (22)."
+        },
+        {
+          "zh": "右边是“期望周期数 − 实测周期数”，即频率误差的量化观测；而 $e_c$ 本身是相位误差。",
+          "en": "The right side is \"expected cycles − counted cycles\", a quantised observation of frequency error, whereas $e_c$ itself is a phase error."
+        },
+        {
+          "zh": "所以 CNT 不天然意味着一条独立 FLL；只有另行设计频率误差控制器、状态机或增益路径时，才应称为 FLL-assisted 控制。",
+          "en": "So a CNT does not by itself imply an independent FLL; only with a separately designed frequency-error controller, state machine or gain path should it be called FLL-assisted control."
+        }
+      ],
+      "pitfalls": {
+        "zh": "不要把 $e_c$ 直接当频率误差送入积分；冻结积分、限幅积分或分阶段重新准入都需要闭环验证，本文不预设已经优选完成。",
+        "en": "Do not feed $e_c$ to an integrator as if it were a frequency error; frozen, clamped or staged re-admission of the integrator all need closed-loop verification, and none is presumed optimal here."
+      },
+      "section": "r-9-4",
+      "widgets": [
+        "coarse-loop"
+      ],
+      "checks": [],
+      "origin": {
+        "zh": "粗相位定义与推导（D）",
+        "en": "Coarse-phase definition & derivation (D)"
+      }
+    }
+  ]
+}

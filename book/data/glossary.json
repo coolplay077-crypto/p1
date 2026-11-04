@@ -1,0 +1,467 @@
+{
+  "_note": "Glossary for the CNT-ADPLL book. group: symbol | concept | signal. Array order matters for auto-linking (more specific terms first). Definitions follow the report (research/CNT_ADPLL_调研整合与核心问题报告.md).",
+  "terms": [
+    {
+      "id": "ck0", "group": "symbol", "autolink": false, "symbol": "CK_0,\\;T_0,\\;f_0", "section": "r-3-1",
+      "unit": { "zh": "s、Hz", "en": "s, Hz" },
+      "zh": { "term": "原始计数时钟 CK0（周期 T0、频率 f0）", "aliases": ["CK0", "原始计数时钟", "T0", "f0"], "def": "希望完整保留周期编号的那个时钟节点；它可能就是 LC DCO，也可能是工程明确选定的预分频节点。只要改变 CK0，所有 CNT 权重、FCW、fine 归一化和 edge ID 都必须一起换算。" },
+      "en": { "term": "raw counting clock CK0 (period T0, frequency f0)", "aliases": ["CK0", "raw counting clock", "T0", "f0"], "def": "The clock node whose cycle index must be fully preserved. It may be the LC DCO itself or an explicitly chosen pre-divided node. Whenever CK0 changes, all CNT weights, the FCW, the fine normalisation and edge IDs must be converted together." },
+      "see": ["clock-node", "raw-cycle"]
+    },
+    {
+      "id": "M", "group": "symbol", "autolink": false, "symbol": "M", "section": "r-3-1",
+      "unit": { "zh": "本报告主要取 4 或 8", "en": "mainly 4 or 8 in this report" },
+      "zh": { "term": "分组倍率 M", "aliases": ["分组倍率", "/4", "/8"], "def": "高、低计数分组的倍率：一个高位计数代表 M 个 CK0 周期，低位 residue 在 0…M−1 循环。" },
+      "en": { "term": "group ratio M", "aliases": ["group ratio", "/4", "/8"], "def": "Ratio between the high and low count groups: one high count stands for M CK0 cycles, and the low residue cycles through 0…M−1." }
+    },
+    {
+      "id": "C", "group": "symbol", "autolink": false, "symbol": "C", "section": "r-3-1",
+      "unit": { "zh": "组（一个计数 = M 个 CK0 周期）", "en": "groups (one count = M CK0 cycles)" },
+      "zh": { "term": "高位组计数 C", "aliases": ["高位", "C_cap"], "def": "高位组计数，取经原点/延迟对齐后的值；一个计数代表 M 个 CK0 周期。它只应在低位合法回绕 (C,M−1)→(C+1,0) 时加 1。" },
+      "en": { "term": "high group count C", "aliases": ["high count", "high bits", "C_cap"], "def": "The high (group) count, taken after origin/delay alignment; one count represents M CK0 cycles. It may only increment at the legal low-bit wrap (C, M−1) → (C+1, 0)." },
+      "see": ["M", "q", "carry"]
+    },
+    {
+      "id": "q", "group": "symbol", "autolink": false, "symbol": "q", "section": "r-3-1",
+      "unit": { "zh": "0,…,M−1（原周期）", "en": "0,…,M−1 (raw cycles)" },
+      "zh": { "term": "组内原周期 residue q", "aliases": ["低位", "q_cap", "q_corr"], "def": "组内原周期 residue，取值 0…M−1，即 q = N mod M；它是整数周期信息，不是 TDC 小数码。" },
+      "en": { "term": "low residue q", "aliases": ["low bits", "q_cap", "q_corr"], "def": "The in-group raw-cycle residue, 0…M−1, i.e. q = N mod M. It is integer cycle information, not a TDC fractional code." },
+      "see": ["residue", "N"]
+    },
+    {
+      "id": "N", "group": "symbol", "autolink": false, "symbol": "N=MC+q", "section": "r-3-2",
+      "unit": { "zh": "原周期", "en": "raw cycles" },
+      "zh": { "term": "原周期整数编号 N", "aliases": ["原周期编号"], "def": "CK0 原周期的整数编号，对已对齐、逻辑一致的状态有 N = MC + q（式 1）。该分解是定义，不是 CDC 正确性的证明。" },
+      "en": { "term": "raw-cycle index N", "aliases": ["raw-cycle index"], "def": "Integer index of CK0 raw cycles; for aligned, logically coherent states N = MC + q (Eq. 1). The decomposition is a definition, not a proof of CDC correctness." },
+      "see": ["C", "q", "torn-sampling"]
+    },
+    {
+      "id": "J", "group": "symbol", "autolink": false, "symbol": "J", "section": "r-3-3",
+      "unit": { "zh": "原周期", "en": "raw cycles" },
+      "zh": { "term": "边沿绝对编号 J", "aliases": ["边沿编号", "edge ID"], "def": "某个实际原始上升沿的绝对编号（单位原周期）；它是锚点 A = J + α 的整数部分，必须对应真实执行的物理边沿。" },
+      "en": { "term": "absolute edge index J", "aliases": ["edge index", "edge ID"], "def": "Absolute index of an actual raw rising edge (in raw cycles). It is the integer part of the anchor A = J + α and must correspond to the physically executed edge." },
+      "see": ["A", "J-observed"]
+    },
+    {
+      "id": "alpha", "group": "symbol", "autolink": false, "symbol": "\\alpha", "section": "r-3-3",
+      "unit": { "zh": "原周期", "en": "raw cycles" },
+      "zh": { "term": "周期内偏移 α", "aliases": ["alpha_sel"], "def": "被选边沿相对其原始上升沿的周期内偏移；只有在独立存在该自由度（如选下降沿或多相）时才加入。EventFrame 中对应 alpha_sel。" },
+      "en": { "term": "intra-cycle offset α", "aliases": ["alpha_sel"], "def": "Offset of the selected edge from its raw rising edge within the cycle; included only when that degree of freedom independently exists (e.g. a falling edge or a multiphase tap). Field alpha_sel in the EventFrame." }
+    },
+    {
+      "id": "mu", "group": "symbol", "autolink": false, "symbol": "\\mu", "section": "r-3-3",
+      "unit": { "zh": "原周期（有符号）", "en": "raw cycles (signed)" },
+      "zh": { "term": "参考至被选边沿的相位间隔 μ", "aliases": ["相位间隔", "fine 间隔"], "def": "从参考事件 t_R 到被选边沿 t_E 的有符号相位间隔，精确定义为 f0(t) 的积分（式 4）；符号由积分上下限决定，preceding 与 following edge 共用同一公式。" },
+      "en": { "term": "reference-to-edge phase interval μ", "aliases": ["phase interval", "fine interval"], "def": "Signed phase interval from the reference event t_R to the selected edge t_E, defined exactly as the integral of f0(t) (Eq. 4); its sign follows the integration limits, so preceding and following edges share one formula." },
+      "see": ["anchor-minus-residual", "Phi0"]
+    },
+    {
+      "id": "Td", "group": "symbol", "autolink": false, "symbol": "T_d=MT_0", "section": "r-3-1",
+      "unit": { "zh": "s", "en": "s" },
+      "zh": { "term": "分组慢时钟周期 T_d", "aliases": ["慢时钟周期"], "def": "高位组计数所在慢时钟的周期，理想固定倍率下 T_d = M·T0。" },
+      "en": { "term": "slow group-clock period T_d", "aliases": ["slow clock period"], "def": "Period of the slow clock that drives the high group count; with an ideal fixed ratio T_d = M·T0." }
+    },
+    {
+      "id": "a", "group": "symbol", "autolink": false, "symbol": "a", "section": "r-3-4",
+      "unit": { "zh": "区域编号（需另给时钟节点和映射表）", "en": "region index (needs its own clock node and mapping table)" },
+      "zh": { "term": "多相区域标签 a", "aliases": ["区域标签", "e"], "def": "某一多相周期内的区域标签（如八相 a = 0…7）。它必须另给时钟节点和映射表；理想 /4 八相时 a/8 以分频后周期为单位，换算到原周期是 a/2（式 7）。" },
+      "en": { "term": "multiphase region label a", "aliases": ["region label", "e"], "def": "Region label within one multiphase period (e.g. eight phases a = 0…7). It needs its own clock node and mapping table; for an ideal /4 eight-phase grid a/8 is in divided-clock periods, i.e. a/2 in raw cycles (Eq. 7)." },
+      "see": ["octal"]
+    },
+    {
+      "id": "A", "group": "symbol", "autolink": false, "symbol": "A_k=J_k+\\alpha_k", "section": "r-3-3",
+      "unit": { "zh": "原周期", "en": "raw cycles" },
+      "zh": { "term": "锚点坐标 A", "aliases": ["锚点", "anchor"], "def": "实际被选物理边沿在连续原时钟相位上的坐标 A_k = J_k + α_k（式 3）；完整相位为锚点减残差 Φ0(t_R) = A − μ。" },
+      "en": { "term": "anchor coordinate A", "aliases": ["anchor"], "def": "Coordinate of the actually selected physical edge on the unwrapped raw-clock phase, A_k = J_k + α_k (Eq. 3); the full phase is anchor minus residual, Φ0(t_R) = A − μ." }
+    },
+    {
+      "id": "Phi0", "group": "symbol", "autolink": false, "symbol": "\\Phi_0(t)", "section": "r-3-3",
+      "unit": { "zh": "原周期", "en": "raw cycles" },
+      "zh": { "term": "连续展开的原时钟相位 Φ0(t)", "aliases": ["原时钟相位"], "def": "以原周期为单位、连续展开的 CK0 相位，是本报告统一相位坐标的定义基础；其对时间的导数就是瞬时频率 f0(t)。" },
+      "en": { "term": "unwrapped raw-clock phase Φ0(t)", "aliases": ["raw-clock phase"], "def": "The continuously unwrapped CK0 phase in raw cycles — the defining basis of the report's unified phase coordinate; its time derivative is the instantaneous frequency f0(t)." }
+    },
+    {
+      "id": "kappa-C", "group": "symbol", "autolink": false, "symbol": "\\kappa_C", "section": "r-6-2",
+      "unit": { "zh": "一个慢计数组（M 个原周期）", "en": "one slow count group (M raw cycles)" },
+      "zh": { "term": "组单位修正 κ_C", "aliases": ["kappa_C", "组修正"], "def": "式 (10) 中以“组”为单位的修正量。κ_C ∈ {−1, 0, +1} 只有在采样及同步延迟已证明最多跨一组时才合理；否则必须扩展修正集合或判为无效。" },
+      "en": { "term": "block correction κ_C", "aliases": ["kappa_C", "block correction"], "def": "Correction in units of one group in Eq. (10). κ_C ∈ {−1, 0, +1} is only justified when sampling and synchroniser delay are proven to span at most one group; otherwise the set must be extended or the observation declared invalid." },
+      "see": ["kappa-N", "torn-sampling"]
+    },
+    {
+      "id": "kappa-N", "group": "symbol", "autolink": false, "symbol": "\\kappa_N", "section": "r-6-2",
+      "unit": { "zh": "一个原始 CKV 周期", "en": "one raw CKV cycle" },
+      "zh": { "term": "原周期修正 κ_N", "aliases": ["kappa_N"], "def": "式 (10) 中以原始 CKV 周期为单位的修正量，与组单位的 κ_C 分开定义；不要用同一个无单位 kappa 混合多种职责。" },
+      "en": { "term": "raw-cycle correction κ_N", "aliases": ["kappa_N", "raw-cycle correction"], "def": "Correction in units of one raw CKV cycle in Eq. (10), defined separately from the group-unit κ_C; never mix several roles in one unit-less kappa." }
+    },
+    {
+      "id": "J-plan", "group": "symbol", "autolink": true, "symbol": "J_{\\mathrm{plan}}", "section": "r-8-1",
+      "unit": { "zh": "原周期", "en": "raw cycles" },
+      "zh": { "term": "计划边沿编号 J_plan", "aliases": ["J_plan"], "def": "执行链要生成的目标边沿编号，分解为 J_plan = M·H_J + s_J（式 16）。它只是命令，不是已执行的证据。" },
+      "en": { "term": "planned edge index J_plan", "aliases": ["J_plan"], "def": "Index of the edge the execution chain is asked to generate, decomposed as J_plan = M·H_J + s_J (Eq. 16). It is a command, not evidence of execution." },
+      "see": ["J-observed", "execution-receipt"]
+    },
+    {
+      "id": "J-observed", "group": "symbol", "autolink": true, "symbol": "J_{\\mathrm{observed}}", "section": "r-8-2",
+      "unit": { "zh": "原周期", "en": "raw cycles" },
+      "zh": { "term": "执行侧观察编号 J_observed", "aliases": ["J_observed", "J_exec"], "def": "由实际执行路径、可信高速状态或边沿回执形成的边沿编号；不能把 J_plan 延迟若干拍后改名为 J_exec（不变量 I4）。" },
+      "en": { "term": "observed edge index J_observed", "aliases": ["J_observed", "J_exec"], "def": "Edge index formed from the actual execution path, trusted high-speed state or an edge receipt; renaming J_plan delayed by a few clocks as J_exec is not allowed (invariant I4)." }
+    },
+    {
+      "id": "H-J", "group": "symbol", "autolink": false, "symbol": "H_J", "section": "r-8-1",
+      "unit": { "zh": "组", "en": "groups" },
+      "zh": { "term": "目标高位 H_J", "aliases": ["H_J"], "def": "计划边沿编号的高位部分 H_J = floor(J_plan/M)；由慢速域做高位匹配和未来计划。" },
+      "en": { "term": "target high part H_J", "aliases": ["H_J"], "def": "High part of the planned edge index, H_J = floor(J_plan/M); matched and planned in the slow domain." }
+    },
+    {
+      "id": "s-J", "group": "symbol", "autolink": false, "symbol": "s_J", "section": "r-8-1",
+      "unit": { "zh": "0,…,M−1", "en": "0,…,M−1" },
+      "zh": { "term": "目标 slot s_J", "aliases": ["s_J", "slot"], "def": "计划边沿编号的组内 slot s_J = J_plan mod M；由高速少量状态负责 slot / phase-local enable、脉冲形成和根时钟重定时。" },
+      "en": { "term": "target slot s_J", "aliases": ["s_J", "slot"], "def": "In-group slot of the planned edge, s_J = J_plan mod M; a small high-speed state handles slot / phase-local enable, pulse forming and root-clock retiming." }
+    },
+    {
+      "id": "F-usable", "group": "symbol", "autolink": false, "symbol": "F_{\\mathrm{usable}}", "section": "r-9-3",
+      "unit": { "zh": "布尔量", "en": "Boolean" },
+      "zh": { "term": "fine 采用条件 F_usable", "aliases": ["fine_usable", "F_usable"], "def": "F_usable = V_code ∧ V_range ∧ V_anchor ∧ V_epoch ∧ V_cal（式 20），对应接口 fine_usable；range_ok 必须来自电路可实现的饱和/溢出/窗口检查，而不是仿真器中不可见的理想相位。" },
+      "en": { "term": "fine-usable condition F_usable", "aliases": ["fine_usable", "F_usable"], "def": "F_usable = V_code ∧ V_range ∧ V_anchor ∧ V_epoch ∧ V_cal (Eq. 20), the interface flag fine_usable; range_ok must come from circuit-realisable saturate/overflow/window checks, not from an ideal phase that only a simulator can see." },
+      "see": ["sat-valid", "saturation"]
+    },
+    {
+      "id": "e-c", "group": "symbol", "autolink": false, "symbol": "e_c[k]", "section": "r-9-4",
+      "unit": { "zh": "原周期（量化较粗）", "en": "raw cycles (coarsely quantised)" },
+      "zh": { "term": "粗相位误差 e_c", "aliases": ["e_c"], "def": "e_c[k] = R[k] − N_R[k]（式 21），是量化较粗的相位误差；其差分才对应频率误差（式 22）。" },
+      "en": { "term": "coarse phase error e_c", "aliases": ["e_c"], "def": "e_c[k] = R[k] − N_R[k] (Eq. 21), a coarsely quantised phase error; only its difference corresponds to a frequency error (Eq. 22)." },
+      "see": ["coarse-takeover", "R-k"]
+    },
+    {
+      "id": "R-k", "group": "symbol", "autolink": false, "symbol": "R[k],\\;N_R[k]", "section": "r-9-4",
+      "unit": { "zh": "原周期", "en": "raw cycles" },
+      "zh": { "term": "参考累加相位 R[k] 与 coarse 观测 N_R[k]", "aliases": ["R[k]", "N_R[k]"], "def": "R[k] 是第 k 个参考事件的参考累加相位（逐参考周期累加 FCW），N_R[k] 是同一事件的 coarse 整数相位观测；二者之差为粗相位误差 e_c。" },
+      "en": { "term": "accumulated reference phase R[k] and coarse observation N_R[k]", "aliases": ["R[k]", "N_R[k]"], "def": "R[k] is the accumulated reference phase at reference event k (FCW accumulated per reference cycle); N_R[k] is the coarse integer phase observation of the same event; their difference is the coarse phase error e_c." }
+    },
+    {
+      "id": "d-pin", "group": "symbol", "autolink": false, "symbol": "d_{\\mathrm{pin}}", "section": "r-9-2",
+      "unit": { "zh": "s", "en": "s" },
+      "zh": { "term": "TDC 引脚时间差 d_pin", "aliases": ["d_pin"], "def": "TDC 两个输入引脚处的实际时间差 d_pin = (t_E + τ_E) − (t_R + τ_R)；扣除路径延迟差后才是原事件间隔 Δt（式 18）。" },
+      "en": { "term": "TDC pin time difference d_pin", "aliases": ["d_pin"], "def": "Actual time difference at the two TDC input pins, d_pin = (t_E + τ_E) − (t_R + τ_R); the original event interval Δt is obtained only after removing the path-delay difference (Eq. 18)." }
+    },
+    {
+      "id": "tau", "group": "symbol", "autolink": false, "symbol": "\\tau_R,\\;\\tau_E", "section": "r-9-2",
+      "unit": { "zh": "s", "en": "s" },
+      "zh": { "term": "参考/边沿路径延迟 τ_R、τ_E", "aliases": ["τ_R", "τ_E"], "def": "参考事件和被选边沿各自到 TDC 引脚的路径延迟。DTC 插在参考路径时计入 τ_R，插在反馈路径时计入 τ_E，不能一处当已补偿、另一处再次添加。" },
+      "en": { "term": "reference/edge path delays τ_R, τ_E", "aliases": ["τ_R", "τ_E"], "def": "Path delays from the reference event and from the selected edge to the TDC pins. A DTC in the reference path counts in τ_R, one in the feedback path counts in τ_E — never treat it as compensated in one place and add it again elsewhere." },
+      "see": ["dtc", "d-pin"]
+    },
+    {
+      "id": "LSB-t", "group": "symbol", "autolink": false, "symbol": "\\mathrm{LSB}_t", "section": "r-9-2",
+      "unit": { "zh": "s / 码", "en": "s per code" },
+      "zh": { "term": "TDC 时间 LSB（LSB_t）", "aliases": ["LSB_t"], "def": "TDC 一个码对应的时间步长，用于把码差换算为时间（式 19）；它和 code_0、周期估计一样必须携带校准版本。" },
+      "en": { "term": "TDC time LSB (LSB_t)", "aliases": ["LSB_t"], "def": "Time step per TDC code, used to convert code differences into time (Eq. 19); like code_0 and the period estimate, it must carry a calibration version." }
+    },
+    {
+      "id": "code-0", "group": "symbol", "autolink": false, "symbol": "\\mathrm{code}_0", "section": "r-9-2",
+      "unit": { "zh": "码", "en": "code" },
+      "zh": { "term": "TDC 零点码 code_0", "aliases": ["code_0"], "def": "TDC 的零时间差参考码；归一化前先减去 code_0（式 19）。" },
+      "en": { "term": "TDC zero code code_0", "aliases": ["code_0"], "def": "TDC code corresponding to zero time difference; subtracted before normalisation (Eq. 19)." }
+    },
+    {
+      "id": "o-phase", "group": "symbol", "autolink": false, "symbol": "o_{\\mathrm{phase}}", "section": "r-9-2",
+      "unit": { "zh": "原周期", "en": "raw cycles" },
+      "zh": { "term": "剩余校准相位偏置 o_phase", "aliases": ["o_phase"], "def": "式 (19) 中归一化之后剩余的校准相位偏置；把 raw code 直接当作原周期小数，可能把增益或时钟节点差错隐藏在相位环路中。" },
+      "en": { "term": "residual phase offset o_phase", "aliases": ["o_phase"], "def": "Remaining calibration phase offset after normalisation in Eq. (19); treating a raw code directly as a raw-cycle fraction can hide gain or clock-node errors inside the phase loop." }
+    },
+    {
+      "id": "margins", "group": "symbol", "autolink": false, "symbol": "m_i,\\;h_i", "section": "r-7-2",
+      "unit": { "zh": "s", "en": "s" },
+      "zh": { "term": "第 i 组建立/保持余量 m_i、h_i", "aliases": ["m_i", "h_i"], "def": "匹配延迟采样中第 i 组的建立余量 m_i 与保持余量 h_i（式 15）；验收条件为每组 m_i > 0、h_i > 0，且所有组属于同一 epoch。" },
+      "en": { "term": "per-group setup/hold margins m_i, h_i", "aliases": ["m_i", "h_i"], "def": "Setup margin m_i and hold margin h_i of group i in matched-delay sampling (Eq. 15); acceptance requires m_i > 0 and h_i > 0 for every group, all belonging to the same epoch." },
+      "see": ["matched-delay"]
+    },
+
+    {
+      "id": "short-tdc", "group": "concept", "autolink": true, "section": "r-9-1",
+      "zh": { "term": "短量程 TDC", "aliases": ["短量程 TDC", "有限量程 TDC", "short TDC", "短 TDC"], "def": "只测参考沿与被选真实物理边沿之间局部残差的有限量程 TDC，目标量程约一个原始 CKV 周期或更小，并携带 SAT/VALID。其量程必须由实际选沿、捕获结构、预测或 DTC 约束，CNT 不改变 TDC 输入端已有的物理时间间隔。" },
+      "en": { "term": "short-range TDC", "aliases": ["short-range TDC", "finite-range TDC", "short TDC"], "def": "A finite-range TDC that only measures the local residual between the reference and the actually selected physical edge — targeting about one raw CKV cycle or less — and carries SAT/VALID. Its range must be bounded by real edge selection, capture structure, prediction or a DTC; the CNT does not change the physical interval already present at the TDC inputs." },
+      "see": ["saturation", "physical-edge-selection", "tdc"]
+    },
+    {
+      "id": "edge-deadline", "group": "concept", "autolink": true, "symbol": "t_{\\mathrm{arrive}}+t_{\\mathrm{setup,exec}}+t_{\\mathrm{guard}}\\leq t_{\\mathrm{target}}", "section": "r-8-4",
+      "zh": { "term": "选沿 deadline", "aliases": ["选沿 deadline", "deadline"], "def": "选择控制必须在目标边沿前建立：t_arrive + t_setup,exec + t_guard ≤ t_target（式 17）。不满足时不能悄悄在下一 slot 补发并返回原 edge ID，必须 LATE/MISS、重新规划不同的 J 或切换测量策略。" },
+      "en": { "term": "edge-selection deadline", "aliases": ["edge-selection deadline", "deadline"], "def": "Selection control must be set up before the target edge: t_arrive + t_setup,exec + t_guard ≤ t_target (Eq. 17). If violated, the executor may not silently re-issue in the next slot under the old edge ID; it must flag LATE/MISS, re-plan a different J, or switch measurement strategy." },
+      "see": ["late-miss", "p-s-executor"]
+    },
+    {
+      "id": "coherent-snapshot", "group": "concept", "autolink": true, "section": "r-4-4",
+      "zh": { "term": "相干快照", "aliases": ["相干快照", "snapshot", "快照"], "def": "在参考事件附近捕获的 {C, q} 及边界侧信息，要求它们属于同一个逻辑 epoch。相干的本质是逻辑同一拍，而不是所有寄存器物理上同时锁存；匹配延迟读出可在不同时刻取得同一 epoch。" },
+      "en": { "term": "coherent snapshot", "aliases": ["coherent snapshot", "snapshot"], "def": "The {C, q} and boundary-side information captured near a reference event, required to belong to one logical epoch. Coherence means the same logical count, not that all registers latch at the same physical instant; delay-matched readout can obtain the same epoch at different times." },
+      "see": ["epoch", "matched-delay", "candidate-tuple"]
+    },
+    {
+      "id": "torn-sampling", "group": "concept", "autolink": true, "section": "r-6-1",
+      "zh": { "term": "撕裂采样", "aliases": ["撕裂采样", "高低字撕裂", "撕裂"], "def": "高位 C 与低位 q 在组边界附近被分别采样并取到不同 epoch：旧高位 + 新低位相对新合法状态错 −M，新高位 + 旧低位相对旧合法状态错 +M（M = 8 时为 80 与 95，分别对应 88 与 87）。仅允许 ±1 raw cycle 的修正器覆盖不了这种故障。" },
+      "en": { "term": "torn sampling", "aliases": ["torn sampling", "torn capture", "torn word", "tearing"], "def": "C and q are sampled separately near a group boundary and land in different epochs: old high + new low is −M off the new legal state, new high + old low is +M off the old legal state (for M = 8: 80 and 95 versus 88 and 87). A corrector that only allows ±1 raw cycle cannot cover this fault." },
+      "see": ["kappa-C", "low-bit-blind-spot", "epoch"]
+    },
+    {
+      "id": "low-bit-blind-spot", "group": "concept", "autolink": true, "section": "r-6-3",
+      "zh": { "term": "低位盲区", "aliases": ["低位盲区"], "def": "整组误差 N → N + M 既不改变 q = N mod M，也不改变原周期奇偶 N mod 2（式 11）。因此只看 q 或 raw parity 的 XOR 可能完全看不出高位错组；需要能跨组翻转的冗余状态，且即便用高位 parity 也只能区分相邻组。" },
+      "en": { "term": "low-bit blind spot", "aliases": ["low-bit blind spot", "low-state blind spot", "blind spot"], "def": "A whole-group error N → N + M changes neither q = N mod M nor the raw-cycle parity N mod 2 (Eq. 11). An XOR that only looks at q or raw parity may therefore miss a high-bit group error entirely; redundant state that toggles across groups is needed, and even high-bit parity only resolves adjacent groups." },
+      "see": ["torn-sampling", "redundant-correction"]
+    },
+    {
+      "id": "candidate-tuple", "group": "concept", "autolink": true, "section": "r-7-1",
+      "zh": { "term": "候选元组", "aliases": ["候选元组"], "def": "以 {coarse, low_state, boundary_side, fine_anchor_id, candidate_id} 为原子选择单位：选中后整个元组来自同一候选再输出有效事件，避免 coarse 选 A、fine 默认为 B。" },
+      "en": { "term": "candidate tuple", "aliases": ["candidate tuple", "candidate tuples"], "def": "The atomic selection unit {coarse, low_state, boundary_side, fine_anchor_id, candidate_id}: the whole tuple comes from one candidate before a valid event is emitted, so coarse cannot pick A while fine defaults to B." },
+      "see": ["multi-candidate"]
+    },
+    {
+      "id": "multi-candidate", "group": "concept", "autolink": true, "section": "r-7-1",
+      "zh": { "term": "多候选捕获（路线 A）", "aliases": ["多候选捕获", "双候选", "多候选"], "def": "用 rising/falling 或多个相位生成不同参考重定时候选，分别捕获相位信息，再按边界侧信息选择安全候选（TI、Kuo 有直接实现）。仍须证明 select 稳定、元组原子选择以及固定/变化延迟。" },
+      "en": { "term": "multi-candidate capture (route A)", "aliases": ["multi-candidate capture", "multi-candidate", "dual-candidate", "dual candidates"], "def": "Rising/falling or several phases create different reference-retiming candidates that each capture phase information; boundary-side information then picks a safe candidate (direct implementations in TI and Kuo). Still to prove: stable select, atomic tuple selection, fixed/variable delays." },
+      "see": ["candidate-tuple", "sel-edge"]
+    },
+    {
+      "id": "matched-delay", "group": "concept", "autolink": true, "section": "r-7-2",
+      "zh": { "term": "匹配延迟采样（路线 B）", "aliases": ["匹配延迟采样", "延迟匹配读出", "延迟匹配", "匹配延迟"], "def": "沿计数传播方向把各组采样时刻错开，使每组在其数据稳定后、下一次改写前被采到（式 13–15），再统一重采样（CN105071798、Zong Fig.9）。验收要求每组余量为正且所有组属于同一逻辑 epoch。" },
+      "en": { "term": "matched-delay sampling (route B)", "aliases": ["matched-delay sampling", "delay-matched readout", "delay-matched sampling", "delay matching", "matched delay"], "def": "Staggers each group's sampling instant along the count-propagation direction so every group is sampled after it settles and before its next update (Eqs. 13–15), then resamples uniformly (CN105071798, Zong Fig. 9). Acceptance needs positive margins for every group and one common logical epoch." },
+      "see": ["margins", "coherent-snapshot"]
+    },
+    {
+      "id": "redundant-correction", "group": "concept", "autolink": true, "section": "r-7-3",
+      "zh": { "term": "冗余校正（路线 C）", "aliases": ["冗余校正", "冗余状态", "冗余码"], "def": "允许已知类型的整数捕获歧义，再由小数/冗余状态识别和修正（Havens、Sony）。必须先列出全部可能错误状态的集合、明确修正单位，歧义时输出 INVALID，而不是先选一个 XOR 再期待它覆盖所有错误。" },
+      "en": { "term": "redundant correction (route C)", "aliases": ["redundant correction", "redundant state", "redundant code"], "def": "Allows known kinds of integer capture ambiguity and identifies/corrects them from fractional or redundant state (Havens, Sony). The full set of possible error states, the correction units and INVALID-on-ambiguity must be defined first — not pick an XOR and hope it covers every error." },
+      "see": ["low-bit-blind-spot", "kappa-C"]
+    },
+    {
+      "id": "execution-receipt", "group": "concept", "autolink": true, "section": "r-8-2",
+      "zh": { "term": "执行回执", "aliases": ["执行回执", "边沿回执", "回执"], "def": "证明实际执行了哪条边沿的独立信息（形成 J_observed），可来自目标 slot 的稳定计数影子、受控的 launch acknowledgement 或匹配后状态；回执与实际输出之间的固定流水偏移也必须可追溯。" },
+      "en": { "term": "execution receipt", "aliases": ["execution receipt", "edge receipt", "receipt"], "def": "Independent evidence of which edge was actually executed (forming J_observed) — from a stable count shadow of the target slot, a controlled launch acknowledgement or matched state; the fixed pipeline offset between receipt and real output must also be traceable." },
+      "see": ["J-observed", "J-plan"]
+    },
+    {
+      "id": "physical-edge-selection", "group": "concept", "autolink": true, "section": "r-8-3",
+      "zh": { "term": "物理选沿", "aliases": ["物理选沿", "物理选相", "选沿"], "def": "从真实存在的物理边沿（原始周期或多相相位）中选出送入 short TDC 的那一条。它缩短的是 TDC 输入的真实时间间隔，与数字上减去整周期不是一回事；低速 snapshot 也不能倒退时间去选择已经过去的边沿。" },
+      "en": { "term": "physical edge selection", "aliases": ["physical edge selection", "physical phase selection", "edge selection", "phase selection"], "def": "Choosing which real physical edge (raw cycle or multiphase tap) is sent to the short TDC. It shortens the true time interval at the TDC input, which is not the same as digitally subtracting whole cycles; a slow snapshot also cannot go back in time to select an edge that has already passed." },
+      "see": ["edge-deadline", "short-tdc"]
+    },
+    {
+      "id": "measurement-chain", "group": "concept", "autolink": true, "section": "r-1-1",
+      "zh": { "term": "测量链", "aliases": ["测量链"], "def": "持续记录振荡器实际走过的周期，并在参考事件附近形成粗细联合时间戳的链路（持续计数 + 相干快照 + 短 TDC）。" },
+      "en": { "term": "measurement chain", "aliases": ["measurement chain"], "def": "The chain that continuously records the cycles the oscillator actually traverses and forms a joint coarse/fine timestamp near each reference event (persistent count + coherent snapshot + short TDC)." },
+      "see": ["execution-chain"]
+    },
+    {
+      "id": "execution-chain", "group": "concept", "autolink": true, "section": "r-1-1",
+      "zh": { "term": "执行链", "aliases": ["执行链"], "def": "低速并行状态或预测命令如何在高速侧生成指定物理边沿的链路。P/S、one-hot、移位状态机和多相选择器只是它的候选实现，不能替代 CNT 的测量（G7）。" },
+      "en": { "term": "execution chain", "aliases": ["execution chain"], "def": "The chain by which slow parallel state or predicted commands generate a designated physical edge on the fast side. P/S, one-hot, shift-state machines and multiphase selectors are only candidate implementations and cannot replace the CNT measurement (G7)." },
+      "see": ["measurement-chain", "p-s-executor"]
+    },
+    {
+      "id": "anchor-minus-residual", "group": "concept", "autolink": true, "symbol": "\\Phi_0(t_{R,k})=A_k-\\mu_k", "section": "r-3-3",
+      "zh": { "term": "锚点减残差", "aliases": ["锚点减残差"], "def": "完整相位的通用表达 Φ0(t_R) = A − μ（式 5）：整数信息只来自被选边沿的锚点 A = J + α，fine 只提供残差 μ。它取代了被撤回的通用写法 8C + q + e/8 + ε。" },
+      "en": { "term": "anchor minus residual", "aliases": ["anchor minus residual", "anchor-minus-residual"], "def": "The general full-phase expression Φ0(t_R) = A − μ (Eq. 5): integer information comes only from the selected edge's anchor A = J + α, and fine only supplies the residual μ. It replaces the withdrawn generic form 8C + q + e/8 + ε." },
+      "see": ["A", "mu", "stitching"]
+    },
+    {
+      "id": "stitching", "group": "concept", "autolink": true, "section": "r-6-4",
+      "zh": { "term": "coarse/fine 拼接（stitching）", "aliases": ["stitching", "粗细拼接"], "def": "把整数锚点与 fine 间隔组合为完整相位。边界附近允许两种坐标 J − μ = (J+1) − (μ+1)（式 12），但锚点与 fine 必须共同变换；整数取 J+1 而 fine 仍相对 J，就会产生一整周期错误（不变量 I6）。" },
+      "en": { "term": "coarse/fine stitching", "aliases": ["coarse/fine stitching", "stitching"], "def": "Combining the integer anchor with the fine interval into a full phase. Near a boundary two coordinates are allowed, J − μ = (J+1) − (μ+1) (Eq. 12), but anchor and fine must transform together; taking J+1 for the integer while fine still refers to J creates a whole-cycle error (invariant I6)." },
+      "see": ["anchor-minus-residual"]
+    },
+    {
+      "id": "residue", "group": "concept", "autolink": true, "section": "r-3-1",
+      "zh": { "term": "原周期 residue", "aliases": ["原周期 residue", "residue"], "def": "组内的原周期位置 q = N mod M。高速侧可以用二进制、Johnson/Gray 或 shift state 等易实现的状态保存它，慢速侧再解码；但它始终是整数周期信息，不是 TDC 小数码。" },
+      "en": { "term": "raw-cycle residue", "aliases": ["raw-cycle residue", "residue"], "def": "The in-group raw-cycle position q = N mod M. The fast side may hold it as binary, Johnson/Gray or shift state and decode it later in the slow domain, but it is always integer cycle information, never a TDC fraction." },
+      "see": ["q", "low-state-encoding"]
+    },
+    {
+      "id": "raw-cycle", "group": "concept", "autolink": true, "section": "r-3-1",
+      "zh": { "term": "原周期（原始周期）", "aliases": ["原始周期", "原周期"], "def": "CK0 的一个完整周期 T0，是 N、J、α、μ、κ_N 等量的统一单位；它与分频后周期（如 T_d 或 /4 后的 CKV 周期）不同，跨单位相加会造成混合单位与重复计数。" },
+      "en": { "term": "raw cycle", "aliases": ["raw cycles", "raw cycle", "raw CKV cycle"], "def": "One full CK0 period T0 — the common unit of N, J, α, μ and κ_N. It differs from divided-clock periods (T_d, or the CKV period after /4); adding quantities across units mixes dimensions and double-counts." },
+      "see": ["ck0", "clock-node"]
+    },
+    {
+      "id": "clock-node", "group": "concept", "autolink": true, "section": "r-3-1",
+      "zh": { "term": "时钟节点", "aliases": ["时钟节点"], "def": "被计数或被测量的具体时钟层级（DCO、预分频输出、多相 CKV 等）。不同文献中的 CKV 不能跨文献直接同名代换；EventFrame 用 clock_node_id 明确数的是哪个节点（Q1）。" },
+      "en": { "term": "clock node", "aliases": ["clock node", "clock nodes"], "def": "The concrete clock level being counted or measured (DCO, pre-divider output, multiphase CKV…). CKV in different sources must not be substituted by name; the EventFrame names the counted node with clock_node_id (Q1)." },
+      "see": ["ck0", "ckv"]
+    },
+    {
+      "id": "carry", "group": "concept", "autolink": true, "symbol": "(C,M-1)\\longrightarrow(C+1,0)", "section": "r-3-2",
+      "zh": { "term": "进位 / 回绕（carry / wrap）", "aliases": ["进位", "回绕", "carry", "wrap"], "def": "低位 q 由 M−1 回到 0 时高位 C 加 1 的合法跳变（式 2）。慢计数必须与低位 wrap 在逻辑上同源（count lineage），不能只是任意同频 /M 时钟；还要核对触发极性、复位原点和流水延迟。" },
+      "en": { "term": "carry / wrap", "aliases": ["carry", "wrap"], "def": "The legal transition in which C increments as q wraps M−1 → 0 (Eq. 2). The slow count must be logically derived from the low-bit wrap (count lineage), not driven by an arbitrary /M clock of the same frequency; trigger polarity, reset origin and pipeline delay must also be checked." },
+      "see": ["ckvd8", "C"]
+    },
+    {
+      "id": "epoch", "group": "concept", "autolink": true, "section": "r-6",
+      "zh": { "term": "epoch（逻辑计数拍）", "aliases": ["epoch"], "def": "一次观测所属的逻辑计数拍/世代：coarse 高位、低位状态和 fine 锚点必须属于同一 epoch。epoch 错误要按层级分类：原周期级（±1）与组级（±M）是不同故障。" },
+      "en": { "term": "epoch", "aliases": ["epoch", "epochs"], "def": "The logical count step (generation) an observation belongs to: high count, low state and fine anchor must share one epoch. Epoch errors must be classified by level: raw-cycle (±1) and block (±M) errors are different faults." },
+      "see": ["torn-sampling", "coherent-snapshot"]
+    },
+    {
+      "id": "saturation", "group": "concept", "autolink": true, "symbol": "Q(x)", "section": "r-9-1",
+      "zh": { "term": "饱和（不可逆）", "aliases": ["饱和"], "def": "饱和函数 Q(x) 把所有 x ≥ R 都输出 R，于是 Q(1.5R) = Q(3R) = R，无法由输出反推输入；之后再减整数周期也不能恢复已被压成同一码的 fine 信息。一侧饱和可保留误差方向，但不能标为精确 fine 残差。" },
+      "en": { "term": "saturation (non-invertible)", "aliases": ["saturation", "saturated"], "def": "A saturation function Q(x) outputs R for every x ≥ R, so Q(1.5R) = Q(3R) = R and the input cannot be recovered; subtracting whole cycles afterwards cannot restore fine information already collapsed into one code. One-sided saturation may keep the error sign but must not be labelled an exact fine residual." },
+      "see": ["sat-valid", "short-tdc"]
+    },
+    {
+      "id": "coarse-takeover", "group": "concept", "autolink": true, "section": "r-9-4",
+      "zh": { "term": "coarse 接管", "aliases": ["coarse 接管"], "def": "fine 无效而 coarse 仍可靠时，使用已定义的粗相位估计（e_c）及其量化误差上界，或把符号/区间信息送入受控策略；coarse 也无法判定时本次观测必须 INVALID。它不等于删除 fine，也不等于凭空多出一条 FLL。" },
+      "en": { "term": "coarse takeover", "aliases": ["coarse takeover", "coarse-only fallback"], "def": "When fine is invalid but coarse is still reliable, use a defined coarse phase estimate (e_c) with its quantisation bound, or feed sign/interval information to a controlled strategy; if coarse cannot decide either, the observation is INVALID. It neither deletes fine nor magically adds an FLL." },
+      "see": ["e-c", "fll", "phase-source"]
+    },
+    {
+      "id": "low-state-encoding", "group": "concept", "autolink": true, "section": "r-4-2",
+      "zh": { "term": "低位状态编码（shift state / Johnson / Gray）", "aliases": ["Gray/Johnson", "Johnson/Gray", "shift-state", "shift state", "移位状态"], "def": "高速侧可保存易实现的状态（移位状态、Johnson/Gray 等），采样后再由慢速侧解码（Xu 的 4-to-2 encoder）。一位变化编码可限制数字码相邻性，但不免除 epoch 一致性，也不消除采样触发器的模拟亚稳态风险。" },
+      "en": { "term": "low-state encoding (shift state / Johnson / Gray)", "aliases": ["shift-state", "shift state", "Gray/Johnson", "Johnson/Gray"], "def": "The fast side can hold an easy-to-build state (shift state, Johnson/Gray…) that is decoded after sampling in the slow domain (Xu's 4-to-2 encoder). One-bit-change codes limit code adjacency but neither waive epoch consistency nor remove the analog metastability of the sampling flip-flop." },
+      "see": ["residue", "metastability"]
+    },
+    {
+      "id": "metastability", "group": "concept", "autolink": true, "section": "r-6-5",
+      "zh": { "term": "亚稳态", "aliases": ["亚稳态", "亚稳"], "def": "采样触发器在数据与时钟过近时的模拟风险。本报告采用两层验收：在定义的数字延迟/边界模型中证明无静默错码；在晶体管/PVT 模型中另行评估亚稳态传播、决策延迟及剩余失效率，不宣称“任意相位、绝对零失败”。" },
+      "en": { "term": "metastability", "aliases": ["metastability", "metastable"], "def": "Analog risk of a sampling flip-flop when data and clock come too close. The report uses two-layer acceptance: prove no silent wrong codes in a defined digital delay/boundary model, then separately assess metastability propagation, decision delay and residual failure rate in transistor/PVT models — no claim of 'any phase, absolutely zero failures'." }
+    },
+    {
+      "id": "one-count-uncertainty", "group": "concept", "autolink": true, "section": "r-4-6",
+      "zh": { "term": "one-count uncertainty", "aliases": ["one-count uncertainty"], "def": "同步器在整数计数采样中引入的一个计数的不确定性。Havens 用保留 even/odd 信息的多相半速状态加以消除，早于 Sony；但其 half-rate/parity 结构不能直接替代 /8 block-epoch 检查。" },
+      "en": { "term": "one-count uncertainty", "aliases": ["one-count uncertainty"], "def": "A one-count ambiguity introduced by the synchroniser when sampling the integer count. Havens removes it with multiphase half-rate state that keeps even/odd information — earlier than Sony — but that half-rate/parity structure cannot directly replace a /8 block-epoch check." }
+    },
+    {
+      "id": "octal", "group": "concept", "autolink": true, "section": "r-4-5",
+      "zh": { "term": "八相（Octal）选相", "aliases": ["八相", "Octal"], "def": "Kuo 2018 将 DCO 的 /4 输出构成八相 CKV 并配合预测选相与短 TDC。八相区域间距 T_V/8 以论文 CKV 周期为基准，换算到前置 /4 之前的 T0 是 T0/2，而不是 T0/8。" },
+      "en": { "term": "eight-phase (octal) selection", "aliases": ["eight-phase", "Octal", "octal"], "def": "Kuo 2018 builds an eight-phase CKV from the DCO's /4 output, combined with predictive phase selection and a short TDC. The region spacing T_V/8 is relative to the paper's CKV period; converted to T0 before the /4 it is T0/2, not T0/8." },
+      "see": ["a"]
+    },
+    {
+      "id": "invariant", "group": "concept", "autolink": true, "section": "r-10-2",
+      "zh": { "term": "不变量 I1–I8", "aliases": ["不变量"], "def": "实现必须始终保持的八条性质（CK0 连续与原点一致、同锚点、修正单位明确、回执独立、fine 有效、边界等价、deadline、rollover 窗口），每条都规定了违反后的处理（阻断、校正、INVALID 或降级）。" },
+      "en": { "term": "invariants I1–I8", "aliases": ["invariants", "invariant"], "def": "Eight properties the implementation must always hold (continuous CK0 and consistent origin, common anchor, explicit correction units, independent receipt, valid fine, boundary equivalence, deadline, rollover window), each with a prescribed handling on violation (block, correct, INVALID or degrade)." }
+    },
+    {
+      "id": "rollover", "group": "concept", "autolink": true, "section": "r-10-2",
+      "zh": { "term": "全宽 rollover", "aliases": ["rollover"], "def": "W 位总计数器整体回绕。模差转换为有符号差时，期望差及采样间隔必须落在可唯一展开的窗口内，典型条件是幅度小于 2^(W−1)（不变量 I8）；超出时 reset/reacquire。" },
+      "en": { "term": "full-width rollover", "aliases": ["rollover"], "def": "Wrap-around of the whole W-bit counter. Converting a modular difference into a signed one requires the expected difference and sampling interval to stay within a uniquely unwrappable window, typically magnitude < 2^(W−1) (invariant I8); otherwise reset/reacquire." }
+    },
+    {
+      "id": "evidence-level", "group": "concept", "autolink": true, "section": "r-2-3",
+      "zh": { "term": "证据等级（A-P / A-J / B / H / D）", "aliases": ["证据等级"], "def": "标记每条结论的复核状态：A-P 专利原文已核对，A-J 论文原文与关键图已核对，B 仅元数据/摘要可核对，H 前轮报告保存的结论，D 本报告推导或候选规范。它评价的是支撑力度与读取范围，不是论文或专利本身的质量排序。" },
+      "en": { "term": "evidence level (A-P / A-J / B / H / D)", "aliases": ["evidence levels", "evidence level"], "def": "Marks the review status of each claim: A-P patent text checked, A-J paper text and key figures checked, B only metadata/abstract verifiable, H conclusion kept from earlier reports, D this report's derivation or candidate spec. It rates support strength and reading scope — not the quality of the paper or patent." }
+    },
+    {
+      "id": "golden-model", "group": "concept", "autolink": true, "section": "r-12-2",
+      "zh": { "term": "事件级 golden model", "aliases": ["golden model"], "def": "第一层验证模型：从原始真实边沿时间驱动持久 CNT，再分别模拟采样、执行和有限 TDC；禁止把理想 Φ0(t_R) 直接喂给 decoder 或用它生成电路不可获得的 VALID，并逐事件比较 J_observed、coarse anchor、最终相位与 ground truth。" },
+      "en": { "term": "event-level golden model", "aliases": ["golden model"], "def": "First verification layer: drive the persistent CNT from true raw edge times, then model sampling, execution and the finite TDC separately; never feed the ideal Φ0(t_R) to the decoder or use it to create a VALID the circuit cannot obtain; compare J_observed, coarse anchor and final phase with ground truth per event." }
+    },
+
+    {
+      "id": "cnt", "group": "signal", "autolink": true, "section": "r-1-1",
+      "zh": { "term": "CNT（持续整数相位计数）", "aliases": ["持续 CNT", "CNT"], "def": "持续记录实际 CK0 周期的整数相位计数器，是 coarse 观测、回执校验和 fine 无效时测量的基础（G1、G7）；“数字整数相消即可删除 CNT”的推导不成立。" },
+      "en": { "term": "CNT (persistent integer phase counter)", "aliases": ["persistent CNT", "CNT"], "def": "The integer phase counter that continuously records actual CK0 cycles — the basis of coarse observation, receipt checking and measurement when fine is invalid (G1, G7); 'digital integer cancellation lets us delete the CNT' does not hold." },
+      "see": ["vpa", "measurement-chain"]
+    },
+    {
+      "id": "vpa", "group": "signal", "autolink": true, "section": "r-4-1",
+      "zh": { "term": "VPA（可变相位累加器）", "aliases": ["VPA"], "def": "ADPLL 中记录振荡器整数相位（variable phase）的累加器/计数器；TI 的 /8 实施例说明少量高速低位与降频高位可以组成 VPA。" },
+      "en": { "term": "VPA (variable phase accumulator)", "aliases": ["VPA", "variable phase accumulator"], "def": "The accumulator/counter that records the oscillator's integer (variable) phase in an ADPLL; TI's /8 embodiment shows a few fast low bits plus slower high bits can form a VPA." }
+    },
+    {
+      "id": "adpll", "group": "signal", "autolink": true, "section": "r-1-1",
+      "zh": { "term": "ADPLL（全数字锁相环）", "aliases": ["ADPLL"], "def": "全数字锁相环；本项目关注以振荡器周期计数（CNT/VPA）参与主相位测量的 phase-domain ADPLL/DPLL。" },
+      "en": { "term": "ADPLL (all-digital PLL)", "aliases": ["ADPLL"], "def": "All-digital phase-locked loop; this project concerns phase-domain ADPLL/DPLLs in which an oscillator-cycle count (CNT/VPA) takes part in the main phase measurement." }
+    },
+    {
+      "id": "dco", "group": "signal", "autolink": true, "section": "r-3-1",
+      "zh": { "term": "DCO（数控振荡器）", "aliases": ["DCO"], "def": "数控振荡器。它可能就是 CK0，也可能在 CK0 之前还有预分频；例如 Kuo 2018 的 DCO 调谐范围为 5.7–8.4 GHz，约 2 GHz 是 /4 后的节点。" },
+      "en": { "term": "DCO (digitally controlled oscillator)", "aliases": ["DCO"], "def": "Digitally controlled oscillator. It may be CK0 itself or sit before a pre-divider; e.g. Kuo 2018's DCO tunes 5.7–8.4 GHz while the ~2 GHz node is after /4." }
+    },
+    {
+      "id": "ckv", "group": "signal", "autolink": true, "section": "r-3-1",
+      "zh": { "term": "CKV（振荡器反馈时钟）", "aliases": ["CKV"], "def": "ADPLL 文献中振荡器侧的反馈时钟。Bogdan 基线、Kuo 的多相 CKV 与 Zong 经前置分频的 CKV 并不处于同一层级，不能自动视为同一节点；本报告用 CK0 统一指代需保留周期编号的节点。" },
+      "en": { "term": "CKV (oscillator-side clock)", "aliases": ["CKV"], "def": "The oscillator-side feedback clock in ADPLL literature. Bogdan's baseline CKV, Kuo's multiphase CKV and Zong's pre-divided CKV are not at the same level and must not be treated as one node; the report uses CK0 for the node whose cycle index must be kept." },
+      "see": ["ck0", "clock-node"]
+    },
+    {
+      "id": "ckvd8", "group": "signal", "autolink": true, "section": "r-3-2",
+      "zh": { "term": "CKVD8 / CKVD4（分频慢时钟）", "aliases": ["CKVD8", "CKVD4"], "def": "由 CKV /8（TI）或低两位状态 /4（ETRI）得到、驱动高位计数的慢时钟。若把二进制 q 的最高位当作 /8 时钟，其上升沿对应 3→4、下降沿才对应 7→0 的进位，不能只看信号名就默认其有效沿等于式 (2) 的 carry。" },
+      "en": { "term": "CKVD8 / CKVD4 (divided slow clock)", "aliases": ["CKVD8", "CKVD4"], "def": "Slow clock from CKV /8 (TI) or from the two low bits /4 (ETRI) that drives the high count. If the binary MSB of q is used as the /8 clock, its rising edge marks 3→4 and only its falling edge marks the 7→0 carry — never infer from the name that its active edge equals the carry of Eq. (2)." },
+      "see": ["carry"]
+    },
+    {
+      "id": "sel-edge", "group": "signal", "autolink": true, "section": "r-4-1",
+      "zh": { "term": "SEL_EDGE", "aliases": ["SEL_EDGE"], "def": "TI Fig.4 中参与在 CKV 上升沿、下降沿两套 FREF 重定时/低位采样候选之间选择的信号，说明 fine-side 边沿判定可以参与 coarse 路径选择。" },
+      "en": { "term": "SEL_EDGE", "aliases": ["SEL_EDGE"], "def": "Signal in TI Fig. 4 that selects between the two FREF retiming/low-bit sampling candidates taken on CKV rising and falling edges — showing that a fine-side edge decision can steer coarse path selection." },
+      "see": ["multi-candidate"]
+    },
+    {
+      "id": "tdc", "group": "signal", "autolink": true, "section": "r-9-1",
+      "zh": { "term": "TDC（时间数字转换器）", "aliases": ["TDC"], "def": "把两个边沿之间的时间差量化为数字码的电路。码值与可信性必须分离（fine_raw 与 fine_valid、sat_hi、sat_lo），并按校准版本归一化（式 19）。" },
+      "en": { "term": "TDC (time-to-digital converter)", "aliases": ["TDC"], "def": "Circuit that quantises the time difference between two edges into a code. Code and trustworthiness must be separated (fine_raw vs fine_valid, sat_hi, sat_lo) and normalised with a matching calibration version (Eq. 19)." },
+      "see": ["short-tdc"]
+    },
+    {
+      "id": "dtc", "group": "signal", "autolink": true, "section": "r-9-2",
+      "zh": { "term": "DTC（数字时间转换器）", "aliases": ["DTC"], "def": "按数字码产生可控延迟的电路，用于缩短 TDC 需要覆盖的时间间隔（Zong 的 DTC-assisted TDC）。插在参考路径计入 τ_R，插在反馈路径计入 τ_E（式 18）。" },
+      "en": { "term": "DTC (digital-to-time converter)", "aliases": ["DTC"], "def": "Circuit producing a digitally controlled delay, used to shrink the interval a TDC must cover (Zong's DTC-assisted TDC). In the reference path it counts in τ_R, in the feedback path in τ_E (Eq. 18)." },
+      "see": ["tau"]
+    },
+    {
+      "id": "ref", "group": "signal", "autolink": false, "section": "r-3-3",
+      "zh": { "term": "REF / FREF / CKR（参考事件）", "aliases": ["FREF", "CKR", "REF"], "def": "参考时钟及其重定时版本；每个参考事件 t_R 触发一次快照与 fine 测量，完整相位 Φ0(t_R) 以它为观测时刻。" },
+      "en": { "term": "REF / FREF / CKR (reference event)", "aliases": ["FREF", "CKR", "REF"], "def": "The reference clock and its retimed versions; each reference event t_R triggers a snapshot and a fine measurement, and the full phase Φ0(t_R) is observed at that instant." }
+    },
+    {
+      "id": "fcw", "group": "signal", "autolink": true, "symbol": "FCW", "section": "r-9-4",
+      "zh": { "term": "FCW（频率控制字）", "aliases": ["FCW"], "def": "每个参考周期期望经过的原周期数；参考累加相位 R[k] 逐周期累加 FCW。改变 CK0 时 FCW 必须一起换算。" },
+      "en": { "term": "FCW (frequency control word)", "aliases": ["FCW"], "def": "The expected number of raw cycles per reference period; the accumulated reference phase R[k] adds FCW each cycle. The FCW must be rescaled whenever CK0 changes." }
+    },
+    {
+      "id": "sat-valid", "group": "signal", "autolink": true, "section": "r-9-3",
+      "zh": { "term": "SAT / VALID 标志", "aliases": ["SAT/VALID", "VALID/SAT", "fine_valid", "sat_hi", "sat_lo"], "def": "把 fine 码值与可信性分离的标志：sat_hi/sat_lo 指示饱和方向，fine_valid 指示码可用。饱和不等于精确残差，饱和码不能当作精确 fine（Q5）。" },
+      "en": { "term": "SAT / VALID flags", "aliases": ["SAT/VALID", "VALID/SAT", "fine_valid", "sat_hi", "sat_lo"], "def": "Flags that separate the fine code from its trustworthiness: sat_hi/sat_lo give the saturation side, fine_valid says the code is usable. Saturation is not an exact residual; a saturated code must never be used as exact fine (Q5)." },
+      "see": ["saturation", "F-usable"]
+    },
+    {
+      "id": "late-miss", "group": "signal", "autolink": true, "section": "r-8-4",
+      "zh": { "term": "LATE / MISS", "aliases": ["LATE/MISS", "late/miss"], "def": "选沿控制未在 deadline 前到达时必须显式输出的异常；之后只能重新规划不同的 J 或切换测量策略，任何补发都要改变执行回执及相位坐标（不变量 I7）。" },
+      "en": { "term": "LATE / MISS", "aliases": ["LATE/MISS", "late/miss"], "def": "Exception flags that must be raised when selection control misses its deadline; afterwards only re-planning a different J or switching strategy is allowed, and any re-issue must change the execution receipt and phase coordinate (invariant I7)." },
+      "see": ["edge-deadline"]
+    },
+    {
+      "id": "eventframe", "group": "signal", "autolink": true, "section": "r-10-1",
+      "zh": { "term": "EventFrame（事件帧）", "aliases": ["EventFrame"], "def": "建议的单事件接口：事件身份、计数坐标、捕获来源、计划/执行、修正、fine、校准、异常与输出九组字段。原先的 {C,q,TDC} 或四元组都不足以表达执行、单位和有效性；它是接口建议，不是已发布 RTL。" },
+      "en": { "term": "EventFrame", "aliases": ["EventFrame"], "def": "The proposed per-event interface with nine field groups: identity, count coordinates, capture source, plan/execution, correction, fine, calibration, exceptions and output. The old {C,q,TDC} or 4-tuples cannot express execution, units and validity; it is an interface proposal, not released RTL." },
+      "see": ["invariant", "phase-source"]
+    },
+    {
+      "id": "phase-source", "group": "signal", "autolink": true, "section": "r-10-3",
+      "zh": { "term": "phase_source：FINE / COARSE / INVALID", "aliases": ["FINE/COARSE/INVALID", "COARSE/INVALID"], "def": "相位整合的三态输出：元组一致且 fine 可用时输出 FINE（anchor − μ）；仅 coarse 可靠时输出 COARSE 及其误差上界；都不可靠时输出 INVALID、不产生新测量。控制层需对 COARSE/INVALID 有单独、可验证的处理。" },
+      "en": { "term": "phase_source: FINE / COARSE / INVALID", "aliases": ["FINE/COARSE/INVALID", "COARSE/INVALID"], "def": "Three-state output of phase integration: FINE (anchor − μ) when the tuple is consistent and fine usable; COARSE with its error bound when only coarse is reliable; INVALID with no new measurement otherwise. The control layer needs separate, verifiable handling of COARSE/INVALID." },
+      "see": ["coarse-takeover", "F-usable"]
+    },
+    {
+      "id": "p-s-executor", "group": "signal", "autolink": true, "section": "r-8-1",
+      "zh": { "term": "P/S 执行器（slot executor）", "aliases": ["P/S 执行器", "slot executor", "P/S"], "def": "执行链的候选实现，其系统语义是“执行指定边沿”：慢速域做高位匹配与未来计划，高速少量状态负责 slot enable、脉冲形成和根时钟重定时。它不能替代 CNT（G7）；通用 PISO 只能证明执行器原语。" },
+      "en": { "term": "P/S executor (slot executor)", "aliases": ["P/S executor", "slot executor", "P/S"], "def": "Candidate implementation of the execution chain whose system meaning is 'execute a designated edge': the slow domain does high-bit matching and future planning, a small fast state does slot enable, pulse forming and root-clock retiming. It cannot replace the CNT (G7); a generic PISO only proves executor primitives." },
+      "see": ["execution-chain", "J-plan", "edge-deadline"]
+    },
+    {
+      "id": "mash", "group": "signal", "autolink": true, "section": "r-8-5",
+      "zh": { "term": "MASH future-edge planning", "aliases": ["MASH"], "def": "前轮方案中的扩展层：在测量接口之上提供未来目标边沿序列；其阶数、状态范围、dither 和反馈预测误差需另行量化。它不是基础测量问题的一部分，有无 MASH 都不改变文献对基础问题的贡献判断。" },
+      "en": { "term": "MASH future-edge planning", "aliases": ["MASH"], "def": "Extension layer from earlier rounds that supplies a future target-edge sequence on top of the measurement interface; its order, state range, dither and prediction error need separate quantification. It is not part of the basic measurement problem, and its presence or absence does not change how a source's contribution to that problem is judged." }
+    },
+    {
+      "id": "cdc", "group": "signal", "autolink": true, "section": "r-3-2",
+      "zh": { "term": "CDC（跨时钟域）", "aliases": ["CDC"], "def": "信号跨越不同时钟域时的同步问题。式 (1) 的整数分解只是定义，不能证明独立采样 C 与 q 再拼接是 CDC 正确的；每类异步路径都要给出明确的 STA/CDC 约束，而非简单全部 false-path。" },
+      "en": { "term": "CDC (clock-domain crossing)", "aliases": ["CDC"], "def": "Synchronisation of signals crossing clock domains. The decomposition of Eq. (1) is only a definition and does not prove that independently sampled C and q are CDC-correct; every asynchronous path needs explicit STA/CDC constraints rather than a blanket false-path." }
+    },
+    {
+      "id": "pvt", "group": "signal", "autolink": true, "section": "r-12-4",
+      "zh": { "term": "PVT（工艺、电压、温度）", "aliases": ["PVT"], "def": "工艺、电压、温度角。第三层验证需在晶体管/PVT 模型中补齐亚稳态、延迟匹配失配、占空比、毛刺等数字模型无法证明的部分；本报告没有给出虚构的最差 PVT margin。" },
+      "en": { "term": "PVT (process, voltage, temperature)", "aliases": ["PVT"], "def": "Process, voltage and temperature corners. The third verification layer must cover, in transistor/PVT models, what digital models cannot prove (metastability, delay-matching mismatch, duty cycle, glitches…); the report gives no invented worst-case PVT margin." }
+    },
+    {
+      "id": "fll", "group": "signal", "autolink": true, "section": "r-9-4",
+      "zh": { "term": "FLL-assisted 控制", "aliases": ["FLL"], "def": "CNT 本身不天然意味着一条独立的频率锁定环（FLL）：e_c 是相位误差，其差分才对应频率误差（式 22）。只有另行设计频率误差控制器、状态机或增益路径时，才应称为 FLL-assisted 控制。" },
+      "en": { "term": "FLL-assisted control", "aliases": ["FLL"], "def": "A CNT does not by itself imply an independent frequency-locked loop: e_c is a phase error and only its difference is a frequency error (Eq. 22). Only with a separately designed frequency-error controller, state machine or gain path should the scheme be called FLL-assisted." }
+    }
+  ]
+}

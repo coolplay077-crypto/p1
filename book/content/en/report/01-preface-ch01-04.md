@@ -53,9 +53,9 @@ No public implementation that is strictly isomorphic (structurally identical) to
 | G1 | Continuous integer phase observation | The CNT records the actual CKV cycles, rather than recording the command state only when a target is hit |
 | G2 | High-bit rate reduction | The wide high bits are allowed to operate in the /4 or /8 domain; a small number of low-bit states may keep running at high speed |
 | G3 | Raw cycle index not lost | The phase model is traceable to the selected raw CKV node, rather than retaining only slow-clock edges |
-| G4 | Coarse/fine observations consistent | coarse and fine correspond to the same physical anchor, or carry an explicit, verifiable coordinate transformation |
+| G4 | Coarse/fine observations consistent | Coarse and fine correspond to the same physical anchor, or carry an explicit, verifiable coordinate transformation |
 | G5 | True fine range under control | The target is about one raw CKV cycle or less; it must be checked against the true input interval |
-| G6 | Boundaries and faults identifiable | wrap, sampling mismatch, invalid codes, saturation, missing edges and duplicate edges must not silently become valid phase |
+| G6 | Boundaries and faults identifiable | Wrap, sampling mismatch, invalid codes, saturation, missing edges and duplicate edges must not silently become valid phase |
 | G7 | P/S does not replace the CNT | P/S or the slot executor is responsible for physical edge execution and does not remove the reference-related coarse measurement |
 
 The above requirements inherit the goals of the two previous reports; this round only clarifies their semantics and does not change the goal into a study of ordinary dividers. [H01][H02]
@@ -169,7 +169,7 @@ $$
 
 At this point a already contains the information of q; adding $q+a/8$ on top of it mixes units and may count the same information twice. Eqs. (7)–(8) are a dimensional derivation, not a code-by-code replica of the decoder truth table of any original paper. A real circuit must also handle phase ordering, edge polarity, DCC and origin offsets.
 
-# 4. Literature Evidence: The Value and Boundaries of Each Item
+# 4. Literature Evidence: Explaining the Value and Boundaries of Each Item
 
 ## 4.1 TI: /8 High/Low Decomposition and SEL_EDGE Candidate Selection
 

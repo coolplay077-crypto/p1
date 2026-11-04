@@ -32,11 +32,17 @@
   "r-6-5": [
     "low-state-encoding"
   ],
+  "r-7-1": [
+    "dual-candidate-capture"
+  ],
   "r-7-2": [
     "matched-delay-sampling"
   ],
   "r-8-1": [
     "arch-flow"
+  ],
+  "r-8-3": [
+    "causality-timeline"
   ],
   "r-8-4": [
     "ps-executor"

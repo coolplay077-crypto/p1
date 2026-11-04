@@ -1,0 +1,90 @@
+
+[D0] multipath arithmetic (slides 8-12)
+  [PASS] D0 PSEL/carry arithmetic + weights M=2: measured={'coarse_error_identity': True, 'effective_modulus_identity': True, 'weighted_edge_equals_fine_sdm': True, 'weights': [0.5, 0.5]} expected=weights [0.5, 0.5] slide 8/10/11
+  [PASS] D0 PSEL/carry arithmetic + weights M=4: measured={'coarse_error_identity': True, 'effective_modulus_identity': True, 'weighted_edge_equals_fine_sdm': True, 'weights': [0.5, 0.25, 0.25]} expected=weights [0.5, 0.25, 0.25] slide 8/10/11
+  [PASS] D0 PSEL/carry arithmetic + weights M=8: measured={'coarse_error_identity': True, 'effective_modulus_identity': True, 'weighted_edge_equals_fine_sdm': True, 'weights': [0.5, 0.25, 0.125, 0.125]} expected=weights [0.5, 0.25, 0.125, 0.125] slide 8/10/11
+    M=1: coarse-edge spread 3.91 T, effective-edge spread 3.91 T, all-slice span 3.91 T; auto T_off = T_nl + 1.97 T
+    M=2: coarse-edge spread 2.43 T, effective-edge spread 1.95 T, all-slice span 2.91 T; auto T_off = T_nl + 1.47 T
+    M=4: coarse-edge spread 1.72 T, effective-edge spread 0.99 T, all-slice span 2.45 T; auto T_off = T_nl + 1.23 T
+    M=8: coarse-edge spread 1.35 T, effective-edge spread 0.48 T, all-slice span 2.22 T; auto T_off = T_nl + 1.12 T
+  [PASS] D0 slide 12: DSM spread 4T (conv) -> ~2T (M=4): measured=3.91T -> 1.72T expected=4T -> 2T coarse (MMD) edge peak-to-peak
+    CP on-time noise gain: slide formula 10log((Tnl+2T)/(Tnl+T)) = 2.25 dB; exact model 1.28 dB
+
+[D1] VCO fit + reported figure-of-merit arithmetic
+    VCO fit a3/f^3+a2/f^2+a0: rms 0.40 dB, 1/f^3 corner 305 kHz, L(1MHz)@9.5GHz = -126.43 dBc/Hz
+  [PASS] D1 VCO L(1MHz)@9.5GHz from slide-27 markers vs slide 28: measured=-126.43 expected=-126.59 dBc/Hz
+  [PASS] D1 VCO FoM: measured=194.27 expected=194.3 dB
+  [PASS] D1 VCO FoM_T: measured=200.29 expected=200.23 dB (20% TR)
+  [PASS] D1 PLL FoM (33.8 fs, 24.4 mW): measured=-255.55 expected=-255.5 dB
+  [PASS] D1 PLL FoM w/ spur (37.7 fs): measured=-254.6 expected=-254.6 dB
+  [PASS] D1 FoM_N uses f_ref = 80 MHz (XO, not 160 MHz): measured=-276.3 expected=-276.3 dB
+  [PASS] D1 jitter w/ spur consistent with the -70.9 dBc spur: measured=36.43 expected=37.686 fs (one spur pair only; residual = other spurs)
+
+[D2] loop / noise identification against the measured PN (slides 27, 29)
+    fit A_M4_only: fc 0.58 MHz, PM 69.0, BW(-3dB) 0.86 MHz, p3 8.7xfc, ref 96 fs, CPx1.00, CP 1/f corner 0 kHz | {}: rms 0.33 dB
+    fit C_joint: fc 0.59 MHz, PM 63.1, BW(-3dB) 0.92 MHz, p3 26.2xfc, ref 0 fs, CPx1.04, CP 1/f corner 148 kHz | {}: rms 0.52 dB | {'M': 1}: rms 0.62 dB
+    sim M=4: jitter 34.01 fs (analytic 33.87), marker rms err 0.89 dB; components sdm 7.8, vco 24.0, ref_common 0.0, pfd_slice 4.5, cp 15.5, cp_offset 3.8, cp_flicker 12.1, ref_flicker 5.6, out_floor 7.7, total 33.9
+    sim M=1: jitter 47.40 fs (analytic 47.22), marker rms err 0.84 dB; components sdm 31.2, vco 24.0, ref_common 0.0, pfd_slice 7.4, cp 17.9, cp_offset 4.5, cp_flicker 14.0, ref_flicker 5.6, out_floor 7.7, total 47.2
+  [PASS] D2 sim jitter (10k-100M) vs measured 33.78 fs: measured=34.01 expected=33.782 fs, joint-fit parameters
+  [PASS] D2 sim PN vs 10 measured markers: measured=0.89 expected=<1 dB rms 
+  [PASS] D2 M=1 prediction vs digitised w/o-multipath trace: measured=0.84 expected=<1.5 dB rms digitisation +-1.5 dB
+  [PASS] D2 sim vs analytic jitter: measured=34.01 expected=33.87 fs
+    in-band gain M=1->M=4: fit C 0.80 dB @100k (0.86 @20k); fit A 0.35 dB; measured ~1.0 dB @100k (~1.8 @20k, digitised)
+
+[D3] SDM quantisation noise vs M (slide 29 '0.25X Q reduction')
+    M=1: SDM level -140.3 dBc/Hz (delta +0.00, expected -0.00), SDM-only jitter 31.2 fs
+    M=2: SDM level -146.3 dBc/Hz (delta -6.02, expected -6.02), SDM-only jitter 15.6 fs
+    M=4: SDM level -152.3 dBc/Hz (delta -12.08, expected -12.04), SDM-only jitter 7.8 fs
+    M=8: SDM level -158.3 dBc/Hz (delta -18.07, expected -18.06), SDM-only jitter 3.9 fs
+  [PASS] D3 Q-noise reduction M=4 (slide 29: 0.25X): measured=-12.08 expected=-12.04 dB
+
+[D4] fractional spur vs fractional value: CP-slice mismatch (slide 13: 3sigma = 0.5%)
+    sigma_slice=0.167%: median spur (VCO/2) 2^-14:-71.8, 2^-13:-71.9, 2^-12:-71.6, 2^-11:-71.4, 2^-10:-70.7, 2^-9:-70.5, 2^-8:-72.5, 2^-7:-77.8, 2^-6:-86.6, 2^-5:-97.6
+    measured points inside MC 10-90% band (+-1 dB): 12/12; ideal-match spur max -115.6 dBc
+    folded in-band noise from mismatch (100-400 kHz, at 9.5 GHz): mean -133.1, max -126.2 dBc/Hz (ideal -165.6); slide 13 claims -127
+  [PASS] D4 measured frac-spur curve explained by 0.5%(3sigma) slice mismatch: measured=12/12 inside expected=>=75% of points MC 10-90% band +-1 dB; spur at VCO/2
+    in-band mean: measured -72.5 dBc, MC 5-95% [-89.4, -64.8] -> inferred effective sigma ~ 0.162% (3sigma 0.49%)
+  [PASS] D4 in-band spur level within MC 5-95% for 3sigma=0.5%: measured=-72.5 expected=[-89.4, -64.8] dBc @VCO/2, mean of in-band points
+  [PASS] D4 slide 13: folded in-band noise from mismatch ~ -127 dBc/Hz: measured=-126.2 expected=<= -127 (+3 dB) dBc/Hz at 9.5 GHz, worst of 8 draws
+
+[D5] slide-13 timing non-idealities + retimer margin at 9.5 GHz (T_VCO = 105 ps)
+       1 ps: (1) MUX/CK-Q w/o retimer -50.3 dBc | with retimer -143.8 | (2) post-retimer prop. mismatch -143.8
+       3 ps: (1) MUX/CK-Q w/o retimer -40.7 dBc | with retimer -143.8 | (2) post-retimer prop. mismatch -143.8
+      10 ps: (1) MUX/CK-Q w/o retimer -30.3 dBc | with retimer -143.8 | (2) post-retimer prop. mismatch -143.8
+  [PASS] D5 (1) retimers remove MUX/CK-Q mismatch: measured=-143.8 expected=<= ideal -143.8+1 dBc @VCO/2
+  [PASS] D5 (2) fixed propagation mismatch gives no spur: measured=-143.8 expected=<= ideal -143.8+1 dBc @VCO/2
+    retimer margin 3.0 sigma (sigma 1.5 ps): slip rate 1.3e-03, jitter 289.4 fs
+    retimer margin 4.0 sigma (sigma 1.5 ps): slip rate 3.2e-05, jitter 53.1 fs
+    retimer margin 4.5 sigma (sigma 1.5 ps): slip rate 1.3e-06, jitter 34.1 fs
+    retimer margin 5.0 sigma (sigma 1.5 ps): slip rate 0.0e+00, jitter 33.5 fs
+    retimer margin 6.0 sigma (sigma 1.5 ps): slip rate 0.0e+00, jitter 33.5 fs
+
+[D6] CP offset: switched-cap Q_OFST vs bleed current (noise and reference spur)
+    Q_OFST = Icp*T_off = 357 fC (C_OFST = 446 fF @VDD 0.8 V)
+    sc   : offset noise 30.4 fs/edge, L_offset(100k) -142.1 dBc/Hz, total jitter 34.05 fs
+    bleed: offset noise 76.9 fs/edge, L_offset(100k) -134.1 dBc/Hz, total jitter 35.16 fs
+    reference spur (160 MHz, at VCO): bleed_current_offset             -84.0 dBc
+    reference spur (160 MHz, at VCO): sc_ideal                        -435.1 dBc
+    reference spur (160 MHz, at VCO): sc_20ps_redistribution_skew     -118.0 dBc
+    reference spur (160 MHz, at VCO): sc_offset_cp_pulse_unsampled     -78.0 dBc
+    DBL duty-cycle error 0.1 ps -> 80 MHz spur -137.2 dBc
+    DBL duty-cycle error 1.0 ps -> 80 MHz spur -117.2 dBc
+    DBL duty-cycle error 5.0 ps -> 80 MHz spur -103.2 dBc
+  [PASS] D6 SC offset is quieter than a bleed-current offset: measured=30.4 expected=< 76.9 fs per edge
+  [PASS] D6 measured -101 dBc ref spur needs the sampled SC offset (bleed ripple far larger): measured={'bleed': -84.0, 'sc_skew20ps': -118.0} expected=bleed > -101 > SC dBc; Kvco/Icp are assumptions
+
+[D7] CP non-linear region T_nonlin vs offset: folded SDM noise (M=1 vs M=4)
+    M=1: 0.0T:-96, 0.3T:-98, 0.6T:-101, 0.9T:-103, 1.2T:-106, 1.5T:-113, 1.8T:-132, 2.1T:-160, 2.4T:-160
+    M=4: 0.0T:-107, 0.3T:-108, 0.6T:-112, 0.9T:-124, 1.2T:-158, 1.5T:-171, 1.8T:-171, 2.1T:-171, 2.4T:-171
+
+[D8] jitter budget and what-if (analytic, joint-fit parameters)
+    measured design point (M=4)         :  34.1 fs  (FoM -255.5 dB)  sdm 7.8, vco 24.0, ref_common 0.0, pfd_slice 4.5, cp 15.5, cp_offset 3.8, cp_flicker 12.3, ref_flicker 6.2, out_floor 7.7
+    M=1 (no multipath)                  :  47.4 fs  (FoM -252.6 dB)  sdm 31.2, vco 24.0, ref_common 0.0, pfd_slice 7.4, cp 17.9, cp_offset 4.5, cp_flicker 14.2, ref_flicker 6.2, out_floor 7.7
+    M=2                                 :  37.2 fs  (FoM -254.7 dB)  sdm 15.6, vco 24.0, ref_common 0.0, pfd_slice 5.2, cp 16.1, cp_offset 4.0, cp_flicker 12.8, ref_flicker 6.2, out_floor 7.7
+    M=8                                 :  33.1 fs  (FoM -255.7 dB)  sdm 3.9, vco 24.0, ref_common 0.0, pfd_slice 4.4, cp 15.1, cp_offset 3.6, cp_flicker 12.0, ref_flicker 6.2, out_floor 7.7
+    M=16                                :  32.7 fs  (FoM -255.8 dB)  sdm 1.9, vco 24.0, ref_common 0.0, pfd_slice 4.3, cp 14.9, cp_offset 3.6, cp_flicker 11.8, ref_flicker 6.2, out_floor 7.7
+    M=4, CP noise -3 dB                 :  31.1 fs  (FoM -256.3 dB)  sdm 7.8, vco 24.0, ref_common 0.0, pfd_slice 4.5, cp 11.0, cp_offset 3.8, cp_flicker 8.7, ref_flicker 6.2, out_floor 7.7
+    M=4, VCO -3 dB                      :  29.5 fs  (FoM -256.7 dB)  sdm 7.8, vco 17.0, ref_common 0.0, pfd_slice 4.5, cp 15.5, cp_offset 3.8, cp_flicker 12.3, ref_flicker 6.2, out_floor 7.7
+    M=4, ref doubler off (80 MHz PFD)   :  54.8 fs  (FoM -251.4 dB)  sdm 38.4, vco 24.0, ref_common 0.0, pfd_slice 6.4, cp 21.9, cp_offset 5.3, cp_flicker 17.4, ref_flicker 6.2, out_floor 7.8
+
+23/23 checks PASS, runtime 39 s

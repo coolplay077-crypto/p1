@@ -1,0 +1,1219 @@
+{
+ "model": "ISSCC 2025 19.3 MediaTek multipath-feedback fractional-N PLL",
+ "paper": {
+  "jitter_fs": 33.782,
+  "jitter_spur_fs": 37.686,
+  "power_mw": 24.4,
+  "fom": -255.5,
+  "fom_spur": -254.6,
+  "fomn": -276.3,
+  "fomn_spur": -275.3,
+  "ref_spur_dbc": -101.0,
+  "frac_spur_dbc_vco": -64.8,
+  "inband_100k_norm_9g5": -116.7,
+  "vco_pn_1m_9g5": -126.59,
+  "vco_power_mw": 15.4,
+  "vco_fom": 194.3,
+  "vco_fomt": 200.23,
+  "vco_tr_pct": 20.0,
+  "f_xo": 80000000.0,
+  "f_vco_max": 9500000000.0,
+  "area_mm2": 0.39,
+  "cp_mismatch_3sigma": 0.005,
+  "folded_inband_claim": -127.0
+ },
+ "measured": {
+  "vco": [
+   [
+    10000.0,
+    -78.065
+   ],
+   [
+    30000.0,
+    -92.4956
+   ],
+   [
+    40000.0,
+    -96.4078
+   ],
+   [
+    100000.0,
+    -107.8466
+   ],
+   [
+    300000.0,
+    -120.6436
+   ],
+   [
+    402394.0,
+    -123.7768
+   ],
+   [
+    1000000.0,
+    -132.5933
+   ],
+   [
+    3000000.0,
+    -142.1514
+   ],
+   [
+    10000000.0,
+    -150.8349
+   ],
+   [
+    40000000.0,
+    -155.5872
+   ]
+  ],
+  "pll": [
+   [
+    10000.0,
+    -115.1223
+   ],
+   [
+    30000.0,
+    -121.1841
+   ],
+   [
+    40000.0,
+    -121.8444
+   ],
+   [
+    100000.0,
+    -122.6283
+   ],
+   [
+    300000.0,
+    -123.3384
+   ],
+   [
+    402394.0,
+    -124.2386
+   ],
+   [
+    1000000.0,
+    -128.4607
+   ],
+   [
+    3000000.0,
+    -139.8124
+   ],
+   [
+    10000000.0,
+    -147.7038
+   ],
+   [
+    40000000.0,
+    -154.8702
+   ]
+  ],
+  "pll_spur": [
+   [
+    10000.0,
+    -115.5054
+   ],
+   [
+    30000.0,
+    -120.88
+   ],
+   [
+    40000.0,
+    -121.5728
+   ],
+   [
+    100000.0,
+    -122.1982
+   ],
+   [
+    300000.0,
+    -123.39
+   ],
+   [
+    1000000.0,
+    -128.2228
+   ],
+   [
+    3000000.0,
+    -139.7116
+   ],
+   [
+    10000000.0,
+    -147.7191
+   ],
+   [
+    40000000.0,
+    -153.8736
+   ]
+  ],
+  "no_multipath_digitised": [
+   [
+    20000.0,
+    -117.9
+   ],
+   [
+    30000.0,
+    -120.2
+   ],
+   [
+    50000.0,
+    -121.1
+   ],
+   [
+    100000.0,
+    -121.6
+   ],
+   [
+    200000.0,
+    -122.5
+   ],
+   [
+    2000000.0,
+    -133.5
+   ],
+   [
+    3000000.0,
+    -135.5
+   ],
+   [
+    5000000.0,
+    -137.0
+   ],
+   [
+    10000000.0,
+    -138.1
+   ],
+   [
+    20000000.0,
+    -139.3
+   ],
+   [
+    30000000.0,
+    -141.5
+   ],
+   [
+    50000000.0,
+    -147.2
+   ],
+   [
+    70000000.0,
+    -151.9
+   ]
+  ],
+  "frac_spur_digitised": [
+   [
+    6.1e-05,
+    -74.2
+   ],
+   [
+    0.000125,
+    -73.9
+   ],
+   [
+    0.00025,
+    -73.3
+   ],
+   [
+    0.0005,
+    -71.9
+   ],
+   [
+    0.00061,
+    -71.1
+   ],
+   [
+    0.00122,
+    -70.3
+   ],
+   [
+    0.00244,
+    -71.1
+   ],
+   [
+    0.0039,
+    -72.5
+   ],
+   [
+    0.0049,
+    -72.6
+   ],
+   [
+    0.0061,
+    -73.8
+   ],
+   [
+    0.0122,
+    -84.6
+   ],
+   [
+    0.0244,
+    -89.3
+   ]
+  ]
+ },
+ "D0_arithmetic": {
+  "identity": [
+   {
+    "M": 2,
+    "coarse_error_identity": true,
+    "effective_modulus_identity": true,
+    "weighted_edge_equals_fine_sdm": true,
+    "weights": [
+     0.5,
+     0.5
+    ],
+    "slide_weights": [
+     0.5,
+     0.5
+    ],
+    "dQ_over_IcpT": 0.5
+   },
+   {
+    "M": 4,
+    "coarse_error_identity": true,
+    "effective_modulus_identity": true,
+    "weighted_edge_equals_fine_sdm": true,
+    "weights": [
+     0.5,
+     0.25,
+     0.25
+    ],
+    "slide_weights": [
+     0.5,
+     0.25,
+     0.25
+    ],
+    "dQ_over_IcpT": 0.25
+   },
+   {
+    "M": 8,
+    "coarse_error_identity": true,
+    "effective_modulus_identity": true,
+    "weighted_edge_equals_fine_sdm": true,
+    "weights": [
+     0.5,
+     0.25,
+     0.125,
+     0.125
+    ],
+    "slide_weights": [
+     0.5,
+     0.25,
+     0.125,
+     0.125
+    ],
+    "dQ_over_IcpT": 0.125
+   }
+  ],
+  "spread": [
+   {
+    "M": 1,
+    "coarse_pp": 3.9089651107788086,
+    "eff_pp": 3.9089651107788086,
+    "all_slices_pp": 3.9089651107788086
+   },
+   {
+    "M": 2,
+    "coarse_pp": 2.4291839599609375,
+    "eff_pp": 1.9500598907470703,
+    "all_slices_pp": 2.91082763671875
+   },
+   {
+    "M": 4,
+    "coarse_pp": 1.7177820205688477,
+    "eff_pp": 0.9855260848999023,
+    "all_slices_pp": 2.4548110961914062
+   },
+   {
+    "M": 8,
+    "coarse_pp": 1.3540010452270508,
+    "eff_pp": 0.4835834503173828,
+    "all_slices_pp": 2.223252296447754
+   }
+  ],
+  "toff": [
+   {
+    "M": 1,
+    "t_off_ps": 257.4866791296264,
+    "t_off_over_T": 1.9711728096008296
+   },
+   {
+    "M": 2,
+    "t_off_ps": 204.241464113857,
+    "t_off_over_T": 1.4653306007385254
+   },
+   {
+    "M": 4,
+    "t_off_ps": 179.12883659192144,
+    "t_off_over_T": 1.2267546653747559
+   },
+   {
+    "M": 8,
+    "t_off_ps": 167.5317445937336,
+    "t_off_over_T": 1.116579532623291
+   }
+  ],
+  "slide12_formula_db": 2.2478176797481715,
+  "exact_ontime_db": 1.2774655613962236
+ },
+ "D1_vco_fom": {
+  "vco_fit": {
+   "a3": 13200.666412518034,
+   "a2": 0.04335037518548002,
+   "a0": 2.6723576575156687e-16,
+   "rms_err_db": 0.4047717717617295,
+   "max_err_db": 0.6284817315203668,
+   "corner_hz": 304511.0072528168
+  },
+  "vco_L1M_9g5": -126.43451946176333,
+  "vco_fom": 194.26926489741234,
+  "vco_fomt": 200.28986481069197,
+  "pll_fom": -255.55239458487222,
+  "pll_fom_spur": -254.60250086085836,
+  "fomn": -276.2987307678413,
+  "fomn_spur": -275.3488370438274,
+  "spur_jitter_fs": 13.62507180600967,
+  "jitter_with_one_spur_fs": 36.426173360907946
+ },
+ "D2_identification": {
+  "fits": {
+   "A_M4_only": {
+    "fc": 576343.9320827833,
+    "pm": 69.00226181149844,
+    "p3_ratio": 8.65104304590074,
+    "ref_white_fs": 95.83163827578534,
+    "xo_flicker_fs2": 6.675762624864747e-33,
+    "cp_noise_scale": 1.0,
+    "cp_flicker_fc": 0.0,
+    "closed_loop_bw": 863267.481604068,
+    "peaking_db": 0.8432159196486416,
+    "margins": {
+     "fc": 576418.6671929173,
+     "pm": 68.33290485166262
+    },
+    "per_dataset": [
+     {
+      "overrides": {},
+      "rms_err_db": 0.3262627171303558,
+      "max_err_db": 0.5921552846375846,
+      "resid": [
+       0.19,
+       -0.29,
+       -0.19,
+       0.49,
+       -0.16,
+       -0.03,
+       -0.3,
+       0.59,
+       -0.35,
+       0.28
+      ]
+     }
+    ]
+   },
+   "C_joint": {
+    "fc": 585837.2273369435,
+    "pm": 63.1073091563908,
+    "p3_ratio": 26.177734354157696,
+    "ref_white_fs": 0.00017447449432323467,
+    "xo_flicker_fs2": 3.665766271626371e-33,
+    "cp_noise_scale": 1.036225610729145,
+    "cp_flicker_fc": 148257.88642650936,
+    "closed_loop_bw": 923609.7230058059,
+    "peaking_db": 1.426409556172243,
+    "margins": {
+     "fc": 585650.3159519285,
+     "pm": 62.00117168210764
+    },
+    "per_dataset": [
+     {
+      "overrides": {},
+      "rms_err_db": 0.5163899550761226,
+      "max_err_db": 1.407105840303558,
+      "resid": [
+       -0.02,
+       0.23,
+       -0.05,
+       -0.21,
+       0.27,
+       0.47,
+       -0.4,
+       -0.2,
+       0.3,
+       1.41
+      ]
+     },
+     {
+      "overrides": {
+       "M": 1
+      },
+      "rms_err_db": 0.6164780893212998,
+      "max_err_db": 1.4478116481044765,
+      "resid": [
+       -0.39,
+       0.19,
+       -0.36,
+       -0.44,
+       0.5,
+       -0.15,
+       -0.05,
+       0.59,
+       0.66,
+       -0.85,
+       -1.45,
+       -0.73,
+       -0.07
+      ]
+     }
+    ]
+   }
+  },
+  "sims": {
+   "M4": {
+    "jitter_fs": 34.00569990691636,
+    "jitter_analytic_fs": 33.865368739147385,
+    "component_jitter_fs": {
+     "sdm": 7.79780926384533,
+     "vco": 23.97791968176322,
+     "ref_common": 2.155659052388371e-05,
+     "pfd_slice": 4.5395730403843775,
+     "cp": 15.476367592946481,
+     "cp_offset": 3.7558621694300833,
+     "cp_flicker": 12.059850982920125,
+     "ref_flicker": 5.608140549645623,
+     "out_floor": 7.745535114244336,
+     "total": 33.865368739147385
+    },
+    "marker_err_db": [
+     0.74,
+     1.68,
+     -1.13,
+     0.41,
+     0.48,
+     0.7,
+     -0.45,
+     -0.4,
+     0.3,
+     1.42
+    ],
+    "marker_rms_err_db": 0.8924427971171417,
+    "t_off_ps": 180.42494791944316
+   },
+   "M1": {
+    "jitter_fs": 47.39803310995244,
+    "jitter_analytic_fs": 47.21836622663402,
+    "component_jitter_fs": {
+     "sdm": 31.19123705538132,
+     "vco": 23.97791968176322,
+     "ref_common": 2.155659052388371e-05,
+     "pfd_slice": 7.4130917326910515,
+     "cp": 17.902775774171268,
+     "cp_offset": 4.495859551821317,
+     "cp_flicker": 13.950612553008813,
+     "ref_flicker": 5.608140549645623,
+     "out_floor": 7.745535114244336,
+     "total": 47.21836622663402
+    },
+    "marker_err_db": [
+     -1.4,
+     1.6,
+     0.26,
+     -0.25,
+     0.3,
+     -0.18,
+     -0.24,
+     0.68,
+     0.65,
+     -0.92,
+     -1.41,
+     -0.73,
+     -0.1
+    ],
+    "marker_rms_err_db": 0.8361668308339915,
+    "t_off_ps": 258.94877582523526
+   }
+  },
+  "inband_gain_db": {
+   "fitC_20k": 0.8587649017794092,
+   "fitC_100k": 0.7971153919383198,
+   "fitA_20k": 0.1774334439055707,
+   "fitA_100k": 0.3491161412221828,
+   "measured_20k": 1.7999999999999972,
+   "measured_100k": 1.0300000000000011
+  }
+ },
+ "params_joint_fit": {
+  "f_xo": 80000000.0,
+  "dbl": true,
+  "N": 59,
+  "K": 6316400,
+  "Q": 16777216,
+  "dither": true,
+  "M": 4,
+  "icp": 0.002,
+  "kvco": 150000000.0,
+  "fc": 585837.2273369435,
+  "pm": 63.1073091563908,
+  "p3_ratio": 26.177734354157696,
+  "c3_ratio": 0.1,
+  "t_nonlin": 5e-11,
+  "t_off": null,
+  "offset_mode": "sc",
+  "vdd": 0.8,
+  "beta": 0.0,
+  "nonlin_gain": 0.0,
+  "eps": null,
+  "post_skew": null,
+  "dt1": 0.0,
+  "retimed": true,
+  "rt_margin": 1.0,
+  "rt_sigma": 0.0,
+  "vco_on": true,
+  "out_floor_on": true,
+  "ref_white_fs": 1.7447449432323467e-19,
+  "pfd_slice_fs": 6e-14,
+  "cp_noise_on": true,
+  "cp_vov": 0.25,
+  "cp_noise_scale": 1.036225610729145,
+  "cp_flicker_fc": 148257.88642650936,
+  "xo_flicker_fs2": 3.665766271626371e-33,
+  "os": 2,
+  "n_cyc": 1048576,
+  "settle": 16384,
+  "seed": 11
+ },
+ "D3_sdm": {
+  "1": {
+   "level_5_40M": -140.26781694301243,
+   "delta_db": 0.0,
+   "expected": -0.0,
+   "sdm_jitter_fs": 31.19678685356009
+  },
+  "2": {
+   "level_5_40M": -146.28901052580528,
+   "delta_db": -6.021193582792847,
+   "expected": -6.020599913279624,
+   "sdm_jitter_fs": 15.601127708532054
+  },
+  "4": {
+   "level_5_40M": -152.34752619769154,
+   "delta_db": -12.079709254679102,
+   "expected": -12.041199826559248,
+   "sdm_jitter_fs": 7.785952647026836
+  },
+  "8": {
+   "level_5_40M": -158.33674245354885,
+   "delta_db": -18.068925510536417,
+   "expected": -18.06179973983887,
+   "sdm_jitter_fs": 3.895302767951317
+  }
+ },
+ "D4_frac_spur": {
+  "sigma": 0.0016666666666666668,
+  "fracs": [
+   6.103515625e-05,
+   0.0001220703125,
+   0.000244140625,
+   0.00048828125,
+   0.0009765625,
+   0.001953125,
+   0.00390625,
+   0.0078125,
+   0.015625,
+   0.03125
+  ],
+  "p10": [
+   -82.88268217339406,
+   -82.97582191695837,
+   -82.77146128830424,
+   -82.4696653738187,
+   -81.83277487413883,
+   -81.66037547654417,
+   -83.6491239238322,
+   -88.89579613257179,
+   -97.62398344171183,
+   -108.48345282267609
+  ],
+  "p50": [
+   -71.77639236298951,
+   -71.89601558662518,
+   -71.62851622212128,
+   -71.35855735061516,
+   -70.72071803796524,
+   -70.53831064239377,
+   -72.50819142425192,
+   -77.77362481394643,
+   -86.64808165180537,
+   -97.60977119654501
+  ],
+  "p90": [
+   -65.41994432627929,
+   -65.50546283290704,
+   -65.32823075518363,
+   -65.00939855172294,
+   -64.37041784670048,
+   -64.2175888857383,
+   -66.1840114238961,
+   -71.44966181013217,
+   -80.40672490066466,
+   -91.41738616652256
+  ],
+  "ideal": [
+   -188.97675592273282,
+   -187.31486269501193,
+   -174.696018040031,
+   -164.3328078928943,
+   -143.80460494507685,
+   -141.82024160174586,
+   -131.03692927661945,
+   -123.54723046495411,
+   -115.55148957106468,
+   -118.41137604535967
+  ],
+  "measured": [
+   [
+    6.1e-05,
+    -74.2
+   ],
+   [
+    0.000125,
+    -73.9
+   ],
+   [
+    0.00025,
+    -73.3
+   ],
+   [
+    0.0005,
+    -71.9
+   ],
+   [
+    0.00061,
+    -71.1
+   ],
+   [
+    0.00122,
+    -70.3
+   ],
+   [
+    0.00244,
+    -71.1
+   ],
+   [
+    0.0039,
+    -72.5
+   ],
+   [
+    0.0049,
+    -72.6
+   ],
+   [
+    0.0061,
+    -73.8
+   ],
+   [
+    0.0122,
+    -84.6
+   ],
+   [
+    0.0244,
+    -89.3
+   ]
+  ],
+  "measured_inside_10_90_band": 12,
+  "n_measured": 12,
+  "folded_inband_9g5_mean": -133.11491670816434,
+  "folded_inband_9g5_max": -126.233533009485,
+  "folded_inband_ideal": -165.55280177488655,
+  "mc_inband_mean_5_95": [
+   -89.43998974019829,
+   -64.82090659307717
+  ],
+  "measured_inband_mean": -72.47,
+  "sigma_inferred": 0.0016197885177846594
+ },
+ "D5_timing": {
+  "ideal": -143.80460494507685,
+  "1ps": {
+   "mux_ckq_no_retimer": -50.26520611705085,
+   "mux_ckq_retimed": -143.80460494507685,
+   "post_retimer_prop_mismatch": -143.80460494396016
+  },
+  "3ps": {
+   "mux_ckq_no_retimer": -40.72281038828575,
+   "mux_ckq_retimed": -143.80460494507685,
+   "post_retimer_prop_mismatch": -143.80460494385264
+  },
+  "10ps": {
+   "mux_ckq_no_retimer": -30.265245760651027,
+   "mux_ckq_retimed": -143.80460494507685,
+   "post_retimer_prop_mismatch": -143.8046049438737
+  },
+  "retimer": [
+   {
+    "margin_sigma": 3.0,
+    "slip_rate": 0.001323699951171875,
+    "jitter_fs": 289.4335168176345
+   },
+   {
+    "margin_sigma": 4.0,
+    "slip_rate": 3.1789143880208336e-05,
+    "jitter_fs": 53.094806266049666
+   },
+   {
+    "margin_sigma": 4.5,
+    "slip_rate": 1.2715657552083333e-06,
+    "jitter_fs": 34.13208780188659
+   },
+   {
+    "margin_sigma": 5.0,
+    "slip_rate": 0.0,
+    "jitter_fs": 33.45703365040158
+   },
+   {
+    "margin_sigma": 6.0,
+    "slip_rate": 0.0,
+    "jitter_fs": 33.45703365040158
+   }
+  ]
+ },
+ "D6_offset_cp": {
+  "t_off_ps": 178.48778273004993,
+  "q_ofst_fC": 356.97556546009986,
+  "noise": {
+   "sc": {
+    "offset_charge_noise_C": 6.079831149856804e-17,
+    "offset_timing_noise_fs": 30.39915574928402,
+    "L_offset_100k": -142.13070614787543,
+    "jitter_fs": 34.05392149549216
+   },
+   "bleed": {
+    "offset_charge_noise_C": 1.53808913782304e-16,
+    "offset_timing_noise_fs": 76.90445689115201,
+    "L_offset_100k": -134.06890640803655,
+    "jitter_fs": 35.15654889846918
+   }
+  },
+  "ref_spurs": {
+   "bleed_current_offset": -84.04886598305094,
+   "sc_ideal": -435.0899829866205,
+   "sc_20ps_redistribution_skew": -117.97076255567114,
+   "sc_offset_cp_pulse_unsampled": -78.03118003205026
+  },
+  "dbl": [
+   {
+    "duty_err_ps": 0.1,
+    "spur_80M_dbc": -137.17646851885723
+   },
+   {
+    "duty_err_ps": 1.0,
+    "spur_80M_dbc": -117.17646851885725
+   },
+   {
+    "duty_err_ps": 5.0,
+    "spur_80M_dbc": -103.19706843213687
+   }
+  ]
+ },
+ "D7_nonlin": {
+  "M1": [
+   {
+    "t_off_over_T": 0.0,
+    "L_inband": -95.73775014191739
+   },
+   {
+    "t_off_over_T": 0.3,
+    "L_inband": -97.60088129986536
+   },
+   {
+    "t_off_over_T": 0.6,
+    "L_inband": -100.55866194208996
+   },
+   {
+    "t_off_over_T": 0.8999999999999999,
+    "L_inband": -102.54483334390096
+   },
+   {
+    "t_off_over_T": 1.2,
+    "L_inband": -106.30980495376687
+   },
+   {
+    "t_off_over_T": 1.5,
+    "L_inband": -112.9066551507674
+   },
+   {
+    "t_off_over_T": 1.7999999999999998,
+    "L_inband": -132.36740465967867
+   },
+   {
+    "t_off_over_T": 2.1,
+    "L_inband": -159.50096224658753
+   },
+   {
+    "t_off_over_T": 2.4,
+    "L_inband": -159.5015653099617
+   }
+  ],
+  "M4": [
+   {
+    "t_off_over_T": 0.0,
+    "L_inband": -106.67130777633585
+   },
+   {
+    "t_off_over_T": 0.3,
+    "L_inband": -108.06644367819945
+   },
+   {
+    "t_off_over_T": 0.6,
+    "L_inband": -111.54446689101847
+   },
+   {
+    "t_off_over_T": 0.8999999999999999,
+    "L_inband": -123.91585165318064
+   },
+   {
+    "t_off_over_T": 1.2,
+    "L_inband": -157.97481799344152
+   },
+   {
+    "t_off_over_T": 1.5,
+    "L_inband": -171.36116536701655
+   },
+   {
+    "t_off_over_T": 1.7999999999999998,
+    "L_inband": -171.3611653671131
+   },
+   {
+    "t_off_over_T": 2.1,
+    "L_inband": -171.3611653671345
+   },
+   {
+    "t_off_over_T": 2.4,
+    "L_inband": -171.3611653671239
+   }
+  ]
+ },
+ "D8_budget": [
+  {
+   "case": "measured design point (M=4)",
+   "jitter_fs": 34.05390922806754,
+   "fom": -255.4827622552623,
+   "components_fs": {
+    "sdm": 7.8,
+    "vco": 24.0,
+    "ref_common": 0.0,
+    "pfd_slice": 4.5,
+    "cp": 15.5,
+    "cp_offset": 3.8,
+    "cp_flicker": 12.3,
+    "ref_flicker": 6.2,
+    "out_floor": 7.7
+   }
+  },
+  {
+   "case": "M=1 (no multipath)",
+   "jitter_fs": 47.37652930276067,
+   "fom": -252.6148368941749,
+   "components_fs": {
+    "sdm": 31.2,
+    "vco": 24.0,
+    "ref_common": 0.0,
+    "pfd_slice": 7.4,
+    "cp": 17.9,
+    "cp_offset": 4.5,
+    "cp_flicker": 14.2,
+    "ref_flicker": 6.2,
+    "out_floor": 7.7
+   }
+  },
+  {
+   "case": "M=2",
+   "jitter_fs": 37.193567233494505,
+   "fom": -254.71674506616534,
+   "components_fs": {
+    "sdm": 15.6,
+    "vco": 24.0,
+    "ref_common": 0.0,
+    "pfd_slice": 5.2,
+    "cp": 16.1,
+    "cp_offset": 4.0,
+    "cp_flicker": 12.8,
+    "ref_flicker": 6.2,
+    "out_floor": 7.7
+   }
+  },
+  {
+   "case": "M=8",
+   "jitter_fs": 33.05634129721479,
+   "fom": -255.7410060600473,
+   "components_fs": {
+    "sdm": 3.9,
+    "vco": 24.0,
+    "ref_common": 0.0,
+    "pfd_slice": 4.4,
+    "cp": 15.1,
+    "cp_offset": 3.6,
+    "cp_flicker": 12.0,
+    "ref_flicker": 6.2,
+    "out_floor": 7.7
+   }
+  },
+  {
+   "case": "M=16",
+   "jitter_fs": 32.686127743807184,
+   "fom": -255.83883226297218,
+   "components_fs": {
+    "sdm": 1.9,
+    "vco": 24.0,
+    "ref_common": 0.0,
+    "pfd_slice": 4.3,
+    "cp": 14.9,
+    "cp_offset": 3.6,
+    "cp_flicker": 11.8,
+    "ref_flicker": 6.2,
+    "out_floor": 7.7
+   }
+  },
+  {
+   "case": "M=4, CP noise -3 dB",
+   "jitter_fs": 31.05014637235378,
+   "fom": -256.2848287004311,
+   "components_fs": {
+    "sdm": 7.8,
+    "vco": 24.0,
+    "ref_common": 0.0,
+    "pfd_slice": 4.5,
+    "cp": 11.0,
+    "cp_offset": 3.8,
+    "cp_flicker": 8.7,
+    "ref_flicker": 6.2,
+    "out_floor": 7.7
+   }
+  },
+  {
+   "case": "M=4, VCO -3 dB",
+   "jitter_fs": 29.543425191822713,
+   "fom": -256.7168848381003,
+   "components_fs": {
+    "sdm": 7.8,
+    "vco": 17.0,
+    "ref_common": 0.0,
+    "pfd_slice": 4.5,
+    "cp": 15.5,
+    "cp_offset": 3.8,
+    "cp_flicker": 12.3,
+    "ref_flicker": 6.2,
+    "out_floor": 7.7
+   }
+  },
+  {
+   "case": "M=4, ref doubler off (80 MHz PFD)",
+   "jitter_fs": 54.79604236066158,
+   "fom": -251.35111788188664,
+   "components_fs": {
+    "sdm": 38.4,
+    "vco": 24.0,
+    "ref_common": 0.0,
+    "pfd_slice": 6.4,
+    "cp": 21.9,
+    "cp_offset": 5.3,
+    "cp_flicker": 17.4,
+    "ref_flicker": 6.2,
+    "out_floor": 7.8
+   }
+  }
+ ],
+ "checks": [
+  {
+   "check": "D0 PSEL/carry arithmetic + weights M=2",
+   "result": "PASS",
+   "measured": {
+    "coarse_error_identity": true,
+    "effective_modulus_identity": true,
+    "weighted_edge_equals_fine_sdm": true,
+    "weights": [
+     0.5,
+     0.5
+    ]
+   },
+   "expected": "weights [0.5, 0.5]",
+   "note": "slide 8/10/11"
+  },
+  {
+   "check": "D0 PSEL/carry arithmetic + weights M=4",
+   "result": "PASS",
+   "measured": {
+    "coarse_error_identity": true,
+    "effective_modulus_identity": true,
+    "weighted_edge_equals_fine_sdm": true,
+    "weights": [
+     0.5,
+     0.25,
+     0.25
+    ]
+   },
+   "expected": "weights [0.5, 0.25, 0.25]",
+   "note": "slide 8/10/11"
+  },
+  {
+   "check": "D0 PSEL/carry arithmetic + weights M=8",
+   "result": "PASS",
+   "measured": {
+    "coarse_error_identity": true,
+    "effective_modulus_identity": true,
+    "weighted_edge_equals_fine_sdm": true,
+    "weights": [
+     0.5,
+     0.25,
+     0.125,
+     0.125
+    ]
+   },
+   "expected": "weights [0.5, 0.25, 0.125, 0.125]",
+   "note": "slide 8/10/11"
+  },
+  {
+   "check": "D0 slide 12: DSM spread 4T (conv) -> ~2T (M=4)",
+   "result": "PASS",
+   "measured": "3.91T -> 1.72T",
+   "expected": "4T -> 2T",
+   "note": "coarse (MMD) edge peak-to-peak"
+  },
+  {
+   "check": "D1 VCO L(1MHz)@9.5GHz from slide-27 markers vs slide 28",
+   "result": "PASS",
+   "measured": -126.43,
+   "expected": -126.59,
+   "note": "dBc/Hz"
+  },
+  {
+   "check": "D1 VCO FoM",
+   "result": "PASS",
+   "measured": 194.27,
+   "expected": 194.3,
+   "note": "dB"
+  },
+  {
+   "check": "D1 VCO FoM_T",
+   "result": "PASS",
+   "measured": 200.29,
+   "expected": 200.23,
+   "note": "dB (20% TR)"
+  },
+  {
+   "check": "D1 PLL FoM (33.8 fs, 24.4 mW)",
+   "result": "PASS",
+   "measured": -255.55,
+   "expected": -255.5,
+   "note": "dB"
+  },
+  {
+   "check": "D1 PLL FoM w/ spur (37.7 fs)",
+   "result": "PASS",
+   "measured": -254.6,
+   "expected": -254.6,
+   "note": "dB"
+  },
+  {
+   "check": "D1 FoM_N uses f_ref = 80 MHz (XO, not 160 MHz)",
+   "result": "PASS",
+   "measured": -276.3,
+   "expected": -276.3,
+   "note": "dB"
+  },
+  {
+   "check": "D1 jitter w/ spur consistent with the -70.9 dBc spur",
+   "result": "PASS",
+   "measured": 36.43,
+   "expected": 37.686,
+   "note": "fs (one spur pair only; residual = other spurs)"
+  },
+  {
+   "check": "D2 sim jitter (10k-100M) vs measured 33.78 fs",
+   "result": "PASS",
+   "measured": 34.01,
+   "expected": 33.782,
+   "note": "fs, joint-fit parameters"
+  },
+  {
+   "check": "D2 sim PN vs 10 measured markers",
+   "result": "PASS",
+   "measured": 0.89,
+   "expected": "<1 dB rms",
+   "note": ""
+  },
+  {
+   "check": "D2 M=1 prediction vs digitised w/o-multipath trace",
+   "result": "PASS",
+   "measured": 0.84,
+   "expected": "<1.5 dB rms",
+   "note": "digitisation +-1.5 dB"
+  },
+  {
+   "check": "D2 sim vs analytic jitter",
+   "result": "PASS",
+   "measured": 34.01,
+   "expected": 33.87,
+   "note": "fs"
+  },
+  {
+   "check": "D3 Q-noise reduction M=4 (slide 29: 0.25X)",
+   "result": "PASS",
+   "measured": -12.08,
+   "expected": -12.04,
+   "note": "dB"
+  },
+  {
+   "check": "D4 measured frac-spur curve explained by 0.5%(3sigma) slice mismatch",
+   "result": "PASS",
+   "measured": "12/12 inside",
+   "expected": ">=75% of points",
+   "note": "MC 10-90% band +-1 dB; spur at VCO/2"
+  },
+  {
+   "check": "D4 in-band spur level within MC 5-95% for 3sigma=0.5%",
+   "result": "PASS",
+   "measured": -72.5,
+   "expected": "[-89.4, -64.8]",
+   "note": "dBc @VCO/2, mean of in-band points"
+  },
+  {
+   "check": "D4 slide 13: folded in-band noise from mismatch ~ -127 dBc/Hz",
+   "result": "PASS",
+   "measured": -126.2,
+   "expected": "<= -127 (+3 dB)",
+   "note": "dBc/Hz at 9.5 GHz, worst of 8 draws"
+  },
+  {
+   "check": "D5 (1) retimers remove MUX/CK-Q mismatch",
+   "result": "PASS",
+   "measured": -143.8,
+   "expected": "<= ideal -143.8+1",
+   "note": "dBc @VCO/2"
+  },
+  {
+   "check": "D5 (2) fixed propagation mismatch gives no spur",
+   "result": "PASS",
+   "measured": -143.8,
+   "expected": "<= ideal -143.8+1",
+   "note": "dBc @VCO/2"
+  },
+  {
+   "check": "D6 SC offset is quieter than a bleed-current offset",
+   "result": "PASS",
+   "measured": 30.4,
+   "expected": "< 76.9",
+   "note": "fs per edge"
+  },
+  {
+   "check": "D6 measured -101 dBc ref spur needs the sampled SC offset (bleed ripple far larger)",
+   "result": "PASS",
+   "measured": {
+    "bleed": -84.0,
+    "sc_skew20ps": -118.0
+   },
+   "expected": "bleed > -101 > SC",
+   "note": "dBc; Kvco/Icp are assumptions"
+  }
+ ],
+ "runtime_s": 39.073691844940186
+}

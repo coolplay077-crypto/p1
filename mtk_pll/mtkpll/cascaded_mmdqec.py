@@ -57,6 +57,9 @@ import numpy as np
 from numba import njit
 from scipy import signal
 
+# Default noise / loop values are the ones fitted in run_isscc25_19p2.py (C3) to
+# the paper's Fig. 19.2.5 calculated curves; they are assumptions, not data.
+
 from . import common as C
 
 ALPHA_MIN, ALPHA_MAX = -3, 4  # MASH 1-1-1 output range
@@ -82,8 +85,8 @@ class CascParams:
     # ---------------------------------------------------------------- main loop
     icp: float = 1.0e-3
     kvco: float = 200e6              # Hz/V (assumed)
-    fc: float = 1.6e6                # open-loop unity-gain frequency
-    pm: float = 60.0                 # phase margin [deg]
+    fc: float = 1.53e6               # open-loop unity-gain frequency (C3 fit; paper BW2 = 1.6 MHz)
+    pm: float = 72.4                 # phase margin [deg] (C3 fit)
     p3_ratio: float = 0.0            # 0 -> 2nd-order passive LF as drawn in Fig. 19.2.2
     c3_ratio: float = 0.1
     n_design: float = 14.0           # division ratio used for the LF design (fixed LF)
@@ -91,18 +94,18 @@ class CascParams:
     # ---------------------------------------------------------------- aux PLL
     aux_bw: float = 10e6             # aux SPLL closed-loop -3 dB BW
     aux_zeta: float = 0.707
-    aux_vco_L1M: float | None = -108.0   # aux VCO (after /2, at f_aux) L(1 MHz), 1/f^2
-    aux_inband: float | None = -120.0    # SPD/divider in-band floor at f_aux [dBc/Hz]
-    aux_flicker: float = 30e3            # 1/f corner of the in-band floor
+    aux_vco_L1M: float | None = -115.2   # aux VCO (after /2, at f_aux) L(1 MHz), 1/f^2 (C3 fit)
+    aux_inband: float | None = -131.4    # SPD/divider in-band white floor at f_aux [dBc/Hz] (C3 fit)
+    aux_flicker: float = 1.05e6          # 1/f corner of the in-band floor (C3 fit)
     ref_floor: float | None = -165.0     # reference floor at f_ref [dBc/Hz]
     aux_mmd_jit: float = 0.0             # aux MMD output jitter rms [s] (white)
     main_mmd_jit: float = 0.0            # main MMD output jitter rms [s] (white)
     # ---------------------------------------------------------------- main CP / VCO noise
-    cp_tn: float | None = 3.0e-17        # CP input-referred timing noise [s/sqrt(Hz)], white
-    cp_flicker: float = 30e3             # 1/f corner of the CP noise
-    vco_L1M: float | None = -119.0       # main VCO L(1 MHz) at f_out, 1/f^2
-    vco_f3: float = 40e3                 # 1/f^3 corner
-    out_floor: float | None = None       # white floor at the output [dBc/Hz] (not fed back)
+    cp_tn: float | None = 1.98e-17       # CP input-referred timing noise [s/sqrt(Hz)], white (C3 fit)
+    cp_flicker: float = 6.75e5           # 1/f corner of the CP noise (C3 fit)
+    vco_L1M: float | None = -120.1       # main VCO L(1 MHz) at f_out, 1/f^2 (C3 fit)
+    vco_f3: float = 2.43e4               # 1/f^3 corner (C3 fit)
+    out_floor: float | None = -148.2     # white floor at the output [dBc/Hz] (not fed back; C3 fit)
     # ---------------------------------------------------------------- simulation
     os: int = 2
     n_cyc: int = 2 ** 21
@@ -286,7 +289,7 @@ def _fold(S_func, fs, nz=4):
 
 def aux_L_components(p: CascParams, f, bw=None):
     """Aux-PLL output phase noise components at f_aux [linear L, 1/Hz]."""
-    f = np.asarray(f, float)
+    f = np.maximum(np.abs(np.asarray(f, float)), 1.0)
     Ha2 = np.abs(H_aux(p, f, bw)) ** 2
     out = {}
     if p.ref_floor is not None:
@@ -413,11 +416,13 @@ def pn_stitched(res, f_split=3e5, nperseg_hi=2 ** 16, dec=64):
     fs = res["fs"]
     f_hi, L_hi = C.phase_noise(th, fs, nperseg=nperseg_hi)
     th1 = th[p.os - 1:: p.os]
-    x = th1
+    x = th1 - np.linspace(th1[0], th1[-1], len(th1))     # remove drift before filtering
     d_left = dec
     while d_left > 1:
         q = 8 if d_left >= 8 else d_left
-        x = signal.decimate(x, q, ftype="fir", zero_phase=True)
+        # Kaiser-windowed polyphase anti-alias filter (stop-band ~ -100 dB) so that
+        # strong noise above the new Nyquist does not alias into the low band
+        x = signal.resample_poly(x, 1, q, window=("kaiser", 10.0))
         d_left //= q
     fs_lo = p.f_pfd / dec
     nps = int(min(2 ** 14, 2 ** int(math.floor(math.log2(len(x) / 4)))))
@@ -438,28 +443,30 @@ def jitter(res_or_f, L=None, f1=1e3, f2=1e8, f_carrier=None):
 # ----------------------------------------------------------------------------
 # Linear analytic model
 # ----------------------------------------------------------------------------
-def q_noise_transfer(p: CascParams, f):
-    """|G(f)|^2: accumulated MASH error E/Q -> PFD timing error (VCO cycles).
-    Includes DSM-to-MMD latency mismatch:
-      G(z) = [(Nm+a) (z^-lat_m - z^-lat_a) * (1-z^-1)^-1 ... ]
-    implemented exactly from r = [-(Nm-Na) E + (Nm Q+K)(Y_m - Y_a)] / (Na Q + K)."""
-    a = p.alpha
-    zinv = np.exp(-2j * np.pi * np.asarray(f, float) / p.f_pfd)
-    if not p.qec:
-        return np.abs(zinv ** p.lat_m) ** 2 * np.ones_like(np.asarray(f, float))
-    # E_m = z^-lat_m E (delayed MMD control <-> delayed accumulated error)
-    # r = [ (Nm+a) * E_m - (Nm+a)... ] derive: c*K*(Nm-Na) + Ym*(NaQ+K) - Ya*(NmQ+K)
-    #   = (Na+a) * (Ym Q - cK) - (Nm+a) * (Ya Q - cK)   (all /Q)
-    # -> r = [ (Na+a) z^-lat_m - (Nm+a) z^-lat_a ] E/Q / (Na+a)
-    G = ((p.Na + a) * zinv ** p.lat_m - (p.Nm + a) * zinv ** p.lat_a) / (p.Na + a)
-    return np.abs(G) ** 2
-
-
 def q_noise_cycles_psd(p: CascParams, f):
     """One-sided PSD [cycles^2/Hz] of the MASH 1-1-1 accumulated error E/Q
     (uniform white e3, var 1/12, shaped by (1-z^-1)^2)."""
     f = np.asarray(f, float)
     return (1 / 12) * (2 / p.f_pfd) * np.abs(2 * np.sin(np.pi * f / p.f_pfd)) ** 4
+
+
+def q_total_cycles_psd(p: CascParams, f):
+    """PSD [cycles^2/Hz] of the DSM-driven PFD timing error: accumulated
+    Q-error through G(z) PLUS the linear modulus-dependent MMD delay mismatch,
+    which is driven by the same MASH error e3 and therefore adds coherently:
+        r = [G(z) (1-z^-1)^2 + (k_m z^-lat_m - k_a z^-lat_a)/T_vco (1-z^-1)^3] e3."""
+    f = np.asarray(f, float)
+    zinv = np.exp(-2j * np.pi * f / p.f_pfd)
+    a = p.alpha
+    if p.qec:
+        G = ((p.Na + a) * zinv ** p.lat_m - (p.Nm + a) * zinv ** p.lat_a) / (p.Na + a)
+        kap = (p.mmd_kappa_m * zinv ** p.lat_m - p.mmd_kappa_a * zinv ** p.lat_a) / p.t_vco
+    else:
+        G = zinv ** p.lat_m
+        kap = p.mmd_kappa_m * zinv ** p.lat_m / p.t_vco
+    d = 1 - zinv
+    T = G * d ** 2 + kap * d ** 3
+    return (1 / 12) * (2 / p.f_pfd) * np.abs(T) ** 2
 
 
 def analytic_pn(f, p: CascParams, include_q=True):
@@ -487,13 +494,7 @@ def analytic_pn(f, p: CascParams, include_q=True):
     if p.out_floor is not None:
         out["out_floor"] = np.full_like(f, p.out_floor)
     if include_q:
-        Sq = q_noise_cycles_psd(p, f) * q_noise_transfer(p, f)
-        out["q"] = 10 * np.log10((2 * math.pi) ** 2 * Sq * H2 / 2 + 1e-300)
-    kap = (p.mmd_kappa_m - (p.mmd_kappa_a if p.qec else 0.0))
-    if kap != 0:
-        # y-alpha = (1-z^-1)^3 e3 -> |2 sin|^6
-        Sy = (1 / 12) * (2 / p.f_pfd) * np.abs(2 * np.sin(np.pi * f / p.f_pfd)) ** 6
-        out["mmd_delay"] = 10 * np.log10(wv2 * kap ** 2 * Sy * H2 / 2 + 1e-300)
+        out["q"] = 10 * np.log10((2 * math.pi) ** 2 * q_total_cycles_psd(p, f) * H2 / 2 + 1e-300)
     tot = sum(10 ** (v / 10) for v in out.values())
     out["total"] = 10 * np.log10(tot)
     return out
@@ -506,7 +507,7 @@ def group_components(A):
              cp=lin.get("cp", 0.0),
              vco=lin.get("vco", 0.0) + lin.get("out_floor", 0.0),
              q=lin.get("q", 0.0),
-             other=sum(lin.get(k, 0) for k in ("aux_mmd", "main_mmd", "mmd_delay")))
+             other=sum(lin.get(k, 0) for k in ("aux_mmd", "main_mmd")))
     return g
 
 

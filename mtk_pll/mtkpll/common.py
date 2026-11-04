@@ -200,6 +200,18 @@ def rms_jitter(f, L_db, f_carrier, f1, f2):
     return float(math.sqrt(var) / (2 * math.pi * f_carrier))
 
 
+def rms_jitter_logint(f, L_db, f_carrier, f1, f2, n=6000):
+    """RMS jitter [s] integrating L(f) on a log grid from exactly f1 to f2 (log-log interpolation
+    of the given PSD), avoiding the bin-edge bias of rms_jitter on coarse Welch grids."""
+    f = np.asarray(f, float)
+    ok = f > 0
+    lf, lL = np.log10(f[ok]), np.asarray(L_db, float)[ok]
+    g = np.logspace(math.log10(f1), math.log10(f2), n)
+    Lg = np.interp(np.log10(g), lf, lL)
+    var = 2 * np.trapezoid(10 ** (Lg / 10), g)
+    return float(math.sqrt(var) / (2 * math.pi * f_carrier))
+
+
 def spur_dbc(theta_cycles, fs, f_spur, search_bins=3):
     """Single-sideband spur level [dBc] of a tone in the excess phase.
 

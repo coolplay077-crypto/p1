@@ -1,9 +1,12 @@
 # MTK PLL 量化噪声抵消（QNC）行为级 Python 模型
 
-报告：[../docs/MTK_PLL_QNC_Python复现与非理想分析.md](../docs/MTK_PLL_QNC_Python复现与非理想分析.md)
+报告：
+- [../docs/ISSCC2025_19.3_MTK多路径反馈PLL_复现与专利核对.md](../docs/ISSCC2025_19.3_MTK多路径反馈PLL_复现与专利核对.md)（主报告）
+- [../docs/MTK_PLL_QNC_Python复现与非理想分析.md](../docs/MTK_PLL_QNC_Python复现与非理想分析.md)（专利理论、ISSCC 2008）
 
 | 模型 | 来源 | 代码 | 实验脚本 |
 |---|---|---|---|
+| **多路径反馈小数分频 PLL（实测标定）** | **ISSCC 2025 paper 19.3（MediaTek）** | `mtkpll/multipath19p3.py` | `run_isscc25_19p3.py` |
 | 切片电荷泵小数分频 PLL（sliced CP + 整数 T_VCO DTC + 重定时） | US 11,509,315 B2（MediaTek） | `mtkpll/sliced_cp.py` | `run_sliced_cp.py` |
 | 小数分频 ADPLL（CTDC + 环路增益校准 + 数字相噪抵消） | ISSCC 2008 paper 10.1（MediaTek） | `mtkpll/adpll2008.py` | `run_adpll2008.py` |
 
@@ -13,6 +16,10 @@
 
 ```bash
 pip install -r requirements.txt
+```
+
+```bash
+python3 run_isscc25_19p3.py   # 约 20 s，输出 results/isscc25_19p3_results.json + D*.png（检查分 arith/consistency/validation 三类）
 ```
 
 ```bash

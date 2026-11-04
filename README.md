@@ -14,11 +14,10 @@ python3 research/verify_invariants.py
 
 ---
 
-# MTK PLL 量化噪声抵消（QNC）Python 复现
+# MediaTek ISSCC 2025 19.3 多路径反馈 PLL：Python 复现与专利 US 11,509,315 核对
 
-对 MediaTek 两份资料做行为级复现、非理想因素分析和设计注意项评估：US 11,509,315 B2 切片电荷泵小数分频 PLL，以及 ISSCC 2008 10.1 ADPLL。
-
-- **报告：** [docs/MTK_PLL_QNC_Python复现与非理想分析.md](docs/MTK_PLL_QNC_Python复现与非理想分析.md)
+- **主报告：** [docs/ISSCC2025_19.3_MTK多路径反馈PLL_复现与专利核对.md](docs/ISSCC2025_19.3_MTK多路径反馈PLL_复现与专利核对.md)，包括复现验证、与专利的逐项核对、非理想因素和设计注意项。
+- **前期报告（专利切片 CP 理论 + ISSCC 2008 ADPLL）：** [docs/MTK_PLL_QNC_Python复现与非理想分析.md](docs/MTK_PLL_QNC_Python复现与非理想分析.md)
 - **模型与脚本：** [mtk_pll/](mtk_pll/)，结果在 `mtk_pll/results/`
 
 ```bash
@@ -26,5 +25,5 @@ cd mtk_pll && pip install -r requirements.txt
 ```
 
 ```bash
-python3 run_sliced_cp.py && python3 run_adpll2008.py
+python3 run_isscc25_19p3.py
 ```

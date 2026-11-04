@@ -1,0 +1,10 @@
+worst-case settling (5 K_DTC starts x 4 channels x 2 seeds, 50 mV Gm offset)
+  paper (no NLC)           K_DTC  41.6 us   DCC  29.8 us
+  fg LUT only              K_DTC  38.3 us   DCC  29.3 us
+  hybrid, g2 on at 0 us    K_DTC  69.9 us   DCC  55.4 us
+  hybrid, g2 on at 50 us   K_DTC  38.3 us   DCC  29.3 us
+hybrid worst fractional spur at 20 / 100 / 400 kHz (dBc), seed 17
+  paper      g2 on at   0 us: -78.1 / -73.5 / -71.8
+  paper      g2 on at  50 us: -78.3 / -73.8 / -71.8
+  small_cfix g2 on at   0 us: -81.5 / -75.7 / -80.2
+  small_cfix g2 on at  50 us: -82.1 / -78.8 / -79.3

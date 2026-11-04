@@ -11,3 +11,7 @@
 ```bash
 python3 research/verify_invariants.py
 ```
+
+## 相关子项目
+
+- **Wu 2019 JSSC 采样 PLL 复刻与混合 DTC 非线性校准设计：** [wu2019_spll/](wu2019_spll/)。交接说明见 [wu2019_spll/docs/HANDOFF.md](wu2019_spll/docs/HANDOFF.md)，设计报告见 [wu2019_spll/docs/design_report_hybrid_nlc.md](wu2019_spll/docs/design_report_hybrid_nlc.md)。

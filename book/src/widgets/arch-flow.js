@@ -184,6 +184,8 @@
           g.pos[id] = { x: ox + u * sx, y: oy + v * sy, w: bw, h: bh, cx: ox + u * sx + bw / 2, cy: oy + v * sy + bh / 2 };
         }
         const P = g.pos;
+        // the integration block is taller: it also hosts the verdict badge (wide: grows upwards, narrow: downwards)
+        { const q = P.integ; q.h += 30; if (!narrow) q.y -= 30; q.cy = q.y + q.h / 2; if (narrow) g.VH += 30; }
         const cc = (id) => [P[id].cx, P[id].cy];
         const straight = (a, b) => [cc(a), cc(b)];
         const elbow = (a, b, viaA) => { const A = cc(a), B = cc(b); return [A, viaA ? [B[0], A[1]] : [A[0], B[1]], B]; };
@@ -258,7 +260,7 @@
           g.appendChild(W.s('rect', { class: 'bg', x: p.x, y: p.y, width: p.w, height: p.h, rx: 10, style: `fill:${isSel ? 'var(--accent-wash)' : 'var(--surface-2)'};stroke:${stroke};stroke-width:${faulty || isSel ? 2.6 : 1.3}` }));
           const lines = T[id].l;
           const n = lines[0].length;
-          const lh = 14, y0 = p.cy - ((n - 1) * lh) / 2 + 4;
+          const lh = 14, area = id === 'integ' ? p.h - 30 : p.h, y0 = p.y + area / 2 - ((n - 1) * lh) / 2 + 4;
           for (let i = 0; i < n; i++) {
             g.appendChild(W.sL(lines[0][i], lines[1][i], { x: p.cx, y: y0 + i * lh, 'text-anchor': 'middle', style: `font-size:${S.narrow ? 10.5 : 11.5}px;fill:var(--fg);font-weight:${i === 0 ? 650 : 500}` }));
           }
@@ -268,11 +270,10 @@
           }
           if (id === 'integ') {
             badge = W.s('g');
-            const by = p.y + p.h + 6;
+            const by = p.y + p.h - 31;
             const col = V.out === 'FINE' ? 'var(--good)' : V.out === 'COARSE' ? 'var(--warning)' : 'var(--critical)';
-            badge.appendChild(W.s('rect', { x: p.x, y: by, width: p.w, height: 26, rx: 13, style: `fill:${col};fill-opacity:.2;stroke:${col};stroke-width:2` }));
-            badge.appendChild(W.s('text', { x: p.cx, y: by + 17.5, 'text-anchor': 'middle', style: 'fill:var(--fg);font-size:13px;font-weight:700' }, V.out));
-            badge.appendChild(W.sL('→ 相位误差', '→ phase error', { x: p.cx, y: by + 40, 'text-anchor': 'middle', style: 'font-size:10px' }));
+            badge.appendChild(W.s('rect', { x: p.x + 8, y: by, width: p.w - 16, height: 24, rx: 12, style: `fill:${col};fill-opacity:.22;stroke:${col};stroke-width:2` }));
+            badge.appendChild(W.s('text', { x: p.cx, y: by + 16.5, 'text-anchor': 'middle', style: 'fill:var(--fg);font-size:12.5px;font-weight:700' }, '→ ' + V.out));
             g.appendChild(badge);
           }
           svg.appendChild(g);

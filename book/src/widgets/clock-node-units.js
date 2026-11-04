@@ -13,7 +13,7 @@
   const CSS = `
 .cn-tblw { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); margin-top: 10px; }
 .cn-tbl { width: 100%; border-collapse: collapse; font-size: .76rem; font-variant-numeric: tabular-nums; margin: 0; }
-.cn-tbl th, .cn-tbl td { padding: 4px 8px; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; }
+.cn-tbl th, .cn-tbl td { padding: 4px 6px; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; }
 .cn-tbl th:first-child, .cn-tbl td:first-child { text-align: left; }
 .cn-tbl th { background: var(--surface-2); font-weight: 650; position: static; }
 .cn-tbl tr:last-child td { border-bottom: 0; }
@@ -229,11 +229,11 @@
         tbl.appendChild(W.h('thead', null, W.h('tr', null,
           W.h('th', null, W.L('若 CK₀ =', 'If CK₀ =')),
           W.h('th', null, 'f (GHz)'), W.h('th', null, 'T (ps)'),
-          W.h('th', null, W.L('q 权重 (N0 周期)', 'q weight (N0 cyc.)')),
-          W.h('th', null, W.L('C 权重 (N0 周期)', 'C weight (N0 cyc.)')),
+          W.h('th', null, W.L('q 权重(N0)', 'q wt (N0)')),
+          W.h('th', null, W.L('C 权重(N0)', 'C wt (N0)')),
           W.h('th', null, 'FCW'),
-          W.h('th', null, `μ = ${S.dt}ps/T`),
-          W.h('th', null, W.L('八相间距 (本行 T₀)', '8-ph. spacing (row T₀)')))));
+          W.h('th', null, `μ=${S.dt}ps/T`),
+          W.h('th', null, W.L('八相间距/T₀', '8-ph. gap/T₀')))));
         const tb = W.h('tbody');
         for (const nd of m.nodes) {
           tb.appendChild(W.h('tr', { class: nd.i === S.ck0 ? 'sel' : '' },

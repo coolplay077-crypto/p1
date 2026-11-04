@@ -150,9 +150,9 @@
         const rowsDef = ['clk', 'slow', 'cmd', 'hit', 'en', 'out', 'rcpt'];
         const RH = 20, GAP = 15, TOP = 24;
         const Y = {}; rowsDef.forEach((k, i) => { Y[k] = TOP + i * (RH + GAP) + RH / 2; });
-        const VH = TOP + rowsDef.length * (RH + GAP) + 28;
+        const VH = TOP + rowsDef.length * (RH + GAP) + 52;
         const svg = W.svg(VW, VH);
-        const gridTop = 10, gridBot = VH - 22;
+        const gridTop = 10, gridBot = VH - 50;
         for (let k = Math.ceil(t0); k <= t1; k++) {
           const wrap = k % M === 0;
           svg.appendChild(W.s('line', { x1: x(k), x2: x(k), y1: gridTop, y2: gridBot, class: 'grid', style: wrap ? 'stroke:var(--axis)' : '' }));
@@ -216,11 +216,11 @@
         const vmark = (t, color, zh, en, dy = 0, anchor = 'start', dash = true) => {
           if (t < t0 || t > t1) return;
           svg.appendChild(W.s('line', { x1: x(t), x2: x(t), y1: gridTop, y2: gridBot, style: `stroke:${color};stroke-width:1.8${dash ? ';stroke-dasharray:5 3' : ''}` }));
-          svg.appendChild(W.sL(zh, en, { x: x(t) + (anchor === 'end' ? -3 : 3), y: VH - 8 + dy, 'text-anchor': anchor, style: `font-size:10px;fill:${color};font-weight:700` }));
+          svg.appendChild(W.sL(zh, en, { x: x(t) + (anchor === 'end' ? -3 : 3), y: VH - 9 + dy, 'text-anchor': anchor, style: `font-size:10px;fill:${color};font-weight:700` }));
         };
         vmark(m.Jplan, 'var(--sig-plan)', 't_target = J_plan', 't_target = J_plan', 0, 'start', false);
-        vmark(m.tArrive, 'var(--sig-ref)', 't_arrive', 't_arrive', 0, 'end');
-        if (S.setup + S.guard > 0 || m.late) vmark(m.tNeed, m.late ? 'var(--sig-err)' : 'var(--good-ink)', 't_arrive+setup+guard', 't_arrive+setup+guard', 0, m.tNeed < m.Jplan ? 'end' : 'start');
+        vmark(m.tArrive, 'var(--sig-ref)', 't_arrive', 't_arrive', -13, 'end');
+        if (S.setup + S.guard > 0 || m.late) vmark(m.tNeed, m.late ? 'var(--sig-err)' : 'var(--good-ink)', 't_arrive+setup+guard', 't_arrive+setup+guard', -26, 'start');
         W.clear(svgHost).appendChild(svg);
         // Eq. 16/17 live
         const f = (v) => W.fmt(v, 1);

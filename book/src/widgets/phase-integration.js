@@ -25,10 +25,10 @@
 .pi-card .kv { display: flex; justify-content: space-between; gap: 8px; font-variant-numeric: tabular-nums; }
 .pi-card .kv span:first-child { color: var(--muted); font-family: var(--mono); font-size: .72rem; }
 .pi-h { margin: 14px 0 6px; font-size: .8rem; font-weight: 700; color: var(--fg); }
-.pi-two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: start; }
-@media (max-width: 760px) { .pi-two { grid-template-columns: minmax(0, 1fr); } }
-.pi-code { margin: 0; padding: 8px 0; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); font-family: var(--mono); font-size: .74rem; line-height: 1.55; overflow-x: auto; }
-.pi-code .ln { display: flex; gap: 8px; padding: 0 10px; white-space: pre; border-left: 3px solid transparent; }
+.pi-two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); gap: 14px; align-items: start; }
+.pi-two > div { min-width: 0; overflow-x: auto; }
+.pi-code { margin: 0; min-width: 0; padding: 8px 0; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); font-family: var(--mono); font-size: .74rem; line-height: 1.55; overflow-x: auto; }
+.pi-code .ln { display: flex; gap: 8px; padding: 0 10px; white-space: pre-wrap; word-break: break-word; border-left: 3px solid transparent; }
 .pi-code .ln .no { color: var(--muted); width: 1.4em; text-align: right; user-select: none; }
 .pi-code .ln.run { background: var(--accent-wash); border-left-color: var(--accent); }
 .pi-code .ln.done { color: var(--fg); }
@@ -265,7 +265,7 @@
         const g1x = 118;
         ins.forEach(([n, ok], i) => {
           lamp(12, ys[i], ok);
-          svg.appendChild(W.s('text', { x: 24, y: ys[i] + 4, class: 'mono', style: 'font-size:11px;fill:var(--fg)' }, n));
+          svg.appendChild(W.s('text', { x: 24, y: ys[i] + 4, class: 'mono', style: 'font-size:12px;fill:var(--fg)' }, n));
           wire(84, ys[i], g1x, ys[i], ok);
         });
         body(g1x, 8, 152, m.Fusable);

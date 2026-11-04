@@ -163,7 +163,8 @@ function tex(src, display) {
  */
 function preprocess(md, ctx) {
   const ph = [];
-  const put = (html) => `@@P${ph.push(html) - 1}@@`;
+  // placeholders use private-use characters (not Markdown punctuation) so emphasis next to them still parses
+  const put = (html) => `\uE000${ph.push(html) - 1}\uE001`;
   const out = [];
   const parts = md.split(/(^```[\s\S]*?^```\s*$)/m);
   for (let pi = 0; pi < parts.length; pi++) {
@@ -206,8 +207,8 @@ function preprocess(md, ctx) {
   let text = out.join('');
   text = linkGlossary(text, ctx, put);
   const restore = (html) => {
-    html = html.replace(/<p>@@P(\d+)@@<\/p>/g, (_, i) => ph[+i]);
-    for (let k = 0; k < 3; k++) html = html.replace(/@@P(\d+)@@/g, (_, i) => ph[+i]);
+    html = html.replace(/<p>\uE000(\d+)\uE001<\/p>/g, (_, i) => ph[+i]);
+    for (let k = 0; k < 3; k++) html = html.replace(/\uE000(\d+)\uE001/g, (_, i) => ph[+i]);
     return html;
   };
   return { text, restore };
@@ -222,7 +223,7 @@ function linkSec(m, prefix, n, put) {
 // Wrap the first occurrence of each glossary term per section (outside placeholders/code).
 function linkGlossary(text, ctx, put) {
   const terms = glossary.terms || [];
-  if (!terms.length) return text;
+  if (!terms.length || ctx.noTerms) return text;
   const lines = text.split('\n');
   let inFence = false;
   for (let li = 0; li < lines.length; li++) {
@@ -236,9 +237,9 @@ function linkGlossary(text, ctx, put) {
       const aliases = [loc.term, ...(loc.aliases || [])].filter(Boolean).sort((a, b) => b.length - a.length);
       for (const a of aliases) {
         const isAscii = /^[\x20-\x7e]+$/.test(a);
-        const re = new RegExp((isAscii ? '(^|[^A-Za-z0-9_@`/-])(' : '()(') + a.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + (isAscii ? ')(?![A-Za-z0-9_])' : ')'));
+        const re = new RegExp((isAscii ? '(^|[^A-Za-z0-9_\uE000\uE001`/-])(' : '()(') + a.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + (isAscii ? ')(?![A-Za-z0-9_])' : ')'));
         // only search text outside code spans and placeholders
-        const segs = line.split(/(`[^`]+`|@@P\d+@@)/);
+        const segs = line.split(/(`[^`]+`|\uE000\d+\uE001)/);
         let done = false;
         for (let si = 0; si < segs.length && !done; si += 2) {
           const mm = segs[si].match(re);
@@ -270,7 +271,7 @@ function plainText(md) {
 }
 
 function renderTitle(raw, ctx) {
-  const pre = preprocess(stripNum(raw), { ...ctx, usedTerms: new Set(['*all*']), eqs: [] });
+  const pre = preprocess(stripNum(raw), { ...ctx, usedTerms: new Set(), noTerms: true, eqs: [] });
   return pre.restore(mdit.renderInline(pre.text));
 }
 
